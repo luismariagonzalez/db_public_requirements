@@ -26,6 +26,7 @@ prioridad 1-5, y se copian como Markdown o JSON para pasárselos al agente.
   `GEMINI_MODEL` (por defecto `gemini-3.8-flash`; Google retira modelos: `gemini-2.5-flash` ya da 404) / `GEMINI_EMBED_MODEL` (`gemini-embedding-001`). En `~/.secretos/home.env` esa
   clave se llama `supabase_admin_secret_key` (es la `sb_secret_…`); los scripts de semilla la
   mapean solos (`scripts/gemini_env.mjs`), pero en Vercel hay que crearla con el nombre `SUPABASE_SECRET_KEY`.
+- **Dónde vive en producción:** la app se sirve desde la home, en `https://joderestatodocogido.com/proyectos/requirements-db/app/` (la home la reescribe a este proyecto de Vercel, `db-public-requirements.vercel.app`, igual que otros proyectos suyos). Por eso: (1) la web calcula su base con `new URL('./', location.href)` y TODAS las rutas de la API son relativas a ella, sin `/api/…` absolutos; (2) `PUBLIC_BASE_URL` (en Vercel: `https://joderestatodocogido.com/proyectos/requirements-db/app`) fija la URL que se le da al agente, y la API cuelga de ella (`{base}/api/v1/…`); (3) en esa URL el navegador está en `joderestatodocogido.com`, así que Clerk usa la clave de producción (`pk_live_…`) y no hace falta subdominio.
 - **Cupos** (`lib/entrada.mjs`): anónimo 20/min y 300/día por IP-hash; API key 120/min y
   10 000/día; sesión 60/min y 3 000/día; aportes 10/día por persona y 200/día global; y un
   tope global de embeddings de consulta. Viven en la tabla `cupo` (serverless no tiene

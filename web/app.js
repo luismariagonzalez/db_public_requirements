@@ -4,6 +4,10 @@ import { rutaBusqueda, hayFiltro, urlSegura, GRUPOS, ESTADOS, categoriasEfectiva
 import { entrar, salir, token, usuario, cargarClerk, huboSesion, marcarSesion } from './clerk.js';
 
 const $ = (s) => document.querySelector(s);
+// Dónde está montada la app: en la raíz del despliegue ('') o colgando de otra web, p. ej.
+// /proyectos/requirements-db/app (la home la sirve con una reescritura). Las rutas de la
+// API ('/api/v1/…') se cuelgan de ahí, así que todo es relativo y funciona en los dos sitios.
+const BASE = new URL('./', location.href).pathname.replace(/\/$/, '');
 const estado = { q: '', prio: 5, cats: [], audiencias: [], dominios: [], filtroCat: '', items: [], sel: new Set(), categorias: [],
   incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false };
 let sesion = false;
@@ -33,7 +37,7 @@ async function api(metodo, ruta, cuerpo, conSesion = false) {
     const t = await token().catch(() => null);
     if (t) cab.authorization = `Bearer ${t}`;
   }
-  const r = await fetch(ruta, { method: metodo, headers: cab, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
+  const r = await fetch(BASE + ruta, { method: metodo, headers: cab, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
   const ct = r.headers.get('content-type') ?? '';
   const datos = ct.includes('json') ? await r.json().catch(() => ({})) : await r.text();
   if (!r.ok) {
@@ -191,7 +195,7 @@ $('#copiarMd').addEventListener('click', async () => {
   } catch (e) { avisar(msgError(e)); }
 });
 $('#copiarUrl').addEventListener('click', () =>
-  copiar(location.origin + rutaBusqueda({ ...consulta(), formato: 'md' })));
+  copiar(location.origin + BASE + rutaBusqueda({ ...consulta(), formato: 'md' })));
 $('#q').addEventListener('input', (e) => { estado.q = e.target.value; buscarConRetraso(); });
 $('#prio').addEventListener('change', (e) => { estado.prio = Number(e.target.value); buscar(); });
 $('#incTests').addEventListener('change', (e) => { estado.incluirTests = e.target.checked; buscar(); });
@@ -406,7 +410,7 @@ $('#borrarTodo').addEventListener('click', async () => {
 
 // ── arranque
 $('#ejemploCurl').textContent =
-  `curl "${location.origin}/api/v1/requirements?category=messaging&max_priority=2&include=tests,accelerators&format=md"`;
+  `curl "${location.origin}${BASE}/api/v1/requirements?category=messaging&max_priority=2&include=tests,accelerators&format=md"`;
 (async () => {
   try {
     estado.categorias = (await api('GET', '/api/v1/categories')).categories;
