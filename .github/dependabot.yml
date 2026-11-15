@@ -1,0 +1,23 @@
+# Dependabot: un PR cuando una dependencia tiene un fallo de seguridad conocido
+# o una versión nueva. Agrupado por semana para que no sean veinte PR sueltos.
+# Las alertas de seguridad hay que activarlas también en el repo:
+# Settings → Code security → Dependabot alerts y Dependabot security updates.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dependencias:
+        patterns: ['*']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      acciones:
+        patterns: ['*']

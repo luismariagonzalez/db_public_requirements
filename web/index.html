@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Requirements DB · what your app must do, ready for your coding agent</title>
+<meta name="description" content="A public, community-curated database of software requirements, tests and accelerators by app type and concern, with priorities 1-5. Search, pick, and paste them to your AI coding agent.">
+<link rel="stylesheet" href="./estilo.css">
+</head>
+<body>
+<header class="barra">
+  <div class="marca"><strong>Requirements DB</strong><span>what your app must do</span></div>
+  <nav>
+    <a href="#api">API</a>
+    <button id="btnCuenta" type="button">Sign in</button>
+  </nav>
+</header>
+
+<main>
+  <section class="intro">
+    <h1>Don't let your agent forget the boring essentials.</h1>
+    <p>Pick the requirements for your kind of app — with the tests that prove them and the libraries that speed them up —
+       and paste them to your coding agent. They say <em>what</em> the app must do, never <em>where</em> it goes.
+       Layout and placement stay your agent's call.</p>
+  </section>
+
+  <section id="buscador" aria-labelledby="t-buscar">
+    <h2 id="t-buscar" class="oculto">Search requirements</h2>
+    <div class="fila">
+      <input id="q" type="search" placeholder="Search by meaning: “users can recover access”, “rate limiting”…" maxlength="300" autocomplete="off" aria-label="Search">
+      <label class="prio">Priority up to
+        <select id="prio">
+          <option value="1">P1 · essential</option>
+          <option value="2">P2 · + expected</option>
+          <option value="3">P3 · + recommended</option>
+          <option value="4">P4 · + nice to have</option>
+          <option value="5" selected>P5 · everything</option>
+        </select>
+      </label>
+    </div>
+    <div class="fila opciones">
+      <label class="check"><input type="checkbox" id="incTests"> Include tests</label>
+      <label class="check"><input type="checkbox" id="incAcel"> Include accelerators (libraries &amp; services)</label>
+    </div>
+    <div id="barraProyecto" class="fila opciones" hidden>
+      <label class="prio">Project
+        <select id="proyecto"><option value="">— none —</option></select>
+      </label>
+      <label class="check"><input type="checkbox" id="ocultarHecho"> Hide what I already did</label>
+    </div>
+    <div class="fila opciones">
+      <input id="filtroCat" type="search" placeholder="Filter software categories: CRM, payroll, LMS, booking…" maxlength="60" autocomplete="off" aria-label="Filter software categories">
+    </div>
+    <div id="grupos" class="grupos" aria-label="Categories"></div>
+  </section>
+
+  <section id="resultados" aria-live="polite">
+    <div class="acciones" id="acciones" hidden>
+      <span id="cuenta"></span>
+      <button id="selTodo" type="button">Select all</button>
+      <button id="selNada" type="button">Clear</button>
+      <button id="copiarMd" type="button" class="primario" disabled>Copy for your agent</button>
+      <button id="copiarUrl" type="button">Copy API URL</button>
+    </div>
+    <div class="acciones" id="accionesProyecto" hidden>
+      <span class="tenue">Mark the selected in the project as</span>
+      <select id="estadoProyecto" aria-label="Status"></select>
+      <button id="marcar" type="button" disabled>Apply</button>
+    </div>
+    <p id="estado" class="tenue"></p>
+    <ul id="lista" class="lista"></ul>
+  </section>
+
+  <section id="proyectos" hidden aria-labelledby="t-proy">
+    <h2 id="t-proy">My projects</h2>
+    <p class="tenue">Track which requirements, tests and accelerators you implemented in each app, so next time you only pick what is new.
+       Your agent can update this too (see <a href="#api">API</a>).</p>
+    <div class="fila">
+      <input id="proyNombre" type="text" maxlength="80" placeholder="New project name, e.g. “Acme chat”" aria-label="Project name">
+      <button id="proyCrear" type="button" class="primario">Create project</button>
+    </div>
+    <ul id="listaProyectos" class="lista simple"></ul>
+  </section>
+
+  <section id="aportar" hidden aria-labelledby="t-aportar">
+    <h2 id="t-aportar">Contribute a requirement</h2>
+    <p class="tenue">Describe something an app should do, in any language. An AI reviews it: it checks it is a real requirement,
+       whether it already exists (then it merges or declines), and strips anything about screens or layout.</p>
+    <textarea id="aporteTexto" rows="4" maxlength="4000" placeholder="e.g. Users must be able to block another user so they stop receiving their messages."></textarea>
+    <label class="check"><input type="checkbox" id="aporteLicencia"> I have the right to submit this and I agree to the <a href="./terms.html">Content Terms</a>, including the licence I grant the project over my contribution.</label>
+    <button id="aporteEnviar" type="button" class="primario">Send for review</button>
+    <div id="aporteResultado" class="resultado" hidden></div>
+    <h3>My contributions</h3>
+    <ul id="misAportes" class="lista simple"></ul>
+  </section>
+
+  <section id="sugerencias" hidden aria-labelledby="t-sug">
+    <h2 id="t-sug">Suggest something</h2>
+    <p class="tenue">A missing test or accelerator, a requirement that could be better, or something wrong? A person reviews every suggestion.
+       Use “Suggest” on any result to point at it.</p>
+    <div class="fila">
+      <select id="sugTipo" aria-label="Kind">
+        <option value="improvement">Improve something</option>
+        <option value="new_item">Add something new</option>
+        <option value="report">Report a problem</option>
+      </select>
+      <input id="sugObjetivo" type="text" maxlength="120" placeholder="About (slug, optional) — e.g. password-reset-by-email-link" aria-label="Slug it is about">
+      <select id="sugObjetivoTipo" aria-label="Type of item">
+        <option value="requirement">requirement</option>
+        <option value="test">test</option>
+        <option value="accelerator">accelerator</option>
+        <option value="general">general</option>
+      </select>
+    </div>
+    <textarea id="sugTexto" rows="3" maxlength="1500" placeholder="What should change, and why?"></textarea>
+    <button id="sugEnviar" type="button" class="primario">Send suggestion</button>
+    <h3>My suggestions</h3>
+    <ul id="misSugerencias" class="lista simple"></ul>
+  </section>
+
+  <section id="claves" hidden aria-labelledby="t-claves">
+    <h2 id="t-claves">API keys</h2>
+    <p class="tenue">Keys raise your rate limit and let your agent read, update your projects and send suggestions. Keep them secret: they are shown only once.</p>
+    <div class="fila">
+      <input id="claveNombre" type="text" maxlength="60" placeholder="Name, e.g. “my Claude Code”" aria-label="Key name">
+      <button id="claveCrear" type="button" class="primario">Create key</button>
+    </div>
+    <div id="claveNueva" class="resultado" hidden></div>
+    <ul id="listaClaves" class="lista simple"></ul>
+    <p><button id="borrarTodo" type="button" class="peligro">Delete my data</button></p>
+  </section>
+
+  <section id="api" aria-labelledby="t-api">
+    <h2 id="t-api">Use it from your agent</h2>
+    <p>Public and rate limited (20 requests/minute without a key). Responses are JSON, or ready-to-paste Markdown with <code>format=md</code>,
+       which ends with instructions telling your agent to record, in your project, what is done and what is still pending.</p>
+<pre><code id="ejemploCurl">curl "https://&lt;this-site&gt;/api/v1/requirements?category=messaging&amp;max_priority=2&amp;include=tests,accelerators&amp;format=md"</code></pre>
+    <p class="tenue">Priority scale: <strong>P1</strong> essential (broken or unsafe without it) · <strong>P2</strong> expected ·
+      <strong>P3</strong> recommended · <strong>P4</strong> nice to have · <strong>P5</strong> differentiator. Priority is per category.</p>
+    <ul class="tenue">
+      <li>Read: <code>/api/v1/categories</code>, <code>/api/v1/requirements</code>, <code>/api/v1/tests</code>, <code>/api/v1/accelerators</code> (and <code>/:slug</code>)</li>
+      <li>With a key (<code>Authorization: Bearer rq_…</code>): <code>/api/v1/projects</code>, <code>PUT /api/v1/projects/:id/items</code>, <code>POST /api/v1/suggestions</code>;
+          add <code>project=&lt;id&gt;</code> to a search to see what you already did and <code>hide=done</code> to skip it</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <a href="./legal.html">Legal notice &amp; privacy</a> · <a href="./terms.html">Content Terms</a> · Code MIT
+</footer>
+<div id="aviso" class="aviso" role="status" hidden></div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

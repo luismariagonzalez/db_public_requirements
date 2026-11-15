@@ -1,0 +1,15 @@
+# Postgres local para ensayar las migraciones (npm run db:ensayar). El mismo
+# que levanta el CI. Puerto 5433 para no chocar con otro Postgres de la máquina.
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: db_public_requirements
+      POSTGRES_PASSWORD: db_public_requirements
+      POSTGRES_DB: db_public_requirements
+    ports: ['127.0.0.1:5433:5432']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U db_public_requirements -d db_public_requirements']
+      interval: 2s
+      timeout: 5s
+      retries: 30

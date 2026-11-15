@@ -1,0 +1,24 @@
+node_modules/
+*.log
+
+# Secretos. Nunca al repositorio.
+.env
+.env.*
+!.env.ejemplo
+
+# Lo que produce el build
+publico/
+
+# Borradores intermedios de la semilla (lo revisable es semilla/requisitos/)
+semilla/borrador/
+
+# Contenido generado y copias de trabajo: no van al repo público (ver LICENSE-DATA.md)
+semilla/requisitos/
+semilla/tests/
+semilla/aceleradores/
+semilla/antes_de_recalibrar/
+
+# Taxonomía de software importada de Capterra (se regenera con scripts/importar_capterra.mjs)
+semilla/capterra_bruto.json
+semilla/categorias_software.json
+semilla/aceleradores_primera_pasada.json

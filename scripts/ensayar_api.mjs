@@ -1,0 +1,282 @@
+#!/usr/bin/env node
+// Ensayo de la API de punta a punta contra el Postgres LOCAL (nunca la compartida).
+//
+//   npm run db:up && npm run db:ensayar && npm run api:ensayar
+//
+// Levanta un «Supabase falso» (REST /rest/v1/rpc/<función>) que reenvía a Postgres
+// como service_role, y el handler REAL de api/[...ruta].js detrás de un servidor
+// HTTP. Gemini y Clerk no entran: sin GEMINI_API_KEY la búsqueda cae a solo texto
+// (que es justo el modo degradado) y la sesión de Clerk se cubre con API keys.
+
+import { createServer } from 'node:http';
+import assert from 'node:assert/strict';
+import { randomBytes } from 'node:crypto';
+import { levantar } from './supabase_falso.mjs';
+
+const falso = await levantar();   // fija SUPABASE_URL y SUPABASE_SECRET_KEY hacia el Postgres local
+process.env.IP_SALT = randomBytes(8).toString('hex');
+delete process.env.GEMINI_API_KEY;
+delete process.env.CLERK_PUBLISHABLE_KEY;
+
+const { default: handler } = await import('../api/[...ruta].js');
+const { rpc } = await import('../lib/bd.mjs');
+const { hashKey } = await import('../lib/auth.mjs');
+
+const api = createServer((req, res) => handler(req, res)).listen(0, '127.0.0.1');
+await new Promise((ok) => api.once('listening', ok));
+const BASE = `http://127.0.0.1:${api.address().port}`;
+
+let ip = 0;
+async function pedir(metodo, ruta, { key, cuerpo, ipFija } = {}) {
+  const r = await fetch(BASE + ruta, {
+    method: metodo,
+    headers: { 'x-real-ip': ipFija ?? `10.0.0.${++ip}`, ...(key ? { authorization: `Bearer ${key}` } : {}),
+               ...(cuerpo ? { 'content-type': 'application/json' } : {}) },
+    body: cuerpo ? JSON.stringify(cuerpo) : undefined,
+  });
+  const texto = await r.text();
+  let json; try { json = JSON.parse(texto); } catch { json = null; }
+  return { estado: r.status, json, texto, cab: r.headers };
+}
+
+const fallos = [];
+async function prueba(nombre, fn) {
+  try { await fn(); console.log(`  ✓ ${nombre}`); }
+  catch (e) { fallos.push(nombre); console.log(`  ✗ ${nombre}\n      ${String(e.message).split('\n').join('\n      ')}`); }
+}
+console.log('');
+
+// ── datos de partida (por el mismo camino que usa la semilla)
+for (const [slug, tipo, nombre, orden] of [['messaging', 'app_type', 'Messaging app', 10], ['security', 'cross_cutting', 'Security', 10]])
+  await rpc('upsert_categoria', { p_slug: slug, p_tipo: tipo, p_nombre: nombre, p_descripcion: '', p_orden: orden });
+// Jerarquía: audiencias → dominios → categorías (messaging cuelga de «app-archetypes» y sirve a b2b)
+const cat = (slug, tipo, nombre, orden, dominio = null, audiencias = null) =>
+  rpc('upsert_categoria', { p_slug: slug, p_tipo: tipo, p_nombre: nombre, p_descripcion: '', p_orden: orden, p_dominio: dominio, p_audiencias: audiencias });
+await cat('b2b', 'audience', 'B2B', 10); await cat('b2c', 'audience', 'B2C', 20);
+await cat('app-archetypes', 'domain', 'Common app types', 10); await cat('finance-accounting', 'domain', 'Finance & Accounting', 20);
+await cat('messaging', 'app_type', 'Messaging app', 10, 'app-archetypes', ['b2b']);
+await cat('accounting-software', 'software_category', 'Accounting', 10, 'finance-accounting', ['b2b']);
+await cat('crm-software', 'software_category', 'CRM', 20, 'finance-accounting', ['b2c']);
+await rpc('crear_requisito', { p_titulo: 'Password reset by email link', p_enunciado: 'Users who forgot their password can reset it through a single-use link sent by email.',
+  p_criterios: ['The link expires', 'The link works only once'], p_clase: 'security',
+  p_categorias: [{ slug: 'messaging', priority: 1 }, { slug: 'security', priority: 2 }], p_vec: null, p_autor: null, p_aporte_id: null, p_slug: 'password-reset-by-email-link' });
+await rpc('crear_requisito', { p_titulo: 'Typing indicator', p_enunciado: 'Participants of a conversation can see when another participant is typing.',
+  p_criterios: [], p_clase: 'functional', p_categorias: [{ slug: 'messaging', priority: 4 }], p_vec: null, p_autor: null, p_aporte_id: null, p_slug: 'typing-indicator' });
+await rpc('crear_test', { p_titulo: 'Reset link works only once', p_escenario: 'Request a reset, use the link, use it again: the second use is refused.',
+  p_tipo: 'integration', p_prioridad: 1, p_requisitos: ['password-reset-by-email-link'], p_vec: null, p_autor: null, p_slug: 'reset-link-works-only-once' });
+await rpc('crear_acelerador', { p_nombre: 'Lucia Auth', p_descripcion: 'Open source authentication library with password reset flows.', p_modelo: 'open_source',
+  p_coste: 'free', p_url: 'https://example.com/lucia', p_plataformas: ['javascript'],
+  p_requisitos: [{ slug: 'password-reset-by-email-link', coverage: 'full' }], p_vec: null, p_autor: null, p_slug: 'lucia-auth' });
+
+const KEY = 'rq_' + randomBytes(24).toString('base64url');
+await rpc('crear_key', { p_sub: 'user_e2e_' + process.env.IP_SALT, p_nombre: 'ensayo', p_prefijo: KEY.slice(0, 10), p_hash: hashKey(KEY) });
+const KEY_OTRA = 'rq_' + randomBytes(24).toString('base64url');
+await rpc('crear_key', { p_sub: 'user_otra_' + process.env.IP_SALT, p_nombre: 'otra', p_prefijo: KEY_OTRA.slice(0, 10), p_hash: hashKey(KEY_OTRA) });
+
+// ── lectura pública
+await prueba('GET /api/v1/categories', async () => {
+  const r = await pedir('GET', '/api/v1/categories');
+  assert.equal(r.estado, 200);
+  assert.ok(r.json.categories.some((c) => c.slug === 'messaging'));
+  assert.equal(r.cab.get('access-control-allow-origin'), '*');
+});
+
+await prueba('requisitos: filtro de categoría y prioridad, texto, JSON con mensaje al agente', async () => {
+  const r = await pedir('GET', '/api/v1/requirements?category=messaging&max_priority=2');
+  assert.equal(r.estado, 200);
+  assert.deepEqual(r.json.requirements.map((x) => x.slug), ['password-reset-by-email-link']);
+  assert.match(r.json.agent_message, /track progress in the project roadmap/);
+  assert.match(r.json.agent_message, /<project_id>/);
+  assert.ok(r.cab.get('x-ratelimit-remaining-minute'));
+  const t = await pedir('GET', '/api/v1/requirements?q=typing');   // sin Gemini: solo texto
+  assert.equal(t.json.requirements[0].slug, 'typing-indicator');
+  assert.equal(t.cab.get('x-search-mode'), 'text-only');
+});
+
+await prueba('requisitos en Markdown con tests, aceleradores y mensaje al agente', async () => {
+  const r = await pedir('GET', '/api/v1/requirements?category=messaging&max_priority=2&format=md&include=tests,accelerators');
+  assert.equal(r.estado, 200);
+  assert.match(r.cab.get('content-type'), /markdown/);
+  assert.match(r.texto, /Decisions about screens, layout, placement and UI are yours/);
+  assert.match(r.texto, /\(P1\) Password reset by email link/);
+  assert.match(r.texto, /Test \(P1 · integration\)/);
+  assert.match(r.texto, /## Accelerators/);
+  assert.match(r.texto, /\*\*Lucia Auth\*\* \(open source · free\)/);
+  assert.match(r.texto, /PUT http:\/\/127\.0\.0\.1:\d+\/api\/v1\/projects\/<project_id>\/items/);
+});
+
+await prueba('detalle de requisito, test y acelerador', async () => {
+  const r = await pedir('GET', '/api/v1/requirements/password-reset-by-email-link');
+  assert.equal(r.json.tests[0].slug, 'reset-link-works-only-once');
+  assert.equal(r.json.accelerators[0].slug, 'lucia-auth');
+  assert.equal((await pedir('GET', '/api/v1/tests/reset-link-works-only-once')).json.priority, 1);
+  assert.equal((await pedir('GET', '/api/v1/accelerators/lucia-auth')).json.model, 'open_source');
+  assert.equal((await pedir('GET', '/api/v1/requirements/no-existe-nada')).estado, 404);
+});
+
+await prueba('listados de tests y aceleradores con filtros', async () => {
+  assert.equal((await pedir('GET', '/api/v1/tests?category=messaging&max_priority=1')).json.count, 1);
+  assert.equal((await pedir('GET', '/api/v1/tests?type=e2e')).json.count, 0);
+  assert.equal((await pedir('GET', '/api/v1/accelerators?model=open_source&platform=javascript')).json.count, 1);
+  assert.equal((await pedir('GET', '/api/v1/accelerators?model=saas')).json.count, 0);
+});
+
+await prueba('parámetros inválidos → 400; ruta desconocida → 404; método → 405', async () => {
+  assert.equal((await pedir('GET', '/api/v1/requirements?max_priority=9')).estado, 400);
+  assert.equal((await pedir('GET', '/api/v1/tests?type=magia')).estado, 400);
+  assert.equal((await pedir('GET', '/api/v1/accelerators?model=gratis')).estado, 400);
+  assert.equal((await pedir('GET', '/api/v1/nada')).estado, 404);
+  const m = await pedir('DELETE', '/api/v1/requirements');
+  assert.equal(m.estado, 405); assert.match(m.cab.get('allow'), /GET/);
+});
+
+// ── jerarquía
+await prueba('audiencias y dominios se expanden a sus categorías', async () => {
+  const t = await pedir('GET', '/api/v1/categories?type=audience,domain');
+  assert.equal(t.estado, 200);
+  assert.deepEqual(t.json.categories.map((c) => c.slug).sort(), ['app-archetypes', 'b2b', 'b2c', 'finance-accounting']);
+  const m = (await pedir('GET', '/api/v1/categories?q=accounting-soft')).json.categories;
+  assert.deepEqual(m.map((c) => c.slug), ['accounting-software']);
+  assert.equal(m[0].domain, 'finance-accounting'); assert.deepEqual(m[0].audiences, ['b2b']);
+
+  const b2b = await pedir('GET', '/api/v1/requirements?category=b2b');                      // messaging sirve a b2b
+  assert.deepEqual(b2b.json.requirements.map((x) => x.slug).sort(), ['password-reset-by-email-link', 'typing-indicator']);
+  const dom = await pedir('GET', '/api/v1/requirements?category=app-archetypes');           // …y cuelga de ese dominio
+  assert.equal(dom.json.count, 2);
+  const cruce = await pedir('GET', '/api/v1/requirements?category=b2b,app-archetypes');     // audiencia Y dominio
+  assert.equal(cruce.json.count, 2);
+  const vacio = await pedir('GET', '/api/v1/requirements?category=b2c');                    // ninguna hoja de b2c tiene requisitos: vacío, NO todo
+  assert.equal(vacio.json.count, 0);
+  const noCruza = await pedir('GET', '/api/v1/requirements?category=b2b,finance-accounting'); // finanzas no tiene requisitos
+  assert.equal(noCruza.json.count, 0);
+  assert.equal((await pedir('GET', '/api/v1/requirements?category=no-existe-esta')).estado, 400);
+  assert.equal((await pedir('GET', '/api/v1/tests?category=b2b')).json.count, 1);
+  assert.equal((await pedir('GET', '/api/v1/accelerators?category=b2c')).json.count, 0);
+  assert.equal((await pedir('GET', '/api/v1/categories?type=magia')).estado, 400);
+  const md = await pedir('GET', '/api/v1/requirements?category=b2b&format=md&max_priority=2');
+  assert.match(md.texto, /## Messaging app/);
+});
+
+// ── export
+await prueba('POST /export', async () => {
+  const r = await pedir('POST', '/api/v1/export', { cuerpo: { slugs: ['typing-indicator'], format: 'md' } });
+  assert.equal(r.estado, 200); assert.match(r.texto, /Typing indicator/);
+  assert.equal((await pedir('POST', '/api/v1/export', { cuerpo: { slugs: [] } })).estado, 400);
+  assert.equal((await pedir('POST', '/api/v1/export', { cuerpo: { slugs: ['x'.repeat(5) + '!'] } })).estado, 400);
+});
+
+// ── cupo anónimo: 20 por minuto
+await prueba('el cupo anónimo corta con 429 y Retry-After', async () => {
+  const mismaIp = '203.0.113.7';
+  let ultimo;
+  for (let i = 0; i < 22; i++) ultimo = await pedir('GET', '/api/v1/categories', { ipFija: mismaIp });
+  assert.equal(ultimo.estado, 429);
+  assert.ok(Number(ultimo.cab.get('retry-after')) >= 1);
+  // otra IP no se ve afectada
+  assert.equal((await pedir('GET', '/api/v1/categories')).estado, 200);
+});
+
+// ── autenticación
+await prueba('Bearer inválido → 401; sin cuenta no hay proyectos', async () => {
+  assert.equal((await pedir('GET', '/api/v1/categories', { key: 'rq_inventada' })).estado, 401);
+  assert.equal((await pedir('GET', '/api/v1/projects')).estado, 401);
+  assert.equal((await pedir('POST', '/api/v1/suggestions', { cuerpo: { text: 'something helpful to say' } })).estado, 401);
+  assert.equal((await pedir('POST', '/api/me/keys', { key: KEY, cuerpo: { name: 'x' } })).estado, 401);   // las keys no gestionan keys
+});
+
+// ── proyectos
+let proyecto;
+await prueba('crear proyecto con API key y recibir el mensaje al agente', async () => {
+  const r = await pedir('POST', '/api/v1/projects', { key: KEY, cuerpo: { name: 'Mi app de chat', categories: ['messaging'] } });
+  assert.equal(r.estado, 201);
+  proyecto = r.json.id;
+  assert.match(r.json.agent_message, new RegExp(`projects/${proyecto}/items`));
+  assert.equal((await pedir('POST', '/api/v1/projects', { key: KEY, cuerpo: { name: 'mi APP de chat' } })).estado, 409);
+  assert.equal((await pedir('POST', '/api/v1/projects', { key: KEY, cuerpo: { name: '' } })).estado, 400);
+});
+
+await prueba('el agente marca el estado de requisitos, tests y aceleradores', async () => {
+  const r = await pedir('PUT', `/api/v1/projects/${proyecto}/items`, { key: KEY, cuerpo: { items: [
+    { type: 'requirement', slug: 'password-reset-by-email-link', status: 'done' },
+    { type: 'requirement', slug: 'typing-indicator', status: 'planned', note: 'next sprint' },
+    { type: 'test', slug: 'reset-link-works-only-once', status: 'in_progress' },
+    { type: 'accelerator', slug: 'lucia-auth', status: 'done' },
+    { type: 'requirement', slug: 'no-existe-nada', status: 'done' },
+  ] } });
+  assert.equal(r.estado, 200);
+  assert.equal(r.json.updated, 4);
+  assert.deepEqual(r.json.unknown, ['requirement:no-existe-nada']);
+  const p = await pedir('GET', `/api/v1/projects/${proyecto}`, { key: KEY });
+  assert.deepEqual(p.json.counts, { done: 2, in_progress: 1, planned: 1, skipped: 0 });
+  const l = await pedir('GET', '/api/v1/projects', { key: KEY });
+  assert.equal(l.json.projects[0].counts.done, 2);
+});
+
+await prueba('validaciones de items', async () => {
+  const mal = (items) => pedir('PUT', `/api/v1/projects/${proyecto}/items`, { key: KEY, cuerpo: { items } });
+  assert.equal((await mal([{ type: 'requirement', slug: 'typing-indicator', status: 'hecho' }])).estado, 400);
+  assert.equal((await mal([{ type: 'magia', slug: 'typing-indicator', status: 'done' }])).estado, 400);
+  assert.equal((await mal([])).estado, 400);
+  assert.equal((await pedir('PUT', `/api/v1/projects/${proyecto}/items`, { key: KEY, cuerpo: { nada: 1 } })).estado, 400);
+});
+
+await prueba('otra cuenta no ve ni toca el proyecto (404)', async () => {
+  assert.equal((await pedir('GET', `/api/v1/projects/${proyecto}`, { key: KEY_OTRA })).estado, 404);
+  assert.equal((await pedir('PUT', `/api/v1/projects/${proyecto}/items`, { key: KEY_OTRA, cuerpo: { items: [{ type: 'requirement', slug: 'typing-indicator', status: 'done' }] } })).estado, 404);
+  assert.equal((await pedir('DELETE', `/api/v1/projects/${proyecto}`, { key: KEY_OTRA })).estado, 404);
+  assert.equal((await pedir('GET', `/api/v1/requirements?project=${proyecto}`, { key: KEY_OTRA })).estado, 404);
+  assert.equal((await pedir('GET', `/api/v1/requirements?project=${proyecto}`)).estado, 401);
+});
+
+await prueba('buscar con el proyecto: anota el estado y oculta lo hecho', async () => {
+  const r = await pedir('GET', `/api/v1/requirements?category=messaging&project=${proyecto}`, { key: KEY });
+  const por = Object.fromEntries(r.json.requirements.map((x) => [x.slug, x.project_status]));
+  assert.deepEqual(por, { 'password-reset-by-email-link': 'done', 'typing-indicator': 'planned' });
+  const h = await pedir('GET', `/api/v1/requirements?category=messaging&project=${proyecto}&hide=done`, { key: KEY });
+  assert.deepEqual(h.json.requirements.map((x) => x.slug), ['typing-indicator']);
+  const md = await pedir('GET', `/api/v1/requirements?category=messaging&project=${proyecto}&format=md&include=tests`, { key: KEY });
+  assert.match(md.texto, /- \[x\] \*\*\(P1\) Password reset/);
+  assert.match(md.texto, /_\(project: planned\)_/);
+  assert.match(md.texto, new RegExp(`projects/${proyecto}/items`));
+  assert.match(md.texto, /belong to the user's project "Mi app de chat"/);
+  const t = await pedir('GET', `/api/v1/tests?project=${proyecto}`, { key: KEY });
+  assert.equal(t.json.tests[0].project_status, 'in_progress');
+});
+
+await prueba('instrucciones al agente', async () => {
+  const sin = await pedir('GET', '/api/v1/agent-instructions');
+  assert.equal(sin.estado, 200); assert.match(sin.texto, /POST .*\/api\/v1\/projects/);
+  const con = await pedir('GET', `/api/v1/agent-instructions?project=${proyecto}`, { key: KEY });
+  assert.match(con.texto, new RegExp(`id ${proyecto}`));
+});
+
+// ── sugerencias
+await prueba('sugerencias: crear, listar, objetivo inexistente, validación', async () => {
+  const ok = await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { kind: 'improvement', target_type: 'requirement',
+    target: 'typing-indicator', text: 'It should also cover group conversations with several people.' } });
+  assert.equal(ok.estado, 201);
+  assert.equal((await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { text: 'A requirement about message retention.', kind: 'new_item' } })).estado, 201);
+  assert.equal((await pedir('GET', '/api/v1/suggestions', { key: KEY })).json.suggestions.length, 2);
+  assert.equal((await pedir('GET', '/api/v1/suggestions', { key: KEY_OTRA })).json.suggestions.length, 0);
+  assert.equal((await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { target: 'no-existe-nada', text: 'This target does not exist at all.' } })).estado, 400);
+  assert.equal((await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { text: 'corto' } })).estado, 400);
+  assert.equal((await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { kind: 'x', text: 'A perfectly fine suggestion text.' } })).estado, 400);
+});
+
+await prueba('borrar el proyecto', async () => {
+  assert.equal((await pedir('DELETE', `/api/v1/projects/${proyecto}`, { key: KEY })).estado, 200);
+  assert.equal((await pedir('GET', `/api/v1/projects/${proyecto}`, { key: KEY })).estado, 404);
+});
+
+// ── solo sesión
+await prueba('aportar y gestionar keys exigen sesión de Clerk (una key no vale)', async () => {
+  assert.equal((await pedir('POST', '/api/contribute', { key: KEY, cuerpo: { text: 'Users can block other users.', accept_terms: true } })).estado, 401);
+  assert.equal((await pedir('GET', '/api/me/keys', { key: KEY })).estado, 401);
+  assert.equal((await pedir('DELETE', '/api/me', { key: KEY })).estado, 401);
+  assert.equal((await pedir('GET', '/api/v1/categories', { key: KEY })).cab.get('access-control-allow-origin'), '*');
+  assert.equal((await pedir('GET', '/api/me/contributions')).cab.get('access-control-allow-origin'), null);   // sin CORS abierto
+});
+
+api.close(); await falso.cerrar();
+console.log(fallos.length ? `\n  ${fallos.length} fallo(s).\n` : '\n  API ensayada de punta a punta.\n');
+process.exit(fallos.length ? 1 : 0);

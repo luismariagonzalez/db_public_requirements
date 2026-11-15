@@ -1,0 +1,81 @@
+# Las comprobaciones. NO despliega: de eso se encarga Vercel solo, con su
+# integración de Git (push a main → producción, rama o PR → preview).
+#
+# Aquí va lo que Vercel no sabe mirar: que el código haga lo que dice (tests),
+# que las migraciones apliquen y cumplan el contrato de la base compartida,
+# que no haya dependencias con fallos conocidos y que no se publique un secreto.
+#
+# Un fallo aquí sale en rojo en el commit pero NO impide que Vercel publique.
+# Para que lo impida, mira AGENTS.md § Despliegue.
+
+name: verificar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'   # los lunes, por si sale un fallo en una dependencia sin que nadie toque el repo
+
+permissions:
+  contents: read
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: db_public_requirements
+          POSTGRES_PASSWORD: db_public_requirements
+          POSTGRES_DB: db_public_requirements
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U db_public_requirements -d db_public_requirements"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      # IPv4 explícita: «localhost» resuelve a ::1 primero y el reenvío del
+      # contenedor corta la conexión con un ECONNRESET que no explica nada.
+      DATABASE_URL: postgres://db_public_requirements:db_public_requirements@127.0.0.1:5433/db_public_requirements
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Dependencias sin fallos de seguridad graves
+        run: npm run auditar
+
+      - name: Tests
+        run: npm test
+
+      - name: Migraciones ensayadas y contrato de la base
+        run: npm run db:ensayar
+
+      # La API real contra ese Postgres (con un Supabase falso delante): rutas,
+      # cupos, proyectos, mensaje al agente. Sin Gemini ni Clerk.
+      - name: API de punta a punta
+        run: npm run api:ensayar
+
+      # El sitio tiene que construirse SIN credenciales: en un fork, en un PR de
+      # fuera y en local nadie las tiene, y aun así debe salir algo servible.
+      - name: El sitio se construye sin credenciales
+        run: |
+          node scripts/construir.mjs
+          test -f publico/index.html || (echo "::error::No hay index.html" && exit 1)
+
+      # La red de seguridad que de verdad importa: que no se publique un secreto.
+      - name: No se publica ningún secreto
+        run: |
+          test ! -e publico/.env || (echo "::error::Se ha colado el .env" && exit 1)
+          if grep -rIl "sb_secret_\|service_role\|sk_live_\|sk_test_" publico/ 2>/dev/null | grep .; then
+            echo "::error::Hay una clave secreta en lo que se iba a publicar"
+            exit 1
+          fi
