@@ -231,3 +231,22 @@ main:not(#browse) h2 { font-size: 18px; font-weight: 500; margin-top: 32px; }
 main:not(#browse) p, main:not(#browse) li { color: var(--dim); }
 main:not(#browse) a { color: var(--acc); text-decoration: underline; text-underline-offset: 2px; }
 main:not(#browse) strong { color: var(--txt); font-weight: 500; }
+
+/* ── idioma: conmutador EN | ES y bloques por idioma de las páginas estáticas */
+html[lang="en"] .es { display: none; }
+html[lang="es"] .en { display: none; }
+.idiomas { display: inline-flex; border: 1px solid var(--l2); border-radius: 8px; overflow: hidden; }
+.idiomas button { font: 12px var(--mono); padding: 4px 10px; min-height: 28px; background: none; border: 0; color: var(--dim); cursor: pointer; }
+.idiomas button[aria-pressed="true"] { background: var(--acc); color: var(--bg); }
+.cab-est { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 8px; color: var(--dim); }
+.cab-est .idiomas { margin-left: auto; }
+.pasos b { font-weight: 400; }
+.comando.sin-borde { border: 0; }
+/* ── documentación del CLI */
+.doc-cli h2 { margin-top: 36px; }
+.doc-cli table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 8px 0 16px; }
+.doc-cli th, .doc-cli td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--l1); }
+.doc-cli th { font: 11px var(--mono); color: var(--faint); text-transform: uppercase; letter-spacing: .08em; font-weight: 400; }
+.doc-cli td:first-child { white-space: nowrap; font-family: var(--mono); font-size: 12.5px; color: var(--txt); }
+.doc-cli pre.comando { margin: 8px 0 16px; }
+.doc-cli code { font-family: var(--mono); font-size: .92em; color: var(--txt); }

@@ -9,10 +9,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="./estilo.css">
+<script type="module" src="./pagina.js"></script>
 </head>
 <body>
 <main>
-  <p><a href="./index.html">← Back</a></p>
+  <header class="cab-est">
+    <a href="./index.html"><span class="en">← Back</span><span class="es">← Volver</span></a>
+    <span class="idiomas" role="group" aria-label="Language / Idioma"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="es" aria-pressed="false">ES</button></span>
+  </header>
+
+<div class="en">
   <h1>Legal notice &amp; privacy</h1>
 
   <h2>Who runs this</h2>
@@ -29,6 +35,7 @@
     <li><strong>Projects and suggestions:</strong> the project names and the status you set on requirements, tests and accelerators, and the text of your suggestions,
         with your account identifier, until you delete them.</li>
     <li><strong>API keys:</strong> only a hash of each key, its name and last-use time, until you revoke or delete them.</li>
+    <li><strong>The command-line tool</strong> (<a href="./cli.html">reqdb</a>) stores your API key in a file on your own computer; nothing about it is stored by us beyond the key hash above.</li>
   </ul>
 
   <h2>Your rights</h2>
@@ -50,7 +57,52 @@
   <p>The typefaces (Geist) are loaded from Google Fonts, which means your browser contacts Google to fetch them.</p>
 
   <h2>Cookies</h2>
-  <p>No tracking cookies. The sign-in service (Clerk) sets the technical cookies needed to keep your session, only if you sign in.</p>
+  <p>No tracking cookies. The sign-in service (Clerk) sets the technical cookies needed to keep your session, only if you sign in.
+     The language you pick is remembered in your browser (local storage), not sent anywhere.</p>
+</div>
+
+<div class="es">
+  <h1>Aviso legal y privacidad</h1>
+
+  <h2>Quién lo gestiona</h2>
+  <p>Requirements DB es un proyecto personal y sin ánimo de lucro de Luis María González. Contacto: los datos de contacto de
+     <a href="https://joderestatodocogido.com">joderestatodocogido.com</a>.</p>
+
+  <h2>Qué se guarda, para qué y durante cuánto tiempo</h2>
+  <ul>
+    <li><strong>Leer sin cuenta:</strong> sin cuenta y sin cookies. Para aplicar el límite de uso guardamos un hash con sal de tu dirección IP
+        (no la dirección) en contadores que se borran a los dos días.</li>
+    <li><strong>Iniciar sesión</strong> (Google, a través de Clerk): el identificador de tu cuenta. No guardamos tu correo ni tu nombre en nuestra base de datos.</li>
+    <li><strong>Aportaciones:</strong> el texto que envías, el veredicto de la revisión automática y el identificador de tu cuenta, hasta que las borres.
+        El texto se envía a la API Gemini de Google para revisarlo.</li>
+    <li><strong>Proyectos y sugerencias:</strong> los nombres de los proyectos, el estado que marcas en requisitos, tests y aceleradores y el texto de tus sugerencias,
+        con el identificador de tu cuenta, hasta que los borres.</li>
+    <li><strong>Claves de API:</strong> solo un hash de cada clave, su nombre y la hora del último uso, hasta que la revoques o borres.</li>
+    <li><strong>La herramienta de línea de comandos</strong> (<a href="./cli.html">reqdb</a>) guarda tu clave de API en un fichero de tu propio ordenador; nosotros no guardamos nada más que el hash de la clave indicado arriba.</li>
+  </ul>
+
+  <h2>Tus derechos</h2>
+  <p>Quien ha iniciado sesión puede borrar sus datos cuando quiera («Delete my data» / «Borrar mis datos»): se eliminan las claves de API, las aportaciones, los proyectos y las sugerencias,
+     y se desvincula tu identificador de los requisitos que hayas escrito. Los requisitos ya publicados se quedan, de forma anónima, bajo los términos del contenido. Para cualquier otra cosa, escribe al contacto de arriba.</p>
+
+  <h2 id="contenido">Licencia del contenido</h2>
+  <p>El código fuente es MIT. El <strong>contenido</strong> (requisitos, tests, aceleradores, categorías, prioridades) es de uso libre para construir,
+     probar y documentar tu propio software, comercial o no, pero no es «open data»: no se permiten la extracción masiva, el espejado ni crear un catálogo
+     competidor. Quien aporta concede al proyecto una licencia amplia sobre lo que envía.
+     Lee los <a href="./terms.html">términos del contenido</a> completos (la versión en inglés es la que prevalece). El contenido se ofrece tal cual, sin garantía: los requisitos
+     son un punto de partida, no asesoramiento jurídico, de seguridad ni de cumplimiento.</p>
+
+  <h2>Categorías de software</h2>
+  <p>La lista de categorías de software se basa en el directorio público de categorías de Capterra. Capterra es una marca de su titular;
+     este proyecto no está afiliado a ella ni cuenta con su respaldo. Los requisitos, los tests y los aceleradores son propios.</p>
+
+  <h2>Tipografías</h2>
+  <p>Las tipografías (Geist) se cargan desde Google Fonts, así que tu navegador se conecta con Google para descargarlas.</p>
+
+  <h2>Cookies</h2>
+  <p>Sin cookies de seguimiento. El servicio de inicio de sesión (Clerk) usa las cookies técnicas necesarias para mantener tu sesión, solo si inicias sesión.
+     El idioma que eliges se recuerda en tu navegador (almacenamiento local) y no se envía a ningún sitio.</p>
+</div>
 </main>
 </body>
 </html>

@@ -27,7 +27,14 @@ const PUBLICABLE = /\.(html|js|css|svg|png|jpe?g|webp|woff2?|ico|json)$/;
 for (const f of readdirSync(new URL('web/', raiz)).filter((f) => PUBLICABLE.test(f)))
   copyFileSync(new URL(`web/${f}`, raiz), new URL(f, destino));
 
-// Los términos del contenido se publican desde LICENSE-DATA.md (una sola fuente).
-writeFileSync(new URL('terms.html', destino), paginaTerminos(readFileSync(new URL('LICENSE-DATA.md', raiz), 'utf8')));
+// El CLI (un solo fichero, sin dependencias) se publica junto a la web: /reqdb.mjs
+copyFileSync(new URL('cli/reqdb.mjs', raiz), new URL('reqdb.mjs', destino));
+
+// Los términos del contenido se publican desde LICENSE-DATA.md (inglés, el que vale) y su
+// traducción de cortesía LICENSE-DATA.es.md.
+writeFileSync(new URL('terms.html', destino), paginaTerminos(
+  readFileSync(new URL('LICENSE-DATA.md', raiz), 'utf8'),
+  readFileSync(new URL('LICENSE-DATA.es.md', raiz), 'utf8'),
+));
 
 console.log('  ✓ publico/ listo');

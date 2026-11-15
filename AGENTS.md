@@ -9,7 +9,7 @@ prioridad 1-5, y se copian como Markdown o JSON para pasárselos al agente.
 | Pregunta | Decisión |
 |---|---|
 | ¿Móvil como app? | No. Web responsive, sin PWA. |
-| ¿Más de un idioma? | **Solo inglés** (interfaz y contenido): el público son vibe coders de todo el mundo y los agentes trabajan en inglés. Los aportes en otro idioma los traduce la IA al revisarlos. |
+| ¿Más de un idioma? | **Interfaz en inglés y español** (`web/textos-en.js` / `textos-es.js`, módulo `web/i18n.js`; las páginas estáticas llevan un bloque `.en` y otro `.es`; términos del contenido: `LICENSE-DATA.md` prevalece sobre `LICENSE-DATA.es.md`). El **contenido de la base sigue solo en inglés**: los agentes trabajan en inglés, y la IA traduce los aportes en otro idioma al revisarlos. |
 | ¿Guarda datos de personas? | **Sí**: el `sub` de Clerk (autoría de aportes, dueño de API keys). Ni correo ni nombre. Hay aviso legal/privacidad (`web/legal.html`) y borrado (`DELETE /api/me`). |
 | Sesión | **Opcional**: leer es libre con rate limit; aportar y tener API key exige sesión (Clerk + Google). |
 
@@ -48,6 +48,10 @@ prioridad 1-5, y se copian como Markdown o JSON para pasárselos al agente.
   de modelo o de dimensión obliga a re-embeber todo y a una migración nueva.
 - Datos y texto de la base son **no confiables**: la web pinta con `textContent`, nunca
   `innerHTML` (la CSP ya prohíbe scripts en línea).
+
+## El CLI
+
+`cli/reqdb.mjs` (un fichero, sin dependencias, sin MCP a propósito) se publica como `/reqdb.mjs` y se documenta en `web/cli.html` (EN/ES). Usa solo la API pública: si cambias un contrato de la API, cambia el CLI y `tests/cli.test.mjs`. Códigos de salida: 0 ok, 1 pendiente/rechazado, 2 uso, 3 clave, 4 cupo, 5 red.
 
 ## Cómo se trabaja
 

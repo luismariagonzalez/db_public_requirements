@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>reqdb CLI · Requirements DB</title>
+<meta name="description" content="reqdb: a zero-dependency command line client for Requirements DB, built for coding agents and CI. / Cliente de línea de comandos sin dependencias, pensado para agentes y CI.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./estilo.css">
+<script type="module" src="./pagina.js"></script>
+</head>
+<body>
+<main class="doc-cli">
+  <header class="cab-est">
+    <a href="./index.html"><span class="en">← Back</span><span class="es">← Volver</span></a>
+    <span class="idiomas" role="group" aria-label="Language / Idioma"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="es" aria-pressed="false">ES</button></span>
+  </header>
+
+<div class="en">
+  <h1>reqdb: the CLI for agents</h1>
+  <p>One file, no dependencies, Node 18 or newer. It reads requirements, tests and accelerators from Requirements DB and lets your coding agent
+     record what it implemented, what is in progress and what is still pending, in a project you own. The default output is plain text (easy for an agent to read);
+     add <code>--json</code> for machines. There is no MCP server on purpose: a CLI is enough, works in any agent and in CI.</p>
+
+  <h2>Install</h2>
+<pre class="comando">curl -fsSL https://joderestatodocogido.com/proyectos/requirements-db/app/reqdb.mjs -o reqdb.mjs
+node reqdb.mjs version</pre>
+  <p>Or without downloading anything: <code>npx github:luismariagonzalez/db_public_requirements version</code> (replace <code>version</code> with any command below).
+     In the examples we write <code>reqdb</code>; use whichever of the two forms you installed.</p>
+
+  <h2>Reading needs no account</h2>
+  <p>Searching and reading is anonymous (rate limited). Projects need an API key: sign in on the website, open <em>Account</em>, create a key
+     (it starts with <code>rq_</code>) and store it once:</p>
+<pre class="comando">reqdb login --key rq_xxxxxxxx      # saved in ~/.config/reqdb/config.json (mode 600)
+# or, for CI and agents: export REQDB_KEY=rq_xxxxxxxx</pre>
+
+  <h2>Agent workflow (the short version)</h2>
+<pre class="comando">reqdb agent                               # prints the instructions your agent should follow
+reqdb init --name "My app" --category saas-b2b --max-priority 2
+reqdb pull -o REQUIREMENTS.md --hide-done  # the brief to hand to the agent
+reqdb mark done auth-email-password test:auth-lockout accelerator:clerk
+reqdb mark planned password-reset --note "next sprint"
+reqdb status                              # done / in progress / pending
+reqdb check --max-priority 1              # exit 1 while any P1 is pending</pre>
+  <p><code>init</code> creates the project on the server and writes <code>.reqdb.json</code> in the current folder, so later commands know which project you mean.
+     Commit that file; never commit your key.</p>
+
+  <h2>Commands</h2>
+  <table>
+    <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>categories [--type T] [--q text]</td><td>Audiences, domains, software categories, app types and screen types you can filter by.</td></tr>
+      <tr><td>search [text]</td><td>Hybrid (semantic + keyword) search of requirements. Options: <code>--category a,b</code>, <code>--max-priority N</code>, <code>--tests</code>, <code>--accelerators</code>, <code>--limit N</code>.</td></tr>
+      <tr><td>show &lt;slug&gt;</td><td>One requirement with its tests and accelerators.</td></tr>
+      <tr><td>tests [text]</td><td>Search tests. Same <code>--category</code> and <code>--max-priority</code> filters.</td></tr>
+      <tr><td>accelerators [text]</td><td>Libraries and services that speed up a requirement. Also <code>--model open_source|proprietary|saas</code> and <code>--platform p</code>.</td></tr>
+      <tr><td>login --key rq_…</td><td>Store your API key. <code>logout</code> removes it.</td></tr>
+      <tr><td>init --name N</td><td>Create a project and write <code>.reqdb.json</code>. Options: <code>--category</code>, <code>--max-priority</code>.</td></tr>
+      <tr><td>projects, use &lt;id&gt;</td><td>List your projects; select one for this folder.</td></tr>
+      <tr><td>pull [-o file]</td><td>Write the Markdown brief. Options: <code>--hide-done</code>, <code>--no-tests</code>, <code>--no-accelerators</code>.</td></tr>
+      <tr><td>mark &lt;status&gt; &lt;item…&gt;</td><td>Status is <code>done</code>, <code>in_progress</code>, <code>planned</code> or <code>skipped</code>. Items: <code>slug</code>, <code>test:slug</code>, <code>accelerator:slug</code>. Optional <code>--note</code>.</td></tr>
+      <tr><td>status</td><td>What is done and what is pending in the current project.</td></tr>
+      <tr><td>check [--max-priority N]</td><td>Exit code 1 if requirements up to priority N are still pending. Built for CI.</td></tr>
+      <tr><td>suggest &lt;text&gt;</td><td>Send a suggestion (<code>--about slug</code>, <code>--type requirement|test|accelerator</code>). A person reviews it.</td></tr>
+      <tr><td>agent</td><td>Print the standing instructions an agent should follow: record done, in progress and planned work in the project.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Global options</h2>
+  <p><code>--json</code> machine-readable output · <code>--url &lt;base&gt;</code> another server · <code>--key &lt;key&gt;</code> · <code>--project &lt;id&gt;</code> · <code>--quiet</code> · <code>-h</code>/<code>--help</code> · <code>--version</code>.</p>
+  <p>Configuration precedence, highest first: flags, environment (<code>REQDB_URL</code>, <code>REQDB_KEY</code>, <code>REQDB_PROJECT</code>), <code>.reqdb.json</code> in the folder, <code>~/.config/reqdb/config.json</code>.</p>
+
+  <h2>Exit codes</h2>
+  <table>
+    <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>OK.</td></tr>
+      <tr><td>1</td><td>Pending work (<code>check</code>) or the server refused the request.</td></tr>
+      <tr><td>2</td><td>Wrong usage: unknown command or missing argument.</td></tr>
+      <tr><td>3</td><td>API key missing or invalid.</td></tr>
+      <tr><td>4</td><td>Rate limited: wait and retry.</td></tr>
+      <tr><td>5</td><td>Network or server error.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>In CI</h2>
+<pre class="comando"># .github/workflows/requirements.yml (step)
+- run: node reqdb.mjs check --max-priority 1
+  env:
+    REQDB_KEY: ${{ secrets.REQDB_KEY }}
+    REQDB_PROJECT: ${{ vars.REQDB_PROJECT }}</pre>
+
+  <h2>Good to know</h2>
+  <ul>
+    <li>Requirements say <em>what</em> an app must do, never <em>where</em> (screens, buttons): that is your agent’s decision.</li>
+    <li>The database content is in English; this documentation and the interface are in English and Spanish.</li>
+    <li>The content is under the <a href="./terms.html">Content Terms</a>: free for your own software, no bulk extraction. The CLI code is MIT.</li>
+    <li>Prefer HTTP? The same features are in the <a href="./index.html#api">REST API</a>.</li>
+  </ul>
+</div>
+
+<div class="es">
+  <h1>reqdb: el CLI para agentes</h1>
+  <p>Un solo fichero, sin dependencias, Node 18 o superior. Lee requisitos, tests y aceleradores de Requirements DB y permite que tu agente de programación
+     anote qué ha implementado, qué está en curso y qué queda pendiente, en un proyecto tuyo. La salida es texto plano por defecto (fácil de leer para un agente);
+     añade <code>--json</code> para máquinas. No hay servidor MCP a propósito: un CLI basta, funciona en cualquier agente y en CI.</p>
+
+  <h2>Instalación</h2>
+<pre class="comando">curl -fsSL https://joderestatodocogido.com/proyectos/requirements-db/app/reqdb.mjs -o reqdb.mjs
+node reqdb.mjs version</pre>
+  <p>O sin descargar nada: <code>npx github:luismariagonzalez/db_public_requirements version</code> (cambia <code>version</code> por cualquier comando de abajo).
+     En los ejemplos escribimos <code>reqdb</code>; usa la forma que hayas instalado.</p>
+
+  <h2>Leer no necesita cuenta</h2>
+  <p>Buscar y leer es anónimo (con límite de uso). Los proyectos necesitan una clave de API: inicia sesión en la web, abre <em>Cuenta</em>, crea una clave
+     (empieza por <code>rq_</code>) y guárdala una vez:</p>
+<pre class="comando">reqdb login --key rq_xxxxxxxx      # se guarda en ~/.config/reqdb/config.json (modo 600)
+# o, para CI y agentes: export REQDB_KEY=rq_xxxxxxxx</pre>
+
+  <h2>Flujo del agente (versión corta)</h2>
+<pre class="comando">reqdb agent                               # imprime las instrucciones que debe seguir tu agente
+reqdb init --name "Mi app" --category saas-b2b --max-priority 2
+reqdb pull -o REQUIREMENTS.md --hide-done  # el documento para pasar al agente
+reqdb mark done auth-email-password test:auth-lockout accelerator:clerk
+reqdb mark planned password-reset --note "próximo sprint"
+reqdb status                              # hecho / en curso / pendiente
+reqdb check --max-priority 1              # sale con 1 mientras haya algún P1 pendiente</pre>
+  <p><code>init</code> crea el proyecto en el servidor y escribe <code>.reqdb.json</code> en la carpeta actual, para que los comandos siguientes sepan de qué proyecto hablas.
+     Sube ese fichero al repositorio; nunca subas tu clave.</p>
+
+  <h2>Comandos</h2>
+  <table>
+    <thead><tr><th>Comando</th><th>Qué hace</th></tr></thead>
+    <tbody>
+      <tr><td>categories [--type T] [--q texto]</td><td>Audiencias, dominios, categorías de software, tipos de app y de pantalla por los que puedes filtrar.</td></tr>
+      <tr><td>search [texto]</td><td>Búsqueda híbrida (semántica + palabras) de requisitos. Opciones: <code>--category a,b</code>, <code>--max-priority N</code>, <code>--tests</code>, <code>--accelerators</code>, <code>--limit N</code>.</td></tr>
+      <tr><td>show &lt;slug&gt;</td><td>Un requisito con sus tests y aceleradores.</td></tr>
+      <tr><td>tests [texto]</td><td>Busca tests. Mismos filtros <code>--category</code> y <code>--max-priority</code>.</td></tr>
+      <tr><td>accelerators [texto]</td><td>Librerías y servicios que aceleran un requisito. También <code>--model open_source|proprietary|saas</code> y <code>--platform p</code>.</td></tr>
+      <tr><td>login --key rq_…</td><td>Guarda tu clave de API. <code>logout</code> la borra.</td></tr>
+      <tr><td>init --name N</td><td>Crea un proyecto y escribe <code>.reqdb.json</code>. Opciones: <code>--category</code>, <code>--max-priority</code>.</td></tr>
+      <tr><td>projects, use &lt;id&gt;</td><td>Lista tus proyectos; elige uno para esta carpeta.</td></tr>
+      <tr><td>pull [-o fichero]</td><td>Escribe el documento en Markdown. Opciones: <code>--hide-done</code>, <code>--no-tests</code>, <code>--no-accelerators</code>.</td></tr>
+      <tr><td>mark &lt;estado&gt; &lt;elemento…&gt;</td><td>El estado es <code>done</code>, <code>in_progress</code>, <code>planned</code> o <code>skipped</code>. Elementos: <code>slug</code>, <code>test:slug</code>, <code>accelerator:slug</code>. <code>--note</code> opcional.</td></tr>
+      <tr><td>status</td><td>Qué está hecho y qué pendiente en el proyecto actual.</td></tr>
+      <tr><td>check [--max-priority N]</td><td>Código de salida 1 si quedan pendientes requisitos hasta la prioridad N. Pensado para CI.</td></tr>
+      <tr><td>suggest &lt;texto&gt;</td><td>Envía una sugerencia (<code>--about slug</code>, <code>--type requirement|test|accelerator</code>). La revisa una persona.</td></tr>
+      <tr><td>agent</td><td>Imprime las instrucciones permanentes del agente: anotar en el proyecto lo hecho, lo que está en curso y lo planeado.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Opciones globales</h2>
+  <p><code>--json</code> salida para máquinas · <code>--url &lt;base&gt;</code> otro servidor · <code>--key &lt;clave&gt;</code> · <code>--project &lt;id&gt;</code> · <code>--quiet</code> · <code>-h</code>/<code>--help</code> · <code>--version</code>.</p>
+  <p>Orden de la configuración, de mayor a menor: opciones, entorno (<code>REQDB_URL</code>, <code>REQDB_KEY</code>, <code>REQDB_PROJECT</code>), <code>.reqdb.json</code> de la carpeta, <code>~/.config/reqdb/config.json</code>.</p>
+
+  <h2>Códigos de salida</h2>
+  <table>
+    <thead><tr><th>Código</th><th>Significado</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Correcto.</td></tr>
+      <tr><td>1</td><td>Trabajo pendiente (<code>check</code>) o el servidor rechazó la petición.</td></tr>
+      <tr><td>2</td><td>Uso incorrecto: comando desconocido o falta un argumento.</td></tr>
+      <tr><td>3</td><td>Falta la clave de API o no es válida.</td></tr>
+      <tr><td>4</td><td>Límite de uso: espera y reintenta.</td></tr>
+      <tr><td>5</td><td>Error de red o del servidor.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>En CI</h2>
+<pre class="comando"># .github/workflows/requirements.yml (paso)
+- run: node reqdb.mjs check --max-priority 1
+  env:
+    REQDB_KEY: ${{ secrets.REQDB_KEY }}
+    REQDB_PROJECT: ${{ vars.REQDB_PROJECT }}</pre>
+
+  <h2>Conviene saber</h2>
+  <ul>
+    <li>Los requisitos dicen <em>qué</em> debe hacer una app, nunca <em>dónde</em> (pantallas, botones): eso lo decide tu agente.</li>
+    <li>El contenido de la base está en inglés; esta documentación y la interfaz están en inglés y español.</li>
+    <li>El contenido está bajo los <a href="./terms.html">términos del contenido</a>: libre para tu propio software, sin extracción masiva. El código del CLI es MIT.</li>
+    <li>¿Prefieres HTTP? Las mismas funciones están en la <a href="./index.html#api">API REST</a>.</li>
+  </ul>
+</div>
+</main>
+</body>
+</html>

@@ -2,8 +2,11 @@
 // innerHTML: los requisitos los escribe la comunidad y son datos no confiables.
 import { rutaBusqueda, hayFiltro, urlSegura, GRUPOS, ESTADOS, categoriasEfectivas, visibles, dominiosDisponibles, MAX_SOFTWARE } from './consulta.js';
 import { entrar, salir, token, usuario, cargarClerk, huboSesion, marcarSesion } from './clerk.js';
+import { iniciar, t as T, tn as TN, fecha as FECHA } from './i18n.js';
 
 const $ = (s) => document.querySelector(s);
+// Idioma: se fija ya (EN/ES) y, al cambiarlo, se vuelve a pintar todo lo dinámico (renderTodo).
+iniciar(() => renderTodo());
 // Dónde está montada la app: en la raíz del despliegue ('') o colgando de otra web, p. ej.
 // /proyectos/requirements-db/app (la home la sirve con una reescritura). Las rutas de la
 // API ('/api/v1/…') se cuelgan de ahí, así que todo es relativo y funciona en los dos sitios.
@@ -47,17 +50,10 @@ async function api(metodo, ruta, cuerpo, conSesion = false) {
   }
   return datos;
 }
-const msgError = (e) => e.status === 429
-  ? `Too many requests. Try again in ${e.reintentar ?? 'a few'} seconds, or sign in for a higher limit.` : e.message;
+const msgError = (e) => e.status === 429 ? T('err.429', { s: e.reintentar ?? T('err.429.poco') }) : e.message;
 
 // ── barra lateral: audiencia → dominio → categoría
-const PRIOS = [
-  [1, 'essential', 'broken or unsafe without it'],
-  [2, 'expected', 'users assume it is there'],
-  [3, 'recommended', 'solid apps do this'],
-  [4, 'nice to have', 'polish'],
-  [5, 'differentiator', 'sets you apart'],
-];
+const PRIOS = [1, 2, 3, 4, 5];   // nombres y descripciones, en el diccionario: p1.n, p1.d…
 // Audiencia y dominio son el ÁMBITO: acotan las categorías que se ven y, al elegirlos, empiezan una
 // selección nueva (se vacían las categorías). Lo que se busca son las categorías elegidas o, si no
 // hay ninguna, la audiencia/dominio mismos: la API los expande a sus categorías.
@@ -90,25 +86,25 @@ function pintarLateral() {
   if (estado.filtroCat) gruposAbiertos.add('software_category');
 
   const aud = porTipo('audience');
-  if (aud.length) cont.append(subgrupo('audience', 'Audience', aud.map((c) =>
+  if (aud.length) cont.append(subgrupo('audience', T('g.audience'), aud.map((c) =>
     filaCat(c.name, estado.audiencias.includes(c.slug), null, () => { estado.cats = []; alternar(estado.audiencias, c.slug); }, c.description || c.name)), aud.length));
 
   const disp = dominiosDisponibles(cs.filter((c) => c.type !== 'domain'), estado.audiencias);
   const dom = porTipo('domain').filter((d) => !disp || disp.has(d.slug) || estado.dominios.includes(d.slug));
-  if (dom.length) cont.append(subgrupo('domain', 'Domain', dom.map((c) =>
+  if (dom.length) cont.append(subgrupo('domain', T('g.domain'), dom.map((c) =>
     filaCat(c.name, estado.dominios.includes(c.slug), null, () => { estado.cats = []; alternar(estado.dominios, c.slug); }, c.description || c.name)), dom.length));
 
   const sw = visibles(porTipo('software_category'), { ...nav, texto: estado.filtroCat })
     .sort((a, b) => (estado.cats.includes(b.slug) - estado.cats.includes(a.slug)) || b.requirements - a.requirements || a.name.localeCompare(b.name));
-  if (sw.length || estado.filtroCat) cont.append(subgrupo('software_category', 'Software category',
+  if (sw.length || estado.filtroCat) cont.append(subgrupo('software_category', T('g.software_category'),
     [...sw.slice(0, MAX_SOFTWARE).map(hoja),
-      sw.length > MAX_SOFTWARE ? el('div', { class: 'mas' }, `${sw.length - MAX_SOFTWARE} more: narrow it with the filter above.`) : null].filter(Boolean), sw.length));
+      sw.length > MAX_SOFTWARE ? el('div', { class: 'mas' }, T('g.mas', { n: sw.length - MAX_SOFTWARE })) : null].filter(Boolean), sw.length));
 
   const tipos = visibles(porTipo('app_type'), nav);
-  if (tipos.length) cont.append(subgrupo('app_type', 'App type', tipos.map(hoja), tipos.length));
-  for (const [tipo, titulo] of GRUPOS.filter(([t]) => t !== 'app_type')) {
+  if (tipos.length) cont.append(subgrupo('app_type', T('g.app_type'), tipos.map(hoja), tipos.length));
+  for (const [tipo] of GRUPOS.filter(([x]) => x !== 'app_type')) {
     const lista = porTipo(tipo);
-    if (lista.length) cont.append(subgrupo(tipo, titulo, lista.map(hoja), lista.length));
+    if (lista.length) cont.append(subgrupo(tipo, T(`g.${tipo}`), lista.map(hoja), lista.length));
   }
 }
 $('#filtroCat').addEventListener('input', (e) => { estado.filtroCat = e.target.value; pintarLateral(); });
@@ -118,10 +114,9 @@ document.addEventListener('keydown', (e) => {
 });
 
 function pintarPrio() {
-  $('#prio').replaceChildren(...PRIOS.map(([p, n, d]) => el('button', { type: 'button', 'aria-pressed': String(estado.prio === p),
-    title: `P${p} · ${n}: ${d}`, onclick: () => { estado.prio = p; pintarPrio(); buscar(); } }, `P${p}`)));
-  const [, n, d] = PRIOS[estado.prio - 1];
-  $('#prioDesc').textContent = estado.prio === 5 ? 'Everything, from essential to differentiators.' : `P1 to P${estado.prio}, down to “${n}” — ${d}.`;
+  $('#prio').replaceChildren(...PRIOS.map((p) => el('button', { type: 'button', 'aria-pressed': String(estado.prio === p),
+    title: `P${p} · ${T(`p${p}.n`)}: ${T(`p${p}.d`)}`, onclick: () => { estado.prio = p; pintarPrio(); buscar(); } }, `P${p}`)));
+  $('#prioDesc').textContent = estado.prio === 5 ? T('prio.todo') : T('prio.hasta', { n: estado.prio, nombre: T(`p${estado.prio}.n`), desc: T(`p${estado.prio}.d`) });
 }
 function interruptor(id, clave) {
   const b = $(id);
@@ -129,8 +124,11 @@ function interruptor(id, clave) {
 }
 interruptor('#incTests', 'incluirTests'); interruptor('#incAcel', 'incluirAceleradores'); interruptor('#ocultarHecho', 'ocultarHecho');
 $('#proyecto').addEventListener('change', (e) => { estado.proyecto = e.target.value ? Number(e.target.value) : null; buscar(); });
-$('#leyenda').replaceChildren(...PRIOS.map(([p, n, d]) => el('div', { class: 'fila-l' },
-  el('span', { class: 'pb', 'data-p': String(p) }, `P${p}`), el('span', {}, el('b', {}, n), ` — ${d}`))));
+function pintarLeyenda() {
+  $('#leyenda').replaceChildren(...PRIOS.map((p) => el('div', { class: 'fila-l' },
+    el('span', { class: 'pb', 'data-p': String(p) }, `P${p}`), el('span', {}, el('b', {}, T(`p${p}.n`)), ` — ${T(`p${p}.d`)}`))));
+}
+pintarLeyenda();
 
 // ── búsqueda y lista
 let temporizador, ultima = 0;
@@ -139,7 +137,7 @@ function buscarConRetraso() { clearTimeout(temporizador); temporizador = setTime
 function pintarTitulo() {
   const efectivas = categoriasEfectivas(estado);
   const nombres = efectivas.map((s) => estado.categorias.find((c) => c.slug === s)?.name ?? s);
-  $('#tituloCat').textContent = nombres.length ? nombres.slice(0, 3).join(' · ') + (nombres.length > 3 ? ` +${nombres.length - 3}` : '') : 'Requirements';
+  $('#tituloCat').textContent = nombres.length ? nombres.slice(0, 3).join(' · ') + (nombres.length > 3 ? ` +${nombres.length - 3}` : '') : T('lista.titulo');
   $('#slugCat').textContent = efectivas.length ? `category=${efectivas.join(',')}` : (estado.q ? `q=${estado.q.slice(0, 40)}` : '');
   const unica = efectivas.length === 1 ? estado.categorias.find((c) => c.slug === efectivas[0]) : null;
   $('#descCat').textContent = unica?.description ?? '';
@@ -150,10 +148,10 @@ async function buscar() {
   pintarTitulo();
   if (!hayFiltro(estado)) {
     estado.items = []; pintarLista();
-    $('#estado').textContent = 'Pick an audience, a category or an app type — or search by meaning.';
+    $('#estado').textContent = T('estado.elige');
     return;
   }
-  $('#estado').textContent = 'Searching…';
+  $('#estado').textContent = T('estado.buscando');
   try {
     const r = await api('GET', rutaBusqueda(consulta()));
     if (yo !== ultima) return;            // llegó tarde: ya hay otra búsqueda
@@ -163,17 +161,16 @@ async function buscar() {
   } catch (e) { if (yo === ultima) $('#estado').textContent = msgError(e); }
 }
 
-const ETQ_ESTADO = { planned: 'planned', in_progress: 'in progress', done: 'done', skipped: 'skipped' };
-const insignia = (st) => (st ? el('span', { class: `est est-${st}` }, ETQ_ESTADO[st]) : null);
-const enlaceSugerir = (tipo, slug) => el('button', { type: 'button', class: 'enlace', onclick: () => sugerirSobre(tipo, slug) }, 'Suggest');
+const insignia = (st) => (st ? el('span', { class: `est est-${st}` }, T(`est.${st}`)) : null);
+const enlaceSugerir = (tipo, slug) => el('button', { type: 'button', class: 'enlace', onclick: () => sugerirSobre(tipo, slug) }, T('det.sugerir'));
 
 function detalleDe(it) {
   const partes = [el('p', {}, it.statement)];
   if (it.criteria?.length) partes.push(el('ul', {}, ...it.criteria.map((c) => el('li', {}, c))));
-  if (it.tests?.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, 'Tests'),
+  if (it.tests?.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, T('det.tests')),
     ...it.tests.map((t) => el('div', { class: 'test' }, el('span', { class: 'pb', 'data-p': String(t.priority) }, `P${t.priority}`),
       el('span', {}, el('b', {}, t.title), ` · ${t.type} — ${t.scenario} `, insignia(t.project_status), ' ', enlaceSugerir('test', t.slug))))));
-  if (it.accelerators?.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, 'Accelerators'),
+  if (it.accelerators?.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, T('det.acel')),
     el('div', { class: 'chips' }, ...it.accelerators.map((a) => {
       const href = urlSegura(a.url);
       const txt = [a.name, el('small', {}, `${a.model.replace('_', ' ')} · ${a.cost} · ${a.coverage}`)];
@@ -186,7 +183,7 @@ function detalleDe(it) {
 
 const abiertos = new Set();
 function filaReq(it) {
-  const marca = el('button', { type: 'button', class: 'marca', 'aria-label': `Include ${it.title}`, onclick: (ev) => {
+  const marca = el('button', { type: 'button', class: 'marca', 'aria-label': T('item.incluir', { titulo: it.title }), onclick: (ev) => {
     ev.stopPropagation();
     if (estado.sel.has(it.slug)) estado.sel.delete(it.slug); else estado.sel.add(it.slug);
     marca.setAttribute('aria-pressed', String(estado.sel.has(it.slug))); marca.textContent = estado.sel.has(it.slug) ? '✓' : '';
@@ -205,8 +202,8 @@ function filaReq(it) {
   li.append(el('div', { class: 'item-cab', onclick: () => { if (abiertos.has(it.slug)) abiertos.delete(it.slug); else abiertos.add(it.slug); mostrar(); } },
     marca, el('span', { class: 'pb', 'data-p': String(it.priority) }, `P${it.priority}`),
     el('div', { class: 'item-txt' }, el('div', { class: 'item-tit' }, it.title),
-      el('div', { class: 'item-meta' }, el('span', {}, it.slug), nT ? el('span', {}, `${nT} test${nT > 1 ? 's' : ''}`) : null,
-        nA ? el('span', {}, `${nA} accelerator${nA > 1 ? 's' : ''}`) : null, insignia(it.project_status))),
+      el('div', { class: 'item-meta' }, el('span', {}, it.slug), nT ? el('span', {}, TN('n.test', nT)) : null,
+        nA ? el('span', {}, TN('n.acel', nA)) : null, insignia(it.project_status))),
     el('span', { class: 'chev', 'aria-hidden': 'true' }, '›')));
   mostrar();
   return li;
@@ -215,7 +212,7 @@ function filaReq(it) {
 function pintarLista() {
   const ul = $('#lista'); ul.replaceChildren();
   if (estado.items.length) $('#estado').textContent = '';
-  else if (hayFiltro(estado)) $('#estado').textContent = 'No requirements for this selection yet. Try the cross-cutting concerns (security, privacy…), fewer filters, or contribute one.';
+  else if (hayFiltro(estado)) $('#estado').textContent = T('estado.vacio');
   for (const it of estado.items) ul.append(filaReq(it));
   actualizarCuenta();
 }
@@ -223,7 +220,7 @@ function actualizarCuenta() {
   const n = estado.sel.size;
   $('#acciones').hidden = !estado.items.length;
   $('#accionesProyecto').hidden = !(estado.items.length && estado.proyecto);
-  $('#cuenta').textContent = `${n}/${estado.items.length} selected`;
+  $('#cuenta').textContent = T('sel.cuenta', { n, total: estado.items.length });
   $('#marcar').disabled = n === 0;
   actualizarSalida();
 }
@@ -239,7 +236,7 @@ function pintarCodigo(texto) {
   ls.slice(0, CODIGO_MAX).forEach((l, i) => c.append(el('div', { class: `ln ${claseLinea(l)}` },
     el('span', { class: 'num' }, String(i + 1)), el('span', { class: 'txt' }, l || ' '))));
   if (ls.length > CODIGO_MAX) c.append(el('div', { class: 'ln q' }, el('span', { class: 'num' }, '…'),
-    el('span', { class: 'txt' }, `${ls.length - CODIGO_MAX} more lines: Copy takes them all`)));
+    el('span', { class: 'txt' }, T('codigo.mas', { n: ls.length - CODIGO_MAX }))));
 }
 let tSalida, secuencia = 0, textoActual = '';
 function actualizarSalida() { clearTimeout(tSalida); tSalida = setTimeout(cargarSalida, 250); }
@@ -251,7 +248,7 @@ async function cargarSalida() {
     const url = location.origin + BASE + rutaBusqueda({ ...consulta(), formato: 'md' });
     texto = `curl -s${estado.proyecto ? ' -H "Authorization: Bearer $REQDB_KEY"' : ''} "${url}"`;
   } else if (!slugs.length) {
-    texto = '// select requirements to preview what your agent will receive';
+    texto = T('codigo.vacio');
   } else {
     const cuerpo = { slugs, format: estado.tab === 'json' ? 'json' : 'md', tests_max_priority: estado.prio,
       include: [estado.incluirTests && 'tests', estado.incluirAceleradores && 'accelerators'].filter(Boolean),
@@ -266,8 +263,8 @@ async function cargarSalida() {
   pintarCodigo(texto);
   const sel = estado.items.filter((i) => estado.sel.has(i.slug));
   const nT = sel.reduce((s, i) => s + (i.tests?.length ?? 0), 0);
-  $('#pieIzq').textContent = `${sel.length} requirement${sel.length === 1 ? '' : 's'}${estado.incluirTests ? ` · ${nT} tests` : ''}`;
-  $('#pieDer').textContent = estado.tab === 'curl' ? 'GET · public' : `${texto.length.toLocaleString('en')} chars`;
+  $('#pieIzq').textContent = TN('n.req', sel.length) + (estado.incluirTests ? T('pie.tests', { n: nT }) : '');
+  $('#pieDer').textContent = estado.tab === 'curl' ? T('pie.get') : T('pie.chars', { n: texto.length.toLocaleString(document.documentElement.lang) });
 }
 $('#tabs').addEventListener('click', (e) => {
   const b = e.target.closest('button[data-tab]'); if (!b) return;
@@ -276,13 +273,14 @@ $('#tabs').addEventListener('click', (e) => {
   cargarSalida();
 });
 async function copiar(texto) {
-  try { await navigator.clipboard.writeText(texto); avisar('Copied'); }
-  catch { avisar('Could not copy: select the text manually'); }
+  try { await navigator.clipboard.writeText(texto); avisar(T('copiado')); }
+  catch { avisar(T('copiar.fallo')); }
 }
 $('#copiarCodigo').addEventListener('click', () => copiar(textoActual));
 
 // Marcar lo seleccionado en el proyecto (los requisitos marcados y, si se muestran, sus tests y aceleradores).
-$('#estadoProyecto').replaceChildren(...ESTADOS.map(([v, t]) => el('option', { value: v }, t)));
+function pintarEstadosProyecto() { const v = $('#estadoProyecto').value; $('#estadoProyecto').replaceChildren(...ESTADOS.map(([x]) => el('option', { value: x }, T(`estl.${x}`)))); if (v) $('#estadoProyecto').value = v; }
+pintarEstadosProyecto();
 $('#marcar').addEventListener('click', async () => {
   const st = $('#estadoProyecto').value;
   const items = [];
@@ -295,7 +293,7 @@ $('#marcar').addEventListener('click', async () => {
   try {
     for (let i = 0; i < items.length; i += 200)
       await api('PUT', `/api/v1/projects/${estado.proyecto}/items`, { items: items.slice(i, i + 200) });
-    avisar(`${items.length} item(s) marked as ${st.replace('_', ' ')}`);
+    avisar(T('marcar.ok', { n: items.length, estado: T(`est.${st}`) }));
     cargarProyectos(); buscar();
   } catch (e) { avisar(msgError(e)); }
 });
@@ -304,7 +302,7 @@ $('#marcar').addEventListener('click', async () => {
 function pintarSesion(user) {
   sesion = !!user;
   marcarSesion(sesion);
-  $('#btnCuenta').textContent = user ? 'Sign out' : 'Sign in';
+  $('#btnCuenta').textContent = T(user ? 'cuenta.salir' : 'cuenta.entrar');
   for (const id of ['#aportar', '#claves', '#proyectos', '#sugerencias']) $(id).hidden = !user;
   $('#barraProyecto').hidden = !user;
   $('#navCuenta').hidden = !user;
@@ -331,7 +329,7 @@ async function cargarProyectos() {
   try {
     proyectos = (await api('GET', '/api/v1/projects', null, true)).projects;
     const sel = $('#proyecto');
-    sel.replaceChildren(el('option', { value: '' }, '— none —'),
+    sel.replaceChildren(el('option', { value: '' }, T('proy.ninguno')),
       ...proyectos.map((p) => el('option', { value: String(p.id) }, p.name)));
     sel.value = estado.proyecto && proyectos.some((p) => p.id === estado.proyecto) ? String(estado.proyecto) : '';
     if (!sel.value) estado.proyecto = null;
@@ -341,31 +339,31 @@ async function cargarProyectos() {
 
 function pintarProyectos() {
   const ul = $('#listaProyectos'); ul.replaceChildren();
-  if (!proyectos.length) ul.append(el('li', { class: 'tenue' }, 'No projects yet. Create one to start tracking.'));
+  if (!proyectos.length) ul.append(el('li', { class: 'tenue' }, T('proy.vacio')));
   for (const p of proyectos) {
     const c = p.counts;
     const detalle = el('div', { class: 'detalle-proy' });
-    const abrir = el('button', { type: 'button', class: 'mini', onclick: () => alternarProyecto(p, detalle, abrir) }, 'Open');
+    const abrir = el('button', { type: 'button', class: 'mini', onclick: () => alternarProyecto(p, detalle, abrir) }, T('proy.abrir'));
     ul.append(el('li', {},
       el('div', { class: 'fila' },
         el('strong', {}, p.name),
-        el('span', { class: 'tenue' }, `${c.done} done · ${c.in_progress} in progress · ${c.planned} planned · ${c.skipped} skipped`),
+        el('span', { class: 'tenue' }, T('proy.cuentas', c)),
         abrir,
-        el('button', { type: 'button', class: 'mini peligro', onclick: () => borrarProyecto(p) }, 'Delete')),
+        el('button', { type: 'button', class: 'mini peligro', onclick: () => borrarProyecto(p) }, T('proy.borrar'))),
       detalle));
   }
 }
 async function alternarProyecto(p, detalle, boton) {
-  if (detalle.childElementCount) { detalle.replaceChildren(); boton.textContent = 'Open'; return; }
+  if (detalle.childElementCount) { detalle.replaceChildren(); boton.textContent = T('proy.abrir'); return; }
   try {
     const d = await api('GET', `/api/v1/projects/${p.id}`, null, true);
-    boton.textContent = 'Close';
-    if (!d.items.length) { detalle.append(el('p', { class: 'tenue' }, 'Nothing tracked yet.')); return; }
+    boton.textContent = T('proy.cerrar');
+    if (!d.items.length) { detalle.append(el('p', { class: 'tenue' }, T('proy.nada'))); return; }
     for (const it of d.items) {
-      const sel = el('select', { 'aria-label': `Status of ${it.title}`, onchange: async (ev) => {
+      const sel = el('select', { 'aria-label': T('proy.estado.de', { titulo: it.title }), onchange: async (ev) => {
         try { await api('PUT', `/api/v1/projects/${p.id}/items`, { items: [{ type: it.type, slug: it.slug, status: ev.target.value }] }); cargarProyectos(); }
         catch (e) { avisar(msgError(e)); }
-      } }, ...ESTADOS.map(([v, t]) => el('option', { value: v }, t)));
+      } }, ...ESTADOS.map(([x]) => el('option', { value: x }, T(`estl.${x}`))));
       sel.value = it.status;
       detalle.append(el('div', { class: 'fila item-proy' }, el('span', { class: 'tag' }, it.type), el('span', {}, it.title),
         it.note ? el('span', { class: 'tenue' }, `“${it.note}”`) : null, sel));
@@ -373,26 +371,26 @@ async function alternarProyecto(p, detalle, boton) {
   } catch (e) { avisar(msgError(e)); }
 }
 async function borrarProyecto(p) {
-  if (!confirm(`Delete the project “${p.name}” and its tracked items?`)) return;
+  if (!confirm(T('proy.confirmar', { nombre: p.name }))) return;
   try { await api('DELETE', `/api/v1/projects/${p.id}`, null, true); cargarProyectos(); }
   catch (e) { avisar(msgError(e)); }
 }
 $('#proyCrear').addEventListener('click', async () => {
   const nombre = $('#proyNombre').value.trim();
-  if (!nombre) return avisar('Give the project a name.');
+  if (!nombre) return avisar(T('proy.dale.nombre'));
   try {
     const r = await api('POST', '/api/v1/projects', { name: nombre, categories: estado.cats }, true);
     $('#proyNombre').value = '';
     estado.proyecto = r.id;
     await cargarProyectos(); buscar();
-    avisar('Project created and selected');
+    avisar(T('proy.creado'));
   } catch (e) { avisar(msgError(e)); }
 });
 
 // ── sugerencias
 function sugerirSobre(tipo, slug) {
   $('#sugObjetivoTipo').value = tipo; $('#sugObjetivo').value = slug;
-  if (!sesion) { avisar('Sign in to send suggestions'); return; }
+  if (!sesion) { avisar(T('sug.entra')); return; }
   $('#sugerencias').scrollIntoView({ behavior: 'smooth' });
   $('#sugTexto').focus();
 }
@@ -400,33 +398,33 @@ async function cargarSugerencias() {
   try {
     const r = await api('GET', '/api/v1/suggestions', null, true);
     const ul = $('#misSugerencias'); ul.replaceChildren();
-    if (!r.suggestions.length) ul.append(el('li', { class: 'tenue' }, 'Nothing yet.'));
+    if (!r.suggestions.length) ul.append(el('li', { class: 'tenue' }, T('nada.todavia')));
     for (const s of r.suggestions)
-      ul.append(el('li', {}, el('strong', {}, s.status), ' · ', s.target ? `${s.target_type} ${s.target}: ` : '', s.text.slice(0, 200)));
+      ul.append(el('li', {}, el('strong', {}, T(`sug.estado.${s.status}`)), ' · ', s.target ? `${s.target_type} ${s.target}: ` : '', s.text.slice(0, 200)));
   } catch (e) { avisar(msgError(e)); }
 }
 $('#sugEnviar').addEventListener('click', async () => {
   const texto = $('#sugTexto').value.trim();
-  if (texto.length < 10) return avisar('Write at least a sentence (10 characters).');
+  if (texto.length < 10) return avisar(T('aporte.corto'));
   const objetivo = $('#sugObjetivo').value.trim();
   const tipo = $('#sugObjetivoTipo').value;
   try {
     await api('POST', '/api/v1/suggestions', { kind: $('#sugTipo').value, text: texto,
       target_type: objetivo ? (tipo === 'general' ? 'requirement' : tipo) : 'general', target: objetivo || undefined }, true);
-    $('#sugTexto').value = ''; avisar('Thanks! A person will review it.'); cargarSugerencias();
+    $('#sugTexto').value = ''; avisar(T('sug.gracias')); cargarSugerencias();
   } catch (e) { avisar(msgError(e)); }
 });
 
 // ── aportes
-const ESTADOS_APORTE = { created: 'Created', merged: 'Merged', rejected: 'Not added', needs_human: 'Needs a human look', pending: 'Pending' };
+const estadoAporte = (s) => T(`ap.${s}`);
 async function cargarAportes() {
   try {
     const r = await api('GET', '/api/me/contributions', null, true);
     const ul = $('#misAportes'); ul.replaceChildren();
-    if (!r.contributions.length) ul.append(el('li', { class: 'tenue' }, 'Nothing yet.'));
+    if (!r.contributions.length) ul.append(el('li', { class: 'tenue' }, T('nada.todavia')));
     for (const a of r.contributions) {
       const razones = (a.verdict?.items ?? []).map((i) => i.reason).filter(Boolean).join(' · ') || a.verdict?.reason || '';
-      ul.append(el('li', {}, el('strong', {}, ESTADOS_APORTE[a.status] ?? a.status), ' · ', a.text.slice(0, 160),
+      ul.append(el('li', {}, el('strong', {}, estadoAporte(a.status)), ' · ', a.text.slice(0, 160),
         razones ? el('div', { class: 'tenue' }, razones) : null));
     }
   } catch (e) { avisar(msgError(e)); }
@@ -434,13 +432,13 @@ async function cargarAportes() {
 $('#aporteEnviar').addEventListener('click', async () => {
   const texto = $('#aporteTexto').value.trim();
   const caja = $('#aporteResultado');
-  if (texto.length < 10) return avisar('Write at least a sentence (10 characters).');
-  if (!$('#aporteLicencia').checked) return avisar('Please accept the Content Terms.');
-  $('#aporteEnviar').disabled = true; caja.hidden = false; caja.textContent = 'Reviewing…';
+  if (texto.length < 10) return avisar(T('aporte.corto'));
+  if (!$('#aporteLicencia').checked) return avisar(T('aporte.acepta'));
+  $('#aporteEnviar').disabled = true; caja.hidden = false; caja.textContent = T('aporte.revisando');
   try {
     const r = await api('POST', '/api/contribute', { text: texto, accept_terms: true, categories: estado.cats }, true);
-    const lineas = [`${ESTADOS_APORTE[r.status] ?? r.status}`];
-    for (const i of r.items ?? []) lineas.push(`• ${i.reason ?? i.action}${i.slug ? ` (${i.slug})` : ''}${i.duplicate_of ? ` — already exists as ${i.duplicate_of}` : ''}`);
+    const lineas = [estadoAporte(r.status)];
+    for (const i of r.items ?? []) lineas.push(`• ${i.reason ?? i.action}${i.slug ? ` (${i.slug})` : ''}${i.duplicate_of ? T('aporte.duplicado', { slug: i.duplicate_of }) : ''}`);
     if (r.reason) lineas.push(r.reason);
     caja.textContent = lineas.join('\n');
     if (r.status === 'created' || r.status === 'merged') $('#aporteTexto').value = '';
@@ -454,11 +452,11 @@ async function cargarClaves() {
   try {
     const r = await api('GET', '/api/me/keys', null, true);
     const ul = $('#listaClaves'); ul.replaceChildren();
-    if (!r.keys.length) ul.append(el('li', { class: 'tenue' }, 'No keys yet.'));
+    if (!r.keys.length) ul.append(el('li', { class: 'tenue' }, T('claves.vacio')));
     for (const k of r.keys) {
       ul.append(el('li', { class: 'fila' },
-        el('span', {}, `${k.name} · ${k.prefix}… · ${k.revoked ? 'revoked' : k.last_used ? 'used ' + new Date(k.last_used).toLocaleDateString() : 'never used'}`),
-        k.revoked ? null : el('button', { type: 'button', class: 'mini peligro', onclick: () => revocar(k.id) }, 'Revoke')));
+        el('span', {}, `${k.name} · ${k.prefix}… · ${k.revoked ? T('claves.revocada') : k.last_used ? T('claves.usada', { fecha: FECHA(k.last_used) }) : T('claves.nunca')}`),
+        k.revoked ? null : el('button', { type: 'button', class: 'mini peligro', onclick: () => revocar(k.id) }, T('claves.revocar'))));
     }
   } catch (e) { avisar(msgError(e)); }
 }
@@ -468,21 +466,21 @@ async function revocar(id) {
 }
 $('#claveCrear').addEventListener('click', async () => {
   const nombre = $('#claveNombre').value.trim();
-  if (!nombre) return avisar('Give the key a name.');
+  if (!nombre) return avisar(T('claves.dale.nombre'));
   try {
     const r = await api('POST', '/api/me/keys', { name: nombre }, true);
     const caja = $('#claveNueva'); caja.hidden = false;
-    caja.replaceChildren(el('div', {}, 'Copy it now, it will not be shown again:'), el('code', {}, r.key),
-      ' ', el('button', { type: 'button', onclick: () => copiar(r.key) }, 'Copy'));
+    caja.replaceChildren(el('div', {}, T('claves.nueva')), el('code', {}, r.key),
+      ' ', el('button', { type: 'button', class: 'mini', onclick: () => copiar(r.key) }, T('copiar')));
     $('#claveNombre').value = '';
     cargarClaves();
   } catch (e) { avisar(msgError(e)); }
 });
 $('#borrarTodo').addEventListener('click', async () => {
-  if (!confirm('This deletes your API keys, contributions, projects and suggestions, and anonymises content you authored. Continue?')) return;
+  if (!confirm(T('datos.confirmar'))) return;
   try {
     await api('DELETE', '/api/me', null, true);
-    avisar('Your data was deleted.');
+    avisar(T('datos.borrados'));
     cargarAportes(); cargarClaves(); cargarProyectos(); cargarSugerencias();
   } catch (e) { avisar(msgError(e)); }
 });
@@ -490,7 +488,16 @@ $('#borrarTodo').addEventListener('click', async () => {
 // ── arranque
 $('#ejemploCurl').textContent =
   `curl "${location.origin}${BASE}/api/v1/requirements?category=messaging&max_priority=2&include=tests,accelerators&format=md"`;
+$('#ejemploCli').textContent =
+  `curl -fsSL ${location.origin}${BASE}/reqdb.mjs -o reqdb.mjs\nnode reqdb.mjs pull --category messaging --max-priority 2`;
 pintarPrio(); pintarTitulo();
+
+// Al cambiar de idioma se vuelve a pintar todo lo que genera este script (lo estático lo hace i18n.js).
+function renderTodo() {
+  pintarPrio(); pintarLeyenda(); pintarTitulo(); pintarLateral(); pintarEstadosProyecto(); pintarLista();
+  $('#btnCuenta').textContent = T(sesion ? 'cuenta.salir' : 'cuenta.entrar');
+  if (sesion) { cargarProyectos(); cargarAportes(); cargarClaves(); cargarSugerencias(); }
+}
 (async () => {
   try {
     estado.categorias = (await api('GET', '/api/v1/categories')).categories;

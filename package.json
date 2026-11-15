@@ -1,10 +1,31 @@
 {
   "name": "db_public_requirements",
   "version": "0.1.0",
+  "description": "Public database of software requirements, tests and accelerators for people who code with AI agents. Includes the reqdb CLI.",
+  "license": "MIT",
+  "author": "Luis María González Gordon",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luismariagonzalez/db_public_requirements.git"
+  },
+  "homepage": "https://joderestatodocogido.com/proyectos/requirements-db/",
+  "bugs": {
+    "url": "https://github.com/luismariagonzalez/db_public_requirements/issues"
+  },
+  "keywords": [
+    "requirements",
+    "ai-agents",
+    "vibe-coding",
+    "cli",
+    "coding-agents"
+  ],
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=22"
+  },
+  "bin": {
+    "reqdb": "cli/reqdb.mjs"
   },
   "scripts": {
     "dev": "node scripts/servir.mjs",
@@ -21,10 +42,13 @@
     "api:ensayar": "node scripts/ensayar_api.mjs",
     "semilla:generar-extras": "node scripts/generar_tests_aceleradores.mjs",
     "gemini:ensayar": "node scripts/ensayar_gemini.mjs",
-    "semilla:recalibrar": "node scripts/recalibrar_prioridades.mjs"
+    "semilla:recalibrar": "node scripts/recalibrar_prioridades.mjs",
+    "cli": "node cli/reqdb.mjs"
   },
   "dependencies": {
-    "jose": "^6.2.17",
+    "jose": "^6.2.17"
+  },
+  "devDependencies": {
     "pg": "^8.13.1"
   }
 }

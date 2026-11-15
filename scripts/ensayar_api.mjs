@@ -169,7 +169,8 @@ await prueba('POST /export', async () => {
 await prueba('el cupo anónimo corta con 429 y Retry-After', async () => {
   const mismaIp = '203.0.113.7';
   let ultimo;
-  for (let i = 0; i < 22; i++) ultimo = await pedir('GET', '/api/v1/categories', { ipFija: mismaIp });
+  // 20/min: se pide hasta que corte (con tope), por si la ráfaga cae a caballo de dos minutos.
+  for (let i = 0; i < 45 && ultimo?.estado !== 429; i++) ultimo = await pedir('GET', '/api/v1/categories', { ipFija: mismaIp });
   assert.equal(ultimo.estado, 429);
   assert.ok(Number(ultimo.cab.get('retry-after')) >= 1);
   // otra IP no se ve afectada
@@ -275,6 +276,86 @@ await prueba('aportar y gestionar keys exigen sesión de Clerk (una key no vale)
   assert.equal((await pedir('DELETE', '/api/me', { key: KEY })).estado, 401);
   assert.equal((await pedir('GET', '/api/v1/categories', { key: KEY })).cab.get('access-control-allow-origin'), '*');
   assert.equal((await pedir('GET', '/api/me/contributions')).cab.get('access-control-allow-origin'), null);   // sin CORS abierto
+});
+
+// ── el CLI de verdad (proceso aparte) contra esta API
+const { execFile } = await import('node:child_process');
+const { mkdtempSync, readFileSync, existsSync } = await import('node:fs');
+const { tmpdir } = await import('node:os');
+const { join } = await import('node:path');
+const { fileURLToPath } = await import('node:url');
+const cwdCli = mkdtempSync(join(tmpdir(), 'reqdb-e2e-'));
+const cfgCli = mkdtempSync(join(tmpdir(), 'reqdb-cfg-'));
+const cli = (args, { clave = true } = {}) => new Promise((ok) => {
+  const env = { ...process.env, REQDB_URL: BASE, REQDB_CONFIG_DIR: cfgCli, ...(clave ? { REQDB_KEY: KEY } : { REQDB_KEY: '' }) };
+  execFile(process.execPath, [fileURLToPath(new URL('../cli/reqdb.mjs', import.meta.url)), ...args], { cwd: cwdCli, env, timeout: 60_000 },
+    (e, stdout, stderr) => ok({ code: e ? (e.code ?? 5) : 0, out: stdout, err: stderr }));
+});
+
+await prueba('CLI: categories, search, show y tests/accelerators contra la API real', async () => {
+  const c = await cli(['categories', '--q', 'account', '--json'], { clave: false });
+  assert.equal(c.code, 0); assert.ok(JSON.parse(c.out).categories.some((x) => x.slug === 'accounting-software'));
+  const s = await cli(['search', 'password', 'reset', '--category', 'messaging', '--tests', '--accelerators'], { clave: false });
+  assert.equal(s.code, 0); assert.match(s.out, /P1  password-reset-by-email-link/); assert.match(s.out, /test P1  reset-link-works-only-once/); assert.match(s.out, /accelerator  lucia-auth/);
+  const d = await cli(['show', 'password-reset-by-email-link'], { clave: false });
+  assert.equal(d.code, 0); assert.match(d.out, /Password reset by email link/); assert.match(d.out, /lucia-auth/);
+  assert.match((await cli(['tests', '--max-priority', '1'], { clave: false })).out, /reset-link-works-only-once/);
+  assert.match((await cli(['accelerators', '--model', 'open_source'], { clave: false })).out, /Lucia Auth/);
+  assert.equal((await cli(['show', 'no-existe-nada'], { clave: false })).code, 1);
+});
+
+await prueba('CLI: sin clave, init falla con código 3', async () => {
+  const r = await cli(['init', '--name', 'X'], { clave: false });
+  assert.equal(r.code, 3); assert.match(r.err, /needs an API key/);
+});
+
+let idCli;
+await prueba('CLI: init crea el proyecto y .reqdb.json; pull escribe REQUIREMENTS.md con las instrucciones al agente', async () => {
+  const i = await cli(['init', '--name', 'App de prueba CLI', '--category', 'messaging', '--max-priority', '2', '--json']);
+  assert.equal(i.code, 0, i.err);
+  const cfg = JSON.parse(readFileSync(join(cwdCli, '.reqdb.json'), 'utf8'));
+  idCli = cfg.project; assert.ok(idCli > 0); assert.equal(cfg.url, BASE);
+  const p = await cli(['pull']);
+  assert.equal(p.code, 0, p.err);
+  const md = readFileSync(join(cwdCli, 'REQUIREMENTS.md'), 'utf8');
+  assert.match(md, /Password reset by email link/); assert.match(md, /Test \(P1/); assert.match(md, new RegExp(`projects/${idCli}/items`));
+});
+
+await prueba('CLI: check falla (código 1) mientras haya pendientes, mark los resuelve y check pasa (código 0)', async () => {
+  const antes = await cli(['check', '--max-priority', '2']);
+  assert.equal(antes.code, 1); assert.match(antes.out, /password-reset-by-email-link/);
+  const m = await cli(['mark', 'done', 'password-reset-by-email-link', 'test:reset-link-works-only-once', 'accelerator:lucia-auth', '--note', 'hecho en el ensayo']);
+  assert.equal(m.code, 0, m.err); assert.match(m.out, /Marked 3 item\(s\) as done/);
+  const despues = await cli(['check', '--max-priority', '2']);
+  assert.equal(despues.code, 0, despues.out); assert.match(despues.out, /^OK:/);
+  const desc = await cli(['mark', 'done', 'no-existe-nada']);
+  assert.equal(desc.code, 1); assert.match(desc.out, /Unknown \(not marked\)/);
+});
+
+await prueba('CLI: status, pull --hide-done, projects, suggest, agent y use', async () => {
+  const s = await cli(['status', '--json']);
+  assert.equal(s.code, 0); assert.equal(JSON.parse(s.out).counts.done, 3);
+  await cli(['mark', 'planned', 'typing-indicator']);
+  assert.match((await cli(['status'])).out, /\[planned\] requirement:typing-indicator/);
+  await cli(['pull', '--hide-done', '-o', 'pendientes.md', '--max-priority', '5']);
+  const md = readFileSync(join(cwdCli, 'pendientes.md'), 'utf8');
+  assert.match(md, /Typing indicator/); assert.doesNotMatch(md, /Password reset by email link/);
+  assert.match((await cli(['projects'])).out, new RegExp(`${idCli}\\s+App de prueba CLI`));
+  const sug = await cli(['suggest', 'cover group chats as well, please', '--about', 'typing-indicator']);
+  assert.equal(sug.code, 0, sug.err); assert.match(sug.out, /received/);
+  const ag = await cli(['agent']);
+  assert.equal(ag.code, 0); assert.match(ag.out, new RegExp(`id ${idCli}`));
+  assert.equal((await cli(['use', String(idCli)])).code, 0);
+  assert.ok(existsSync(join(cwdCli, '.reqdb.json')));
+});
+
+await prueba('CLI: login guarda la clave y los comandos con clave funcionan sin variable de entorno', async () => {
+  const l = await cli(['login', '--key', KEY], { clave: false });
+  assert.equal(l.code, 0, l.err); assert.doesNotMatch(l.out + l.err, new RegExp(KEY));
+  const p = await cli(['projects'], { clave: false });          // ahora la clave sale del fichero de configuración
+  assert.equal(p.code, 0, p.err);
+  assert.equal((await cli(['logout'], { clave: false })).code, 0);
+  assert.equal((await cli(['projects'], { clave: false })).code, 3);
 });
 
 api.close(); await falso.cerrar();

@@ -29,23 +29,39 @@ export function mdAHtml(md) {
   return out.join('\n');
 }
 
-export function paginaTerminos(md) {
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+// Cabecera común de las páginas de texto estáticas: volver + conmutador EN | ES.
+// Cada bloque de idioma lleva class="en" o class="es"; el CSS (html[lang]) enseña uno.
+export const cabeceraEstatica = (extra = '') => `<header class="cab-est">
+  <a href="./index.html"><span class="en">← Back</span><span class="es">← Volver</span></a>${extra}
+  <span class="idiomas" role="group" aria-label="Language / Idioma"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="es" aria-pressed="false">ES</button></span>
+</header>`;
+
+export const cabezaHtml = (titulo) => `<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Content Terms · Requirements DB</title>
+<title>${titulo}</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="./estilo.css">
+<script type="module" src="./pagina.js"></script>`;
+
+export function paginaTerminos(md, mdEs = '') {
+  const enlaces = `<span class="en"><a href="./legal.html">Legal notice &amp; privacy</a></span><span class="es"><a href="./legal.html">Aviso legal y privacidad</a></span>`;
+  return `<!doctype html>
+<html lang="en">
+<head>
+${cabezaHtml('Content Terms · Requirements DB')}
 </head>
 <body>
 <main>
-<p><a href="./index.html">← Back</a> · <a href="./legal.html">Legal notice &amp; privacy</a></p>
+${cabeceraEstatica(` · ${enlaces}`)}
+<div class="en">
 ${mdAHtml(md)}
+</div>
+<div class="es">
+${mdAHtml(mdEs || md)}
+</div>
 </main>
 </body>
 </html>

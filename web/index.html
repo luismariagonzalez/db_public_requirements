@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-titulo="meta.title">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -16,97 +16,103 @@
 <header class="barra">
   <div class="barra-in">
     <a class="logo" href="./"><span class="cuadro"></span><span>reqdb</span></a>
-    <nav aria-label="Main">
-      <a href="#browse" class="act">Browse</a>
-      <a href="#api">API</a>
-      <a href="#cuenta-zona" id="navCuenta" hidden>Account</a>
-      <a href="./terms.html">Terms</a>
+    <nav data-i18n-attr="aria-label:nav.main">
+      <a href="#browse" class="act" data-i18n="nav.browse">Browse</a>
+      <a href="#api" data-i18n="nav.api">API</a>
+      <a href="./cli.html" data-i18n="nav.cli">CLI</a>
+      <a href="#cuenta-zona" id="navCuenta" data-i18n="nav.account" hidden>Account</a>
+      <a href="./terms.html" data-i18n="nav.terms">Terms</a>
     </nav>
     <div class="der">
-      <span class="atajo">search <kbd>/</kbd></span>
-      <button id="btnCuenta" type="button" class="boton">Sign in</button>
+      <span class="atajo"><span data-i18n="atajo.buscar">search</span> <kbd>/</kbd></span>
+      <div class="idiomas" role="group" data-i18n-attr="aria-label:idioma.aria">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="es" aria-pressed="false">ES</button>
+      </div>
+      <button id="btnCuenta" type="button" class="boton" data-i18n="cuenta.entrar">Sign in</button>
     </div>
   </div>
 </header>
 
 <section class="hero">
   <div class="hero-txt">
-    <div class="mono acento">// requirements for your coding agent</div>
-    <h1>Don't let your agent forget the boring essentials.</h1>
-    <p>Pick requirements for your kind of app — with the tests that prove them and the libraries that speed them up.
+    <div class="mono acento" data-i18n="hero.kicker">// requirements for your coding agent</div>
+    <h1 data-i18n="hero.h1">Don't let your agent forget the boring essentials.</h1>
+    <p data-i18n-html="hero.p.html">Pick requirements for your kind of app — with the tests that prove them and the libraries that speed them up.
        They say <em>what</em> the app must do, never <em>where</em> it goes.</p>
   </div>
   <ol class="pasos mono">
-    <li><span>01</span>Pick a category &amp; priority</li>
-    <li><span>02</span>Untick what doesn't apply</li>
-    <li><span>03</span>Copy Markdown, curl or JSON</li>
+    <li><span>01</span><b data-i18n="hero.paso1">Pick a category &amp; priority</b></li>
+    <li><span>02</span><b data-i18n="hero.paso2">Untick what doesn't apply</b></li>
+    <li><span>03</span><b data-i18n="hero.paso3">Copy Markdown, curl or JSON</b></li>
   </ol>
 </section>
 
 <main id="browse">
-  <aside class="lateral" aria-label="Filters">
+  <aside class="lateral" data-i18n-attr="aria-label:lat.filtros" aria-label="Filters">
     <label class="busca">
       <span class="mono tenue">⌕</span>
-      <input id="q" type="search" maxlength="300" autocomplete="off" placeholder="Search by meaning…" aria-label="Search requirements by meaning">
+      <input id="q" type="search" maxlength="300" autocomplete="off" placeholder="Search by meaning…" aria-label="Search requirements by meaning"
+             data-i18n-attr="placeholder:busca.placeholder;aria-label:busca.aria">
       <kbd>/</kbd>
     </label>
 
     <div class="grupo-lat">
-      <div class="etq-lat">Category</div>
-      <input id="filtroCat" class="filtro" type="search" maxlength="60" autocomplete="off" placeholder="Filter: CRM, payroll, LMS…" aria-label="Filter software categories">
+      <div class="etq-lat" data-i18n="lat.categoria">Category</div>
+      <input id="filtroCat" class="filtro" type="search" maxlength="60" autocomplete="off" placeholder="Filter: CRM, payroll, LMS…" aria-label="Filter software categories"
+             data-i18n-attr="placeholder:filtro.placeholder;aria-label:filtro.aria">
       <div id="cats"></div>
     </div>
 
     <div class="grupo-lat">
-      <div class="etq-lat">Priority up to</div>
-      <div id="prio" class="segmentos" role="group" aria-label="Maximum priority"></div>
+      <div class="etq-lat" data-i18n="lat.prioridad">Priority up to</div>
+      <div id="prio" class="segmentos" role="group" data-i18n-attr="aria-label:prio.aria"></div>
       <div id="prioDesc" class="nota"></div>
     </div>
 
     <div class="grupo-lat">
-      <div class="etq-lat">Include</div>
-      <button id="incTests" type="button" class="interruptor" role="switch" aria-checked="false"><span>Tests</span><i></i></button>
-      <button id="incAcel" type="button" class="interruptor" role="switch" aria-checked="false"><span>Accelerators</span><i></i></button>
+      <div class="etq-lat" data-i18n="lat.incluir">Include</div>
+      <button id="incTests" type="button" class="interruptor" role="switch" aria-checked="false"><span data-i18n="inc.tests">Tests</span><i></i></button>
+      <button id="incAcel" type="button" class="interruptor" role="switch" aria-checked="false"><span data-i18n="inc.acel">Accelerators</span><i></i></button>
     </div>
 
     <div id="barraProyecto" class="grupo-lat" hidden>
-      <div class="etq-lat">Project</div>
-      <select id="proyecto" class="campo" aria-label="Project"><option value="">— none —</option></select>
-      <button id="ocultarHecho" type="button" class="interruptor" role="switch" aria-checked="false"><span>Hide what I did</span><i></i></button>
+      <div class="etq-lat" data-i18n="lat.proyecto">Project</div>
+      <select id="proyecto" class="campo" aria-label="Project" data-i18n-attr="aria-label:lat.proyecto"><option value="" data-i18n="proy.ninguno">— none —</option></select>
+      <button id="ocultarHecho" type="button" class="interruptor" role="switch" aria-checked="false"><span data-i18n="proy.ocultar">Hide what I did</span><i></i></button>
     </div>
   </aside>
 
   <section class="panel lista-panel" aria-labelledby="tituloCat">
     <div class="panel-cab">
       <div>
-        <div class="linea-titulo"><h2 id="tituloCat">Requirements</h2><span id="slugCat" class="mono tenue"></span></div>
+        <div class="linea-titulo"><h2 id="tituloCat" data-i18n="lista.titulo">Requirements</h2><span id="slugCat" class="mono tenue"></span></div>
         <div id="descCat" class="nota"></div>
       </div>
       <div id="acciones" class="barra-sel mono" hidden>
         <span id="cuenta" class="tenue"></span>
-        <button id="selTodo" type="button" class="mini">all</button>
-        <button id="selNada" type="button" class="mini">none</button>
+        <button id="selTodo" type="button" class="mini" data-i18n="sel.todos">all</button>
+        <button id="selNada" type="button" class="mini" data-i18n="sel.ninguno">none</button>
       </div>
     </div>
     <div id="accionesProyecto" class="barra-proy" hidden>
-      <span class="tenue">Mark the selected in the project as</span>
-      <select id="estadoProyecto" class="campo chico" aria-label="Status"></select>
-      <button id="marcar" type="button" class="mini acento-b" disabled>Apply</button>
+      <span class="tenue" data-i18n="marcar.texto">Mark the selected in the project as</span>
+      <select id="estadoProyecto" class="campo chico" aria-label="Status" data-i18n-attr="aria-label:marcar.aria"></select>
+      <button id="marcar" type="button" class="mini acento-b" data-i18n="marcar.aplicar" disabled>Apply</button>
     </div>
     <p id="estado" class="vacio-msg" aria-live="polite"></p>
     <ul id="lista" class="lista"></ul>
   </section>
 
-  <section class="panel salida" aria-label="What your agent receives">
+  <section class="panel salida" aria-label="What your agent receives" data-i18n-attr="aria-label:tabs.aria">
     <div class="salida-cab">
       <div id="tabs" class="tabs mono" role="tablist">
         <button type="button" role="tab" data-tab="md" aria-selected="true">Markdown</button>
         <button type="button" role="tab" data-tab="curl" aria-selected="false">curl</button>
         <button type="button" role="tab" data-tab="json" aria-selected="false">JSON</button>
       </div>
-      <button id="copiarCodigo" type="button" class="mini acento-b">Copy</button>
+      <button id="copiarCodigo" type="button" class="mini acento-b" data-i18n="copiar">Copy</button>
     </div>
-    <div id="codigo" class="codigo" tabindex="0" aria-label="Preview"></div>
+    <div id="codigo" class="codigo" tabindex="0" aria-label="Preview" data-i18n-attr="aria-label:codigo.preview"></div>
     <div class="salida-pie mono"><span id="pieIzq"></span><span id="pieDer"></span></div>
   </section>
 </main>
@@ -114,31 +120,37 @@
 <section id="api" class="api">
   <div class="api-in">
     <div>
-      <div class="mono acento">// api</div>
-      <h2>Use it from your agent</h2>
-      <p>Public and rate limited — 20 req/min without a key. JSON by default, or paste-ready Markdown with <code>format=md</code>,
+      <div class="mono acento" data-i18n="api.kicker">// api</div>
+      <h2 data-i18n="api.h2">Use it from your agent</h2>
+      <p data-i18n-html="api.p.html">Public and rate limited — 20 req/min without a key. JSON by default, or paste-ready Markdown with <code>format=md</code>,
          ending with instructions for your agent to record what's done and what's pending in your project.</p>
       <div class="leyenda">
-        <div class="etq-lat">Priority scale · per category</div>
+        <div class="etq-lat" data-i18n="api.leyenda">Priority scale · per category</div>
         <div id="leyenda"></div>
       </div>
     </div>
     <div class="endpoints">
       <div class="caja-ep">
-        <div class="cab-ep mono"><span>Read · public</span><span>GET</span></div>
-        <div class="ep"><span class="mono">/api/v1/categories</span><span>audiences, domains, categories</span></div>
-        <div class="ep"><span class="mono">/api/v1/requirements</span><span>search, filter, <code>format=md</code></span></div>
-        <div class="ep"><span class="mono">/api/v1/tests</span><span>tests by category and priority</span></div>
-        <div class="ep"><span class="mono">/api/v1/accelerators</span><span>libraries and services</span></div>
+        <div class="cab-ep mono"><span data-i18n="api.lectura">Read · public</span><span>GET</span></div>
+        <div class="ep"><span class="mono">/api/v1/categories</span><span data-i18n="api.ep.cats">audiences, domains, categories</span></div>
+        <div class="ep"><span class="mono">/api/v1/requirements</span><span data-i18n-html="api.ep.reqs.html">search, filter, <code>format=md</code></span></div>
+        <div class="ep"><span class="mono">/api/v1/tests</span><span data-i18n="api.ep.tests">tests by category and priority</span></div>
+        <div class="ep"><span class="mono">/api/v1/accelerators</span><span data-i18n="api.ep.acel">libraries and services</span></div>
       </div>
       <div class="caja-ep">
-        <div class="cab-ep mono"><span>With a key</span><span>Authorization: Bearer rq_…</span></div>
-        <div class="ep"><span class="mono">GET /api/v1/projects</span><span>your projects</span></div>
-        <div class="ep"><span class="mono">PUT /api/v1/projects/:id/items</span><span>mark done / planned / skipped</span></div>
-        <div class="ep"><span class="mono">POST /api/v1/suggestions</span><span>suggest something</span></div>
-        <div class="nota pad">Add <code>project=&lt;id&gt;</code> to a search to see what you already shipped, and <code>hide=done</code> to skip it.</div>
+        <div class="cab-ep mono"><span data-i18n="api.clave">With a key</span><span>Authorization: Bearer rq_…</span></div>
+        <div class="ep"><span class="mono">GET /api/v1/projects</span><span data-i18n="api.ep.proyectos">your projects</span></div>
+        <div class="ep"><span class="mono">PUT /api/v1/projects/:id/items</span><span data-i18n="api.ep.marcar">mark done / planned / skipped</span></div>
+        <div class="ep"><span class="mono">POST /api/v1/suggestions</span><span data-i18n="api.ep.sugerir">suggest something</span></div>
+        <div class="nota pad" data-i18n-html="api.nota.html">Add <code>project=&lt;id&gt;</code> to a search to see what you already shipped, and <code>hide=done</code> to skip it.</div>
       </div>
       <pre class="comando"><code id="ejemploCurl">curl "https://&lt;this-site&gt;/api/v1/requirements?category=messaging&amp;max_priority=2&amp;include=tests,accelerators&amp;format=md"</code></pre>
+      <div class="caja-ep">
+        <div class="cab-ep mono"><span data-i18n="api.cli.titulo">Prefer the terminal?</span><span>reqdb</span></div>
+        <div class="ep"><span data-i18n="api.cli.p">The reqdb CLI is one file, no dependencies: pull requirements into your repo, let your agent mark progress, and fail CI while P1 work is pending.</span></div>
+        <pre class="comando sin-borde"><code id="ejemploCli">node reqdb.mjs pull</code></pre>
+        <div class="ep"><a href="./cli.html" data-i18n="api.cli.enlace">CLI docs for agents →</a></div>
+      </div>
     </div>
   </div>
 </section>
@@ -146,70 +158,74 @@
 <section id="cuenta-zona" class="cuenta-zona">
   <div class="cuenta-in">
     <section id="proyectos" class="caja" hidden aria-labelledby="t-proy">
-      <h2 id="t-proy">My projects</h2>
-      <p class="nota">Track which requirements, tests and accelerators you implemented in each app, so next time you only pick what is new.
-         Your agent can update this too (see <a href="#api">API</a>).</p>
+      <h2 id="t-proy" data-i18n="proy.h2">My projects</h2>
+      <p class="nota" data-i18n-html="proy.p.html">Track which requirements, tests and accelerators you implemented in each app, so next time you only pick what is new.
+         Your agent can update this too (see <a href="#api">API</a> and <a href="./cli.html">CLI</a>).</p>
       <div class="fila-in">
-        <input id="proyNombre" class="campo" type="text" maxlength="80" placeholder="New project name, e.g. “Acme chat”" aria-label="Project name">
-        <button id="proyCrear" type="button" class="boton acento-b">Create project</button>
+        <input id="proyNombre" class="campo" type="text" maxlength="80" placeholder="New project name, e.g. “Acme chat”" aria-label="Project name"
+               data-i18n-attr="placeholder:proy.nombre.placeholder;aria-label:proy.nombre.aria">
+        <button id="proyCrear" type="button" class="boton acento-b" data-i18n="proy.crear">Create project</button>
       </div>
       <ul id="listaProyectos" class="lista-simple"></ul>
     </section>
 
     <section id="aportar" class="caja" hidden aria-labelledby="t-aportar">
-      <h2 id="t-aportar">Contribute a requirement</h2>
-      <p class="nota">Describe something an app should do, in any language. An AI reviews it: it checks it is a real requirement,
+      <h2 id="t-aportar" data-i18n="aporte.h2">Contribute a requirement</h2>
+      <p class="nota" data-i18n="aporte.p">Describe something an app should do, in any language. An AI reviews it: it checks it is a real requirement,
          whether it already exists (then it merges or declines), and strips anything about screens or layout.</p>
-      <textarea id="aporteTexto" class="campo" rows="4" maxlength="4000" placeholder="e.g. Users must be able to block another user so they stop receiving their messages."></textarea>
-      <label class="check"><input type="checkbox" id="aporteLicencia"> I have the right to submit this and I agree to the <a href="./terms.html">Content Terms</a>, including the licence I grant the project over my contribution.</label>
-      <button id="aporteEnviar" type="button" class="boton acento-b">Send for review</button>
+      <textarea id="aporteTexto" class="campo" rows="4" maxlength="4000" placeholder="e.g. Users must be able to block another user so they stop receiving their messages."
+                data-i18n-attr="placeholder:aporte.placeholder"></textarea>
+      <label class="check"><input type="checkbox" id="aporteLicencia"> <span data-i18n-html="aporte.terminos.html">I have the right to submit this and I agree to the <a href="./terms.html">Content Terms</a>, including the licence I grant the project over my contribution.</span></label>
+      <button id="aporteEnviar" type="button" class="boton acento-b" data-i18n="aporte.enviar">Send for review</button>
       <div id="aporteResultado" class="resultado" hidden></div>
-      <h3>My contributions</h3>
+      <h3 data-i18n="aporte.mias">My contributions</h3>
       <ul id="misAportes" class="lista-simple"></ul>
     </section>
 
     <section id="sugerencias" class="caja" hidden aria-labelledby="t-sug">
-      <h2 id="t-sug">Suggest something</h2>
-      <p class="nota">A missing test or accelerator, a requirement that could be better, or something wrong? A person reviews every suggestion.
+      <h2 id="t-sug" data-i18n="sug.h2">Suggest something</h2>
+      <p class="nota" data-i18n="sug.p">A missing test or accelerator, a requirement that could be better, or something wrong? A person reviews every suggestion.
          Use “Suggest” on any result to point at it.</p>
       <div class="fila-in">
-        <select id="sugTipo" class="campo" aria-label="Kind">
-          <option value="improvement">Improve something</option>
-          <option value="new_item">Add something new</option>
-          <option value="report">Report a problem</option>
+        <select id="sugTipo" class="campo" aria-label="Kind" data-i18n-attr="aria-label:sug.tipo.aria">
+          <option value="improvement" data-i18n="sug.tipo.improvement">Improve something</option>
+          <option value="new_item" data-i18n="sug.tipo.new_item">Add something new</option>
+          <option value="report" data-i18n="sug.tipo.report">Report a problem</option>
         </select>
-        <select id="sugObjetivoTipo" class="campo" aria-label="Type of item">
-          <option value="requirement">requirement</option>
-          <option value="test">test</option>
-          <option value="accelerator">accelerator</option>
-          <option value="general">general</option>
+        <select id="sugObjetivoTipo" class="campo" aria-label="Type of item" data-i18n-attr="aria-label:sug.obj.aria">
+          <option value="requirement" data-i18n="sug.obj.requirement">requirement</option>
+          <option value="test" data-i18n="sug.obj.test">test</option>
+          <option value="accelerator" data-i18n="sug.obj.accelerator">accelerator</option>
+          <option value="general" data-i18n="sug.obj.general">general</option>
         </select>
       </div>
-      <input id="sugObjetivo" class="campo" type="text" maxlength="120" placeholder="About (slug, optional)" aria-label="Slug it is about">
-      <textarea id="sugTexto" class="campo" rows="3" maxlength="1500" placeholder="What should change, and why?"></textarea>
-      <button id="sugEnviar" type="button" class="boton acento-b">Send suggestion</button>
-      <h3>My suggestions</h3>
+      <input id="sugObjetivo" class="campo" type="text" maxlength="120" placeholder="About (slug, optional)" aria-label="Slug it is about"
+             data-i18n-attr="placeholder:sug.slug.placeholder;aria-label:sug.slug.aria">
+      <textarea id="sugTexto" class="campo" rows="3" maxlength="1500" placeholder="What should change, and why?" data-i18n-attr="placeholder:sug.placeholder"></textarea>
+      <button id="sugEnviar" type="button" class="boton acento-b" data-i18n="sug.enviar">Send suggestion</button>
+      <h3 data-i18n="sug.mias">My suggestions</h3>
       <ul id="misSugerencias" class="lista-simple"></ul>
     </section>
 
     <section id="claves" class="caja" hidden aria-labelledby="t-claves">
-      <h2 id="t-claves">API keys</h2>
-      <p class="nota">Keys raise your rate limit and let your agent read, update your projects and send suggestions. Keep them secret: they are shown only once.</p>
+      <h2 id="t-claves" data-i18n="claves.h2">API keys</h2>
+      <p class="nota" data-i18n="claves.p">Keys raise your rate limit and let your agent (or the CLI) read, update your projects and send suggestions. Keep them secret: they are shown only once.</p>
       <div class="fila-in">
-        <input id="claveNombre" class="campo" type="text" maxlength="60" placeholder="Name, e.g. “my Claude Code”" aria-label="Key name">
-        <button id="claveCrear" type="button" class="boton acento-b">Create key</button>
+        <input id="claveNombre" class="campo" type="text" maxlength="60" placeholder="Name, e.g. “my Claude Code”" aria-label="Key name"
+               data-i18n-attr="placeholder:claves.nombre.placeholder;aria-label:claves.nombre.aria">
+        <button id="claveCrear" type="button" class="boton acento-b" data-i18n="claves.crear">Create key</button>
       </div>
       <div id="claveNueva" class="resultado" hidden></div>
       <ul id="listaClaves" class="lista-simple"></ul>
-      <button id="borrarTodo" type="button" class="boton peligro">Delete my data</button>
+      <button id="borrarTodo" type="button" class="boton peligro" data-i18n="datos.borrar">Delete my data</button>
     </section>
   </div>
 </section>
 
 <footer class="pie">
   <div class="pie-in">
-    <span>reqdb · community-curated · code MIT</span>
-    <span><a href="./legal.html">Legal &amp; privacy</a><a href="./terms.html">Content terms</a></span>
+    <span data-i18n="pie.texto">reqdb · community-curated · code MIT</span>
+    <span><a href="./cli.html" data-i18n="pie.cli">CLI</a><a href="./legal.html" data-i18n="pie.legal">Legal &amp; privacy</a><a href="./terms.html" data-i18n="pie.terminos">Content terms</a></span>
   </div>
 </footer>
 <div id="aviso" class="aviso" role="status" hidden></div>

@@ -24,7 +24,7 @@ test('el sitio se construye sin credenciales', () => {
 test('en publico/ solo sale lo de la lista blanca', () => {
   construir();
   for (const f of readdirSync(new URL('publico/', raiz)))
-    assert.match(f, /\.(html|js|css|svg|png|jpe?g|webp|woff2?|ico|json)$/, `no debería publicarse: ${f}`);
+    assert.match(f, /\.(html|js|mjs|css|svg|png|jpe?g|webp|woff2?|ico|json)$/, `no debería publicarse: ${f}`);
 });
 
 test('ningún HTML lleva scripts en línea (la CSP no los dejaría correr)', () => {
@@ -43,5 +43,22 @@ test('terms.html sale de LICENSE-DATA.md, escapado y con la restricción visible
   const html = readFileSync(new URL('publico/terms.html', raiz), 'utf8');
   assert.match(html, /<h1>Requirements DB: Content Terms<\/h1>/);
   assert.match(html, /Bulk extraction/);
-  assert.doesNotMatch(html, /<script/i);
+  assert.match(html, /<div class="es">[\s\S]*prevalece la versión en inglés/);   // traducción de cortesía
+  for (const [etiqueta] of html.matchAll(/<script\b[^>]*>/gi)) assert.match(etiqueta, /\ssrc=/, 'solo scripts en fichero');
+});
+
+test('legal y CLI llevan un bloque por idioma, el conmutador y el script de idioma', () => {
+  construir();
+  for (const f of ['legal.html', 'cli.html', 'terms.html']) {
+    const html = readFileSync(new URL(`publico/${f}`, raiz), 'utf8');
+    assert.match(html, /<div class="en">/, f);
+    assert.match(html, /<div class="es">/, f);
+    assert.match(html, /data-lang="es"/, f);
+    assert.match(html, /<script type="module" src="\.\/pagina\.js">/, f);
+  }
+});
+
+test('el CLI se publica como /reqdb.mjs y es el mismo fichero', () => {
+  construir();
+  assert.equal(readFileSync(new URL('publico/reqdb.mjs', raiz), 'utf8'), readFileSync(new URL('cli/reqdb.mjs', raiz), 'utf8'));
 });
