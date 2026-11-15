@@ -12,7 +12,7 @@ iniciar(() => renderTodo());
 // API ('/api/v1/…') se cuelgan de ahí, así que todo es relativo y funciona en los dos sitios.
 const BASE = new URL('./', location.href).pathname.replace(/\/$/, '');
 const estado = { q: '', prio: 5, cats: [], audiencias: [], dominios: [], filtroCat: '', items: [], sel: new Set(), categorias: [],
-  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false, kinds: [], tab: 'md' };
+  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false, kinds: [], recordar: true, tab: 'md' };
 let sesion = false;
 let proyectos = [];
 
@@ -131,7 +131,7 @@ function interruptor(id, clave) {
   b.addEventListener('click', () => { estado[clave] = !estado[clave]; b.setAttribute('aria-checked', String(estado[clave])); buscar(); });
 }
 interruptor('#incTests', 'incluirTests'); interruptor('#incAcel', 'incluirAceleradores'); interruptor('#ocultarHecho', 'ocultarHecho');
-$('#proyecto').addEventListener('change', (e) => { estado.proyecto = e.target.value ? Number(e.target.value) : null; buscar(); });
+$('#proyecto').addEventListener('change', (e) => { estado.proyecto = e.target.value ? Number(e.target.value) : null; pintarResumenProyecto(); buscar(); });
 function pintarLeyenda() {
   $('#leyenda').replaceChildren(...PRIOS.map((p) => el('div', { class: 'fila-l' },
     el('span', { class: 'pb', 'data-p': String(p) }, `P${p}`), el('span', {}, el('b', {}, T(`p${p}.n`)), ` — ${T(`p${p}.d`)}`))));
@@ -284,7 +284,29 @@ async function copiar(texto) {
   try { await navigator.clipboard.writeText(texto); avisar(T('copiado')); }
   catch { avisar(T('copiar.fallo')); }
 }
-$('#copiarCodigo').addEventListener('click', () => copiar(textoActual));
+$('#copiarCodigo').addEventListener('click', async () => {
+  await copiar(textoActual);
+  if (sesion && estado.proyecto && estado.recordar && estado.tab !== 'curl') await recordarEntregado();
+});
+// Lo que se copia para el agente queda anotado en el proyecto como «planeado» (no pisa lo que ya tenga estado).
+async function recordarEntregado() {
+  const items = [], tocados = [];
+  const nuevo = (obj, tipo, tiene) => { if (!tiene) { items.push({ type: tipo, slug: obj.slug, status: 'planned' }); tocados.push(obj); } };
+  for (const it of estado.items) {
+    if (!estado.sel.has(it.slug)) continue;
+    nuevo(it, 'requirement', it.project_status);
+    if (estado.incluirTests) for (const t of it.tests ?? []) nuevo(t, 'test', t.project_status);
+    if (estado.incluirAceleradores) for (const a of it.accelerators ?? []) nuevo(a, 'accelerator', a.project_status);
+  }
+  if (!items.length) return;
+  try {
+    for (let i = 0; i < items.length; i += 200) await api('PUT', `/api/v1/projects/${estado.proyecto}/items`, { items: items.slice(i, i + 200) });
+    for (const o of tocados) o.project_status = 'planned';
+    pintarLista(); cargarProyectos();
+    avisar(T('proy.recordado', { n: items.length, proyecto: proyectos.find((p) => p.id === estado.proyecto)?.name ?? '' }));
+  } catch (e) { avisar(msgError(e)); }
+}
+$('#recordarCopia').addEventListener('click', () => { estado.recordar = !estado.recordar; $('#recordarCopia').setAttribute('aria-checked', String(estado.recordar)); });
 
 // Marcar lo seleccionado en el proyecto (los requisitos marcados y, si se muestran, sus tests y aceleradores).
 function pintarEstadosProyecto() { const v = $('#estadoProyecto').value; $('#estadoProyecto').replaceChildren(...ESTADOS.map(([x]) => el('option', { value: x }, T(`estl.${x}`)))); if (v) $('#estadoProyecto').value = v; }
@@ -312,11 +334,13 @@ function pintarSesion(user) {
   marcarSesion(sesion);
   $('#btnCuenta').textContent = T(user ? 'cuenta.salir' : 'cuenta.entrar');
   for (const id of ['#aportar', '#claves', '#proyectos', '#sugerencias']) $(id).hidden = !user;
-  $('#barraProyecto').hidden = !user;
-  $('#navCuenta').hidden = !user;
+  $('#proyAnonimo').hidden = !!user; $('#proyConSesion').hidden = !user;
   if (!user) { estado.proyecto = null; proyectos = []; }
   if (user) { cargarAportes(); cargarClaves(); cargarProyectos(); cargarSugerencias(); }
 }
+// Proyectos y claves están siempre en el menú: sin sesión llevan a entrar.
+for (const id of ['#navProy', '#navClaves', '#proyEntrar'])
+  $(id).addEventListener('click', async (e) => { if (!sesion) { e.preventDefault(); try { await entrar(); } catch (err) { avisar(err.message); } } });
 $('#btnCuenta').addEventListener('click', async () => {
   try {
     if (sesion) { await salir(); pintarSesion(null); buscar(); } else await entrar();
@@ -341,8 +365,12 @@ async function cargarProyectos() {
       ...proyectos.map((p) => el('option', { value: String(p.id) }, p.name)));
     sel.value = estado.proyecto && proyectos.some((p) => p.id === estado.proyecto) ? String(estado.proyecto) : '';
     if (!sel.value) estado.proyecto = null;
-    pintarProyectos();
+    pintarProyectos(); pintarResumenProyecto();
   } catch (e) { avisar(msgError(e)); }
+}
+function pintarResumenProyecto() {
+  const p = proyectos.find((x) => x.id === estado.proyecto);
+  $('#resumenProyecto').textContent = p ? T('proy.cuentas', p.counts) : '';
 }
 
 function pintarProyectos() {
@@ -383,17 +411,22 @@ async function borrarProyecto(p) {
   try { await api('DELETE', `/api/v1/projects/${p.id}`, null, true); cargarProyectos(); }
   catch (e) { avisar(msgError(e)); }
 }
-$('#proyCrear').addEventListener('click', async () => {
-  const nombre = $('#proyNombre').value.trim();
+async function crearProyecto(campo) {
+  const nombre = campo.value.trim();
   if (!nombre) return avisar(T('proy.dale.nombre'));
   try {
     const r = await api('POST', '/api/v1/projects', { name: nombre, categories: estado.cats }, true);
-    $('#proyNombre').value = '';
+    campo.value = '';
+    $('#proyNuevoForm').hidden = true;
     estado.proyecto = r.id;
     await cargarProyectos(); buscar();
     avisar(T('proy.creado'));
   } catch (e) { avisar(msgError(e)); }
-});
+}
+$('#proyCrear').addEventListener('click', () => crearProyecto($('#proyNombre')));
+$('#proyCrearRapido').addEventListener('click', () => crearProyecto($('#proyNombreRapido')));
+$('#proyNombreRapido').addEventListener('keydown', (e) => { if (e.key === 'Enter') crearProyecto($('#proyNombreRapido')); });
+$('#proyNuevo').addEventListener('click', () => { const f = $('#proyNuevoForm'); f.hidden = !f.hidden; if (!f.hidden) $('#proyNombreRapido').focus(); });
 
 // ── sugerencias
 function sugerirSobre(tipo, slug) {

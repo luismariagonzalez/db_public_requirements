@@ -101,6 +101,12 @@ export default {
 
   'pie.texto': 'reqdb · curado por la comunidad · código MIT', 'pie.legal': 'Aviso legal y privacidad', 'pie.terminos': 'Términos del contenido', 'pie.cli': 'CLI',
   'idioma.aria': 'Idioma',
+  'nav.projects': 'Proyectos', 'nav.keys': 'Claves de API',
+  'proy.barra.p': 'Un proyecto por app: recuerda lo que ya le has pasado a tu agente, y la próxima vez eliges solo lo nuevo.',
+  'proy.anonimo': 'Entra con Google para crear proyectos y tener claves de API para tu agente.',
+  'proy.nuevo': '+ Nuevo proyecto',
+  'proy.recordar': 'Recordar lo que copio', 'proy.recordar.t': 'Al copiar, los elementos se guardan en el proyecto como planeados (lo que le has pasado a tu agente)',
+  'proy.recordado': '{n} elemento(s) guardados como planeados en «{proyecto}»',
   'k.functional': 'Funcional', 'k.technical': 'Técnico', 'k.security': 'Seguridad', 'k.privacy': 'Privacidad', 'k.performance': 'Rendimiento',
   'k.reliability': 'Fiabilidad', 'k.ux': 'UX', 'k.accessibility': 'Accesibilidad', 'k.legal': 'Legal',
   'k.functional.d': 'Lo que pueden hacer los usuarios', 'k.technical.d': 'Cómo se construye y se opera el sistema', 'k.security.d': 'Protección frente a abusos y ataques',

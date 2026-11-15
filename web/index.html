@@ -20,7 +20,8 @@
       <a href="#browse" class="act" data-i18n="nav.browse">Browse</a>
       <a href="#api" data-i18n="nav.api">API</a>
       <a href="./cli.html" data-i18n="nav.cli">CLI</a>
-      <a href="#cuenta-zona" id="navCuenta" data-i18n="nav.account" hidden>Account</a>
+      <a href="#proyectos" id="navProy" data-i18n="nav.projects">Projects</a>
+      <a href="#claves" id="navClaves" data-i18n="nav.keys">API keys</a>
       <a href="./terms.html" data-i18n="nav.terms">Terms</a>
     </nav>
     <div class="der">
@@ -54,6 +55,29 @@
   <div class="ent com"><b data-i18n="ent.com.t">Built together</b><span data-i18n="ent.com.p"></span></div>
 </section>
 
+<section id="barraProyecto" class="proyecto-barra" aria-label="Project" data-i18n-attr="aria-label:lat.proyecto">
+  <div class="pb-izq">
+    <div class="etq-lat" data-i18n="lat.proyecto">Project</div>
+    <p class="nota" data-i18n="proy.barra.p">One project per app.</p>
+  </div>
+  <div id="proyAnonimo" class="pb-fila">
+    <span class="nota" data-i18n="proy.anonimo">Sign in to create projects.</span>
+    <button id="proyEntrar" type="button" class="boton acento-b" data-i18n="cuenta.entrar">Sign in</button>
+  </div>
+  <div id="proyConSesion" class="pb-fila" hidden>
+    <select id="proyecto" class="campo" aria-label="Project" data-i18n-attr="aria-label:lat.proyecto"><option value="" data-i18n="proy.ninguno">— none —</option></select>
+    <button id="proyNuevo" type="button" class="pildora" data-i18n="proy.nuevo">+ New project</button>
+    <span id="proyNuevoForm" class="pb-fila" hidden>
+      <input id="proyNombreRapido" class="campo" type="text" maxlength="80" placeholder="Project name" aria-label="Project name"
+             data-i18n-attr="placeholder:proy.nombre.placeholder;aria-label:proy.nombre.aria">
+      <button id="proyCrearRapido" type="button" class="boton acento-b" data-i18n="proy.crear">Create project</button>
+    </span>
+    <button id="ocultarHecho" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="proy.ocultar">Hide what I did</button>
+    <button id="recordarCopia" type="button" class="pildora" role="switch" aria-checked="true" data-i18n-attr="title:proy.recordar.t" data-i18n="proy.recordar">Remember what I copy</button>
+    <span id="resumenProyecto" class="nota"></span>
+  </div>
+</section>
+
 <section class="filtros-barra" aria-label="Search and filters" data-i18n-attr="aria-label:bar.aria">
   <label class="busca">
     <span class="mono tenue">⌕</span>
@@ -75,13 +99,6 @@
     <div class="pildoras">
       <button id="incTests" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="inc.tests">Tests</button>
       <button id="incAcel" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="inc.acel">Accelerators</button>
-    </div>
-  </div>
-  <div id="barraProyecto" class="fb-grupo" hidden>
-    <div class="etq-lat" data-i18n="lat.proyecto">Project</div>
-    <div class="pildoras">
-      <select id="proyecto" class="campo" aria-label="Project" data-i18n-attr="aria-label:lat.proyecto"><option value="" data-i18n="proy.ninguno">— none —</option></select>
-      <button id="ocultarHecho" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="proy.ocultar">Hide what I did</button>
     </div>
   </div>
 </section>

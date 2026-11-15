@@ -101,6 +101,12 @@ export default {
 
   'pie.texto': 'reqdb · community-curated · code MIT', 'pie.legal': 'Legal & privacy', 'pie.terminos': 'Content terms', 'pie.cli': 'CLI',
   'idioma.aria': 'Language',
+  'nav.projects': 'Projects', 'nav.keys': 'API keys',
+  'proy.barra.p': 'One project per app: it remembers what you already handed to your agent, so next time you only pick what is new.',
+  'proy.anonimo': 'Sign in (Google) to create projects and get API keys for your agent.',
+  'proy.nuevo': '+ New project',
+  'proy.recordar': 'Remember what I copy', 'proy.recordar.t': 'When you copy, the items are saved in the project as planned (what you handed to your agent)',
+  'proy.recordado': '{n} item(s) saved as planned in “{proyecto}”',
   'k.functional': 'Functional', 'k.technical': 'Technical', 'k.security': 'Security', 'k.privacy': 'Privacy', 'k.performance': 'Performance',
   'k.reliability': 'Reliability', 'k.ux': 'UX', 'k.accessibility': 'Accessibility', 'k.legal': 'Legal',
   'k.functional.d': 'What users can do', 'k.technical.d': 'How the system is built and run', 'k.security.d': 'Protection against abuse and attacks',
