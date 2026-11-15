@@ -9,7 +9,7 @@ const $ = (s) => document.querySelector(s);
 // API ('/api/v1/…') se cuelgan de ahí, así que todo es relativo y funciona en los dos sitios.
 const BASE = new URL('./', location.href).pathname.replace(/\/$/, '');
 const estado = { q: '', prio: 5, cats: [], audiencias: [], dominios: [], filtroCat: '', items: [], sel: new Set(), categorias: [],
-  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false };
+  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false, tab: 'md' };
 let sesion = false;
 let proyectos = [];
 
@@ -50,70 +50,107 @@ async function api(metodo, ruta, cuerpo, conSesion = false) {
 const msgError = (e) => e.status === 429
   ? `Too many requests. Try again in ${e.reintentar ?? 'a few'} seconds, or sign in for a higher limit.` : e.message;
 
-// ── categorías y chips
-// Audiencia → dominio → categoría de software: los dos primeros acotan lo que se ve;
-// lo que se busca son las categorías elegidas (o, si no hay ninguna, la audiencia/dominio).
+// ── barra lateral: audiencia → dominio → categoría
+const PRIOS = [
+  [1, 'essential', 'broken or unsafe without it'],
+  [2, 'expected', 'users assume it is there'],
+  [3, 'recommended', 'solid apps do this'],
+  [4, 'nice to have', 'polish'],
+  [5, 'differentiator', 'sets you apart'],
+];
+// Audiencia y dominio son el ÁMBITO: acotan las categorías que se ven y, al elegirlos, empiezan una
+// selección nueva (se vacían las categorías). Lo que se busca son las categorías elegidas o, si no
+// hay ninguna, la audiencia/dominio mismos: la API los expande a sus categorías.
 const consulta = () => ({ ...estado, cats: categoriasEfectivas(estado) });
+const gruposAbiertos = new Set(['audience', 'app_type']);
 
-function chip(texto, activo, titulo, alPulsar, extra = '') {
-  return el('button', { type: 'button', class: 'chip' + extra, 'aria-pressed': String(activo), title: titulo, onclick: alPulsar }, texto);
+function filaCat(texto, activo, conteo, alPulsar, titulo = '') {
+  return el('button', { type: 'button', class: 'fila-cat' + (conteo === 0 ? ' vacia' : ''), 'aria-pressed': String(activo),
+    title: titulo, onclick: alPulsar }, el('span', {}, texto), conteo != null ? el('span', { class: 'n' }, String(conteo)) : null);
 }
 function alternar(lista, slug) {
   const i = lista.indexOf(slug);
   if (i >= 0) lista.splice(i, 1); else lista.push(slug);
-  pintarGrupos(); buscar();
+  pintarLateral(); buscar();
 }
-const grupo = (titulo, ...contenido) => el('div', { class: 'grupo' }, el('h3', {}, titulo), ...contenido);
-const textoCat = (c) => (c.requirements ? `${c.name} · ${c.requirements}` : c.name);
+function subgrupo(id, titulo, filas, n) {
+  const d = el('details', { class: 'sub' });
+  d.open = gruposAbiertos.has(id);
+  d.addEventListener('toggle', () => { if (d.open) gruposAbiertos.add(id); else gruposAbiertos.delete(id); });
+  d.append(el('summary', {}, el('span', {}, titulo), el('span', { class: 'n' }, String(n))), ...filas);
+  return d;
+}
 
-function pintarGrupos() {
-  const cont = $('#grupos'); cont.replaceChildren();
+function pintarLateral() {
+  const cont = $('#cats'); cont.replaceChildren();
   const cs = estado.categorias;
   const porTipo = (t) => cs.filter((c) => c.type === t);
+  const nav = { audiencias: estado.audiencias, dominios: estado.dominios };
+  const hoja = (c) => filaCat(c.name, estado.cats.includes(c.slug), c.requirements, () => alternar(estado.cats, c.slug), c.description || c.name);
+  if (estado.filtroCat) gruposAbiertos.add('software_category');
 
-  const audiencias = porTipo('audience');
-  if (audiencias.length)
-    cont.append(grupo('Audience', el('div', { class: 'chips' }, ...audiencias.map((c) =>
-      chip(c.name, estado.audiencias.includes(c.slug), c.description || c.name, () => alternar(estado.audiencias, c.slug))))));
+  const aud = porTipo('audience');
+  if (aud.length) cont.append(subgrupo('audience', 'Audience', aud.map((c) =>
+    filaCat(c.name, estado.audiencias.includes(c.slug), null, () => { estado.cats = []; alternar(estado.audiencias, c.slug); }, c.description || c.name)), aud.length));
 
   const disp = dominiosDisponibles(cs.filter((c) => c.type !== 'domain'), estado.audiencias);
-  const dominios = porTipo('domain').filter((d) => !disp || disp.has(d.slug) || estado.dominios.includes(d.slug));
-  if (dominios.length)
-    cont.append(grupo('Domain', el('div', { class: 'chips' }, ...dominios.map((c) =>
-      chip(c.name, estado.dominios.includes(c.slug), c.description || c.name, () => alternar(estado.dominios, c.slug))))));
+  const dom = porTipo('domain').filter((d) => !disp || disp.has(d.slug) || estado.dominios.includes(d.slug));
+  if (dom.length) cont.append(subgrupo('domain', 'Domain', dom.map((c) =>
+    filaCat(c.name, estado.dominios.includes(c.slug), null, () => { estado.cats = []; alternar(estado.dominios, c.slug); }, c.description || c.name)), dom.length));
 
-  const nav = { audiencias: estado.audiencias, dominios: estado.dominios };
   const sw = visibles(porTipo('software_category'), { ...nav, texto: estado.filtroCat })
     .sort((a, b) => (estado.cats.includes(b.slug) - estado.cats.includes(a.slug)) || b.requirements - a.requirements || a.name.localeCompare(b.name));
-  if (sw.length || estado.filtroCat)
-    cont.append(grupo(`Software category (${sw.length})`,
-      el('div', { class: 'chips' }, ...sw.slice(0, MAX_SOFTWARE).map((c) =>
-        chip(textoCat(c), estado.cats.includes(c.slug), c.description || c.name, () => alternar(estado.cats, c.slug), c.requirements ? '' : ' vacio'))),
-      sw.length > MAX_SOFTWARE ? el('p', { class: 'tenue' }, `${sw.length - MAX_SOFTWARE} more: narrow it with the audience, the domain or the filter above.`) : null));
+  if (sw.length || estado.filtroCat) cont.append(subgrupo('software_category', 'Software category',
+    [...sw.slice(0, MAX_SOFTWARE).map(hoja),
+      sw.length > MAX_SOFTWARE ? el('div', { class: 'mas' }, `${sw.length - MAX_SOFTWARE} more: narrow it with the filter above.`) : null].filter(Boolean), sw.length));
 
   const tipos = visibles(porTipo('app_type'), nav);
-  if (tipos.length)
-    cont.append(grupo('App type', el('div', { class: 'chips' }, ...tipos.map((c) =>
-      chip(textoCat(c), estado.cats.includes(c.slug), c.description || c.name, () => alternar(estado.cats, c.slug))))));
-
+  if (tipos.length) cont.append(subgrupo('app_type', 'App type', tipos.map(hoja), tipos.length));
   for (const [tipo, titulo] of GRUPOS.filter(([t]) => t !== 'app_type')) {
     const lista = porTipo(tipo);
-    if (lista.length)
-      cont.append(grupo(titulo, el('div', { class: 'chips' }, ...lista.map((c) =>
-        chip(textoCat(c), estado.cats.includes(c.slug), c.description || c.name, () => alternar(estado.cats, c.slug))))));
+    if (lista.length) cont.append(subgrupo(tipo, titulo, lista.map(hoja), lista.length));
   }
 }
-$('#filtroCat').addEventListener('input', (e) => { estado.filtroCat = e.target.value; pintarGrupos(); });
+$('#filtroCat').addEventListener('input', (e) => { estado.filtroCat = e.target.value; pintarLateral(); });
+$('#q').addEventListener('input', (e) => { estado.q = e.target.value; buscarConRetraso(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName ?? '')) { e.preventDefault(); $('#q').focus(); }
+});
 
-// ── búsqueda y resultados
+function pintarPrio() {
+  $('#prio').replaceChildren(...PRIOS.map(([p, n, d]) => el('button', { type: 'button', 'aria-pressed': String(estado.prio === p),
+    title: `P${p} · ${n}: ${d}`, onclick: () => { estado.prio = p; pintarPrio(); buscar(); } }, `P${p}`)));
+  const [, n, d] = PRIOS[estado.prio - 1];
+  $('#prioDesc').textContent = estado.prio === 5 ? 'Everything, from essential to differentiators.' : `P1 to P${estado.prio}, down to “${n}” — ${d}.`;
+}
+function interruptor(id, clave) {
+  const b = $(id);
+  b.addEventListener('click', () => { estado[clave] = !estado[clave]; b.setAttribute('aria-checked', String(estado[clave])); buscar(); });
+}
+interruptor('#incTests', 'incluirTests'); interruptor('#incAcel', 'incluirAceleradores'); interruptor('#ocultarHecho', 'ocultarHecho');
+$('#proyecto').addEventListener('change', (e) => { estado.proyecto = e.target.value ? Number(e.target.value) : null; buscar(); });
+$('#leyenda').replaceChildren(...PRIOS.map(([p, n, d]) => el('div', { class: 'fila-l' },
+  el('span', { class: 'pb', 'data-p': String(p) }, `P${p}`), el('span', {}, el('b', {}, n), ` — ${d}`))));
+
+// ── búsqueda y lista
 let temporizador, ultima = 0;
 function buscarConRetraso() { clearTimeout(temporizador); temporizador = setTimeout(buscar, 350); }
 
+function pintarTitulo() {
+  const efectivas = categoriasEfectivas(estado);
+  const nombres = efectivas.map((s) => estado.categorias.find((c) => c.slug === s)?.name ?? s);
+  $('#tituloCat').textContent = nombres.length ? nombres.slice(0, 3).join(' · ') + (nombres.length > 3 ? ` +${nombres.length - 3}` : '') : 'Requirements';
+  $('#slugCat').textContent = efectivas.length ? `category=${efectivas.join(',')}` : (estado.q ? `q=${estado.q.slice(0, 40)}` : '');
+  const unica = efectivas.length === 1 ? estado.categorias.find((c) => c.slug === efectivas[0]) : null;
+  $('#descCat').textContent = unica?.description ?? '';
+}
+
 async function buscar() {
   const yo = ++ultima;
+  pintarTitulo();
   if (!hayFiltro(estado)) {
-    estado.items = []; pintarResultados();
-    $('#estado').textContent = 'Pick an audience, a software category or an app type, or type what you are looking for.';
+    estado.items = []; pintarLista();
+    $('#estado').textContent = 'Pick an audience, a category or an app type — or search by meaning.';
     return;
   }
   $('#estado').textContent = 'Searching…';
@@ -122,86 +159,127 @@ async function buscar() {
     if (yo !== ultima) return;            // llegó tarde: ya hay otra búsqueda
     estado.items = r.requirements;
     estado.sel = new Set(estado.items.map((i) => i.slug));   // por defecto, todo lo que sale
-    pintarResultados();
+    pintarLista();
   } catch (e) { if (yo === ultima) $('#estado').textContent = msgError(e); }
 }
 
 const ETQ_ESTADO = { planned: 'planned', in_progress: 'in progress', done: 'done', skipped: 'skipped' };
-const insignia = (st) => (st ? el('span', { class: `etq est-${st}` }, ETQ_ESTADO[st]) : null);
+const insignia = (st) => (st ? el('span', { class: `est est-${st}` }, ETQ_ESTADO[st]) : null);
+const enlaceSugerir = (tipo, slug) => el('button', { type: 'button', class: 'enlace', onclick: () => sugerirSobre(tipo, slug) }, 'Suggest');
 
-function enlaceSugerir(tipo, slug) {
-  return el('button', { type: 'button', class: 'enlace', onclick: () => sugerirSobre(tipo, slug) }, 'Suggest');
+function detalleDe(it) {
+  const partes = [el('p', {}, it.statement)];
+  if (it.criteria?.length) partes.push(el('ul', {}, ...it.criteria.map((c) => el('li', {}, c))));
+  if (it.tests?.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, 'Tests'),
+    ...it.tests.map((t) => el('div', { class: 'test' }, el('span', { class: 'pb', 'data-p': String(t.priority) }, `P${t.priority}`),
+      el('span', {}, el('b', {}, t.title), ` · ${t.type} — ${t.scenario} `, insignia(t.project_status), ' ', enlaceSugerir('test', t.slug))))));
+  if (it.accelerators?.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, 'Accelerators'),
+    el('div', { class: 'chips' }, ...it.accelerators.map((a) => {
+      const href = urlSegura(a.url);
+      const txt = [a.name, el('small', {}, `${a.model.replace('_', ' ')} · ${a.cost} · ${a.coverage}`)];
+      return href ? el('a', { class: 'chip', href, rel: 'noopener noreferrer', target: '_blank' }, ...txt) : el('span', { class: 'chip' }, ...txt);
+    }))));
+  partes.push(el('div', { class: 'chips' }, ...it.categories.slice(0, 8).map((c) => el('span', { class: 'tag' }, `${c.slug} · P${c.priority}`)),
+    enlaceSugerir('requirement', it.slug)));
+  return el('div', { class: 'detalle' }, ...partes);
 }
 
-function pintarResultados() {
+const abiertos = new Set();
+function filaReq(it) {
+  const marca = el('button', { type: 'button', class: 'marca', 'aria-label': `Include ${it.title}`, onclick: (ev) => {
+    ev.stopPropagation();
+    if (estado.sel.has(it.slug)) estado.sel.delete(it.slug); else estado.sel.add(it.slug);
+    marca.setAttribute('aria-pressed', String(estado.sel.has(it.slug))); marca.textContent = estado.sel.has(it.slug) ? '✓' : '';
+    actualizarCuenta();
+  } });
+  marca.setAttribute('aria-pressed', String(estado.sel.has(it.slug))); marca.textContent = estado.sel.has(it.slug) ? '✓' : '';
+  const nT = it.tests?.length, nA = it.accelerators?.length;
+  const li = el('li', { class: 'item', 'data-abierto': String(abiertos.has(it.slug)) });
+  let detalle = null;
+  const mostrar = () => {
+    const abierto = abiertos.has(it.slug);
+    li.setAttribute('data-abierto', String(abierto));
+    if (abierto && !detalle) { detalle = detalleDe(it); li.append(detalle); }
+    if (detalle) detalle.hidden = !abierto;
+  };
+  li.append(el('div', { class: 'item-cab', onclick: () => { if (abiertos.has(it.slug)) abiertos.delete(it.slug); else abiertos.add(it.slug); mostrar(); } },
+    marca, el('span', { class: 'pb', 'data-p': String(it.priority) }, `P${it.priority}`),
+    el('div', { class: 'item-txt' }, el('div', { class: 'item-tit' }, it.title),
+      el('div', { class: 'item-meta' }, el('span', {}, it.slug), nT ? el('span', {}, `${nT} test${nT > 1 ? 's' : ''}`) : null,
+        nA ? el('span', {}, `${nA} accelerator${nA > 1 ? 's' : ''}`) : null, insignia(it.project_status))),
+    el('span', { class: 'chev', 'aria-hidden': 'true' }, '›')));
+  mostrar();
+  return li;
+}
+
+function pintarLista() {
   const ul = $('#lista'); ul.replaceChildren();
-  $('#acciones').hidden = !estado.items.length;
-  $('#accionesProyecto').hidden = !(estado.items.length && estado.proyecto);
   if (estado.items.length) $('#estado').textContent = '';
-  else if (hayFiltro(estado)) $('#estado').textContent = 'No requirements for this selection yet. Try cross-cutting concerns (security, privacy…), fewer filters, or contribute one!';
-  for (const it of estado.items) {
-    const cb = el('input', { type: 'checkbox', 'aria-label': `Include ${it.title}`, onchange: (ev) => {
-      ev.target.checked ? estado.sel.add(it.slug) : estado.sel.delete(it.slug); actualizarCuenta();
-    } });
-    cb.checked = estado.sel.has(it.slug);
-
-    const tests = (it.tests ?? []).map((t) => el('li', { class: 'anidado' },
-      el('span', { class: `p p${t.priority}` }, `P${t.priority}`), ' ',
-      el('span', { class: 'etq' }, `test · ${t.type}`), ' ', insignia(t.project_status), ' ',
-      el('strong', {}, t.title), ': ', t.scenario, ' ', enlaceSugerir('test', t.slug)));
-    const acel = (it.accelerators ?? []).map((a) => {
-      const href = urlSegura(a.url);
-      return el('li', { class: 'anidado' },
-        el('span', { class: 'etq' }, `${a.model.replace('_', ' ')} · ${a.cost}`), ' ', insignia(a.project_status), ' ',
-        href ? el('a', { href, rel: 'noopener noreferrer', target: '_blank' }, a.name) : el('strong', {}, a.name),
-        ` (${a.coverage} coverage) `, enlaceSugerir('accelerator', a.slug));
-    });
-
-    ul.append(el('li', { class: 'item' }, cb, el('div', {},
-      el('h4', {}, it.title, ' ', insignia(it.project_status)),
-      el('p', {}, it.statement),
-      it.criteria?.length ? el('ul', {}, ...it.criteria.map((c) => el('li', {}, c))) : null,
-      tests.length ? el('ul', { class: 'rel' }, ...tests) : null,
-      acel.length ? el('ul', { class: 'rel' }, ...acel) : null,
-      el('div', { class: 'meta' },
-        el('span', { class: `p p${it.priority}` }, `P${it.priority}`),
-        el('span', { class: 'etq' }, it.kind),
-        ...it.categories.slice(0, 6).map((c) => el('span', { class: 'etq' }, `${c.slug} · P${c.priority}`)),
-        enlaceSugerir('requirement', it.slug)))));
-  }
+  else if (hayFiltro(estado)) $('#estado').textContent = 'No requirements for this selection yet. Try the cross-cutting concerns (security, privacy…), fewer filters, or contribute one.';
+  for (const it of estado.items) ul.append(filaReq(it));
   actualizarCuenta();
 }
 function actualizarCuenta() {
   const n = estado.sel.size;
-  $('#cuenta').textContent = `${n} of ${estado.items.length} selected`;
-  $('#copiarMd').disabled = n === 0;
+  $('#acciones').hidden = !estado.items.length;
+  $('#accionesProyecto').hidden = !(estado.items.length && estado.proyecto);
+  $('#cuenta').textContent = `${n}/${estado.items.length} selected`;
   $('#marcar').disabled = n === 0;
+  actualizarSalida();
 }
+$('#selTodo').addEventListener('click', () => { estado.sel = new Set(estado.items.map((i) => i.slug)); pintarLista(); });
+$('#selNada').addEventListener('click', () => { estado.sel.clear(); pintarLista(); });
 
+// ── panel de salida: lo que recibe el agente (Markdown), el curl y el JSON
+const CODIGO_MAX = 700;
+const claseLinea = (l) => (/^#{1,3} /.test(l) ? 'h' : /^(>|<!--|```|\/\/)/.test(l) ? 'q' : /^\s*- \[[ x]\] \*\*/.test(l) ? 'k' : '');
+function pintarCodigo(texto) {
+  const c = $('#codigo'); c.replaceChildren();
+  const ls = texto.split('\n');
+  ls.slice(0, CODIGO_MAX).forEach((l, i) => c.append(el('div', { class: `ln ${claseLinea(l)}` },
+    el('span', { class: 'num' }, String(i + 1)), el('span', { class: 'txt' }, l || ' '))));
+  if (ls.length > CODIGO_MAX) c.append(el('div', { class: 'ln q' }, el('span', { class: 'num' }, '…'),
+    el('span', { class: 'txt' }, `${ls.length - CODIGO_MAX} more lines: Copy takes them all`)));
+}
+let tSalida, secuencia = 0, textoActual = '';
+function actualizarSalida() { clearTimeout(tSalida); tSalida = setTimeout(cargarSalida, 250); }
+async function cargarSalida() {
+  const yo = ++secuencia;
+  const slugs = [...estado.sel];
+  let texto;
+  if (estado.tab === 'curl') {
+    const url = location.origin + BASE + rutaBusqueda({ ...consulta(), formato: 'md' });
+    texto = `curl -s${estado.proyecto ? ' -H "Authorization: Bearer $REQDB_KEY"' : ''} "${url}"`;
+  } else if (!slugs.length) {
+    texto = '// select requirements to preview what your agent will receive';
+  } else {
+    const cuerpo = { slugs, format: estado.tab === 'json' ? 'json' : 'md', tests_max_priority: estado.prio,
+      include: [estado.incluirTests && 'tests', estado.incluirAceleradores && 'accelerators'].filter(Boolean),
+      project: estado.proyecto ?? undefined, hide: estado.proyecto && estado.ocultarHecho ? 'done' : undefined };
+    try {
+      const r = await api('POST', '/api/v1/export', cuerpo);
+      texto = estado.tab === 'json' ? JSON.stringify(r, null, 2) : r;
+    } catch (e) { texto = `// ${msgError(e)}`; }
+  }
+  if (yo !== secuencia) return;
+  textoActual = texto;
+  pintarCodigo(texto);
+  const sel = estado.items.filter((i) => estado.sel.has(i.slug));
+  const nT = sel.reduce((s, i) => s + (i.tests?.length ?? 0), 0);
+  $('#pieIzq').textContent = `${sel.length} requirement${sel.length === 1 ? '' : 's'}${estado.incluirTests ? ` · ${nT} tests` : ''}`;
+  $('#pieDer').textContent = estado.tab === 'curl' ? 'GET · public' : `${texto.length.toLocaleString('en')} chars`;
+}
+$('#tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-tab]'); if (!b) return;
+  estado.tab = b.dataset.tab;
+  for (const x of $('#tabs').querySelectorAll('button')) x.setAttribute('aria-selected', String(x === b));
+  cargarSalida();
+});
 async function copiar(texto) {
   try { await navigator.clipboard.writeText(texto); avisar('Copied'); }
   catch { avisar('Could not copy: select the text manually'); }
 }
-$('#selTodo').addEventListener('click', () => { estado.sel = new Set(estado.items.map((i) => i.slug)); pintarResultados(); });
-$('#selNada').addEventListener('click', () => { estado.sel.clear(); pintarResultados(); });
-$('#copiarMd').addEventListener('click', async () => {
-  try {
-    // El Markdown lo genera el servidor: así el de la web y el de la API son idénticos,
-    // con tests, aceleradores y las instrucciones al agente para marcar el proyecto.
-    const include = [estado.incluirTests && 'tests', estado.incluirAceleradores && 'accelerators'].filter(Boolean);
-    const md = await api('POST', '/api/v1/export', { slugs: [...estado.sel], format: 'md', include,
-      tests_max_priority: estado.prio, project: estado.proyecto ?? undefined });
-    await copiar(md);
-  } catch (e) { avisar(msgError(e)); }
-});
-$('#copiarUrl').addEventListener('click', () =>
-  copiar(location.origin + BASE + rutaBusqueda({ ...consulta(), formato: 'md' })));
-$('#q').addEventListener('input', (e) => { estado.q = e.target.value; buscarConRetraso(); });
-$('#prio').addEventListener('change', (e) => { estado.prio = Number(e.target.value); buscar(); });
-$('#incTests').addEventListener('change', (e) => { estado.incluirTests = e.target.checked; buscar(); });
-$('#incAcel').addEventListener('change', (e) => { estado.incluirAceleradores = e.target.checked; buscar(); });
-$('#proyecto').addEventListener('change', (e) => { estado.proyecto = e.target.value ? Number(e.target.value) : null; buscar(); });
-$('#ocultarHecho').addEventListener('change', (e) => { estado.ocultarHecho = e.target.checked; buscar(); });
+$('#copiarCodigo').addEventListener('click', () => copiar(textoActual));
 
 // Marcar lo seleccionado en el proyecto (los requisitos marcados y, si se muestran, sus tests y aceleradores).
 $('#estadoProyecto').replaceChildren(...ESTADOS.map(([v, t]) => el('option', { value: v }, t)));
@@ -229,6 +307,7 @@ function pintarSesion(user) {
   $('#btnCuenta').textContent = user ? 'Sign out' : 'Sign in';
   for (const id of ['#aportar', '#claves', '#proyectos', '#sugerencias']) $(id).hidden = !user;
   $('#barraProyecto').hidden = !user;
+  $('#navCuenta').hidden = !user;
   if (!user) { estado.proyecto = null; proyectos = []; }
   if (user) { cargarAportes(); cargarClaves(); cargarProyectos(); cargarSugerencias(); }
 }
@@ -265,14 +344,14 @@ function pintarProyectos() {
   if (!proyectos.length) ul.append(el('li', { class: 'tenue' }, 'No projects yet. Create one to start tracking.'));
   for (const p of proyectos) {
     const c = p.counts;
-    const detalle = el('div', { class: 'detalle' });
-    const abrir = el('button', { type: 'button', onclick: () => alternarProyecto(p, detalle, abrir) }, 'Open');
+    const detalle = el('div', { class: 'detalle-proy' });
+    const abrir = el('button', { type: 'button', class: 'mini', onclick: () => alternarProyecto(p, detalle, abrir) }, 'Open');
     ul.append(el('li', {},
       el('div', { class: 'fila' },
         el('strong', {}, p.name),
         el('span', { class: 'tenue' }, `${c.done} done · ${c.in_progress} in progress · ${c.planned} planned · ${c.skipped} skipped`),
         abrir,
-        el('button', { type: 'button', class: 'peligro', onclick: () => borrarProyecto(p) }, 'Delete')),
+        el('button', { type: 'button', class: 'mini peligro', onclick: () => borrarProyecto(p) }, 'Delete')),
       detalle));
   }
 }
@@ -288,7 +367,7 @@ async function alternarProyecto(p, detalle, boton) {
         catch (e) { avisar(msgError(e)); }
       } }, ...ESTADOS.map(([v, t]) => el('option', { value: v }, t)));
       sel.value = it.status;
-      detalle.append(el('div', { class: 'fila item-proy' }, el('span', { class: 'etq' }, it.type), el('span', {}, it.title),
+      detalle.append(el('div', { class: 'fila item-proy' }, el('span', { class: 'tag' }, it.type), el('span', {}, it.title),
         it.note ? el('span', { class: 'tenue' }, `“${it.note}”`) : null, sel));
     }
   } catch (e) { avisar(msgError(e)); }
@@ -379,7 +458,7 @@ async function cargarClaves() {
     for (const k of r.keys) {
       ul.append(el('li', { class: 'fila' },
         el('span', {}, `${k.name} · ${k.prefix}… · ${k.revoked ? 'revoked' : k.last_used ? 'used ' + new Date(k.last_used).toLocaleDateString() : 'never used'}`),
-        k.revoked ? null : el('button', { type: 'button', class: 'peligro', onclick: () => revocar(k.id) }, 'Revoke')));
+        k.revoked ? null : el('button', { type: 'button', class: 'mini peligro', onclick: () => revocar(k.id) }, 'Revoke')));
     }
   } catch (e) { avisar(msgError(e)); }
 }
@@ -411,10 +490,13 @@ $('#borrarTodo').addEventListener('click', async () => {
 // ── arranque
 $('#ejemploCurl').textContent =
   `curl "${location.origin}${BASE}/api/v1/requirements?category=messaging&max_priority=2&include=tests,accelerators&format=md"`;
+pintarPrio(); pintarTitulo();
 (async () => {
   try {
     estado.categorias = (await api('GET', '/api/v1/categories')).categories;
-    pintarGrupos();
+    // Punto de partida: lo transversal que casi toda app necesita (seguridad), como en el diseño.
+    if (!estado.cats.length && estado.categorias.some((c) => c.slug === 'security')) estado.cats = ['security'];
+    pintarLateral();
   } catch (e) { $('#estado').textContent = msgError(e); }
   await buscar();
   iniciarSesion();
