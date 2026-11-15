@@ -29,7 +29,8 @@ export function cargarClerk() {
     sc.onload = async () => {
       try {
         const aqui = location.origin + location.pathname;
-        await window.Clerk.load({ signInUrl: aqui, signUpUrl: aqui,
+        // telemetry:false → Clerk no manda eventos a clerk-telemetry.com (la CSP no lo permite y no hace falta)
+        await window.Clerk.load({ telemetry: false, signInUrl: aqui, signUpUrl: aqui,
           signInFallbackRedirectUrl: aqui, signUpFallbackRedirectUrl: aqui });
         apuntarAqui();
         if (/^#\/(sso-callback|continue)/.test(location.hash)) {

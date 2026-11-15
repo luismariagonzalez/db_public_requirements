@@ -79,3 +79,6 @@ footer { text-align:center; color:var(--tenue); padding:2rem 1rem; border-top:1p
 .item-proy select { min-height:36px; padding:.2rem .5rem; }
 
 .chip.vacio { opacity:.6; }
+
+/* El atributo hidden debe ganar siempre: .fila y .acciones fijan display:flex */
+[hidden] { display:none !important; }
