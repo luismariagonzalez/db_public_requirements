@@ -29,7 +29,7 @@
   <ul>
     <li><strong>Reading without an account:</strong> no account and no cookies. To apply the rate limit we keep a salted hash of your IP address
         (not the address itself) in counters that are deleted after two days.</li>
-    <li><strong>Signing in</strong> (Google, through Clerk): your account identifier. We do not store your email or name in our database.</li>
+    <li><strong>Signing in</strong> (Google, GitHub or email with a confirmation code, through Clerk): your account identifier. We do not store your email or name in our database; Clerk, our sign-in provider, keeps them to run your account.</li>
     <li><strong>Contributions:</strong> the text you submit, the automatic review verdict and your account identifier, until you delete them.
         The text is sent to Google's Gemini API for review.</li>
     <li><strong>Projects and suggestions:</strong> the project names and the status you set on requirements, tests and accelerators, and the text of your suggestions,
@@ -72,7 +72,7 @@
   <ul>
     <li><strong>Leer sin cuenta:</strong> sin cuenta y sin cookies. Para aplicar el límite de uso guardamos un hash con sal de tu dirección IP
         (no la dirección) en contadores que se borran a los dos días.</li>
-    <li><strong>Iniciar sesión</strong> (Google, a través de Clerk): el identificador de tu cuenta. No guardamos tu correo ni tu nombre en nuestra base de datos.</li>
+    <li><strong>Iniciar sesión</strong> (Google, GitHub o correo con código de confirmación, a través de Clerk): el identificador de tu cuenta. No guardamos tu correo ni tu nombre en nuestra base de datos; Clerk, el proveedor de inicio de sesión, los guarda para gestionar tu cuenta.</li>
     <li><strong>Aportaciones:</strong> el texto que envías, el veredicto de la revisión automática y el identificador de tu cuenta, hasta que las borres.
         El texto se envía a la API Gemini de Google para revisarlo.</li>
     <li><strong>Proyectos y sugerencias:</strong> los nombres de los proyectos, el estado que marcas en requisitos, tests y aceleradores y el texto de tus sugerencias,

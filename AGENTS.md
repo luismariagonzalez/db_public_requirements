@@ -11,7 +11,7 @@ prioridad 1-5, y se copian como Markdown o JSON para pasárselos al agente.
 | ¿Móvil como app? | No. Web responsive, sin PWA. |
 | ¿Más de un idioma? | **Interfaz en inglés y español** (`web/textos-en.js` / `textos-es.js`, módulo `web/i18n.js`; las páginas estáticas llevan un bloque `.en` y otro `.es`; términos del contenido: `LICENSE-DATA.md` prevalece sobre `LICENSE-DATA.es.md`). El **contenido de la base sigue solo en inglés**: los agentes trabajan en inglés, y la IA traduce los aportes en otro idioma al revisarlos. |
 | ¿Guarda datos de personas? | **Sí**: el `sub` de Clerk (autoría de aportes, dueño de API keys). Ni correo ni nombre. Hay aviso legal/privacidad (`web/legal.html`) y borrado (`DELETE /api/me`). |
-| Sesión | **Opcional**: leer es libre con rate limit; aportar y tener API key exige sesión (Clerk + Google). |
+| Sesión | **Opcional**: leer es libre con rate limit; aportar y tener API key exige sesión (Clerk: Google, GitHub o correo con código). |
 
 ## Lo raro de este proyecto
 

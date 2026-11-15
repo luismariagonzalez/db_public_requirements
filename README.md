@@ -36,7 +36,7 @@ curl "https://joderestatodocogido.com/proyectos/requirements-db/app/api/v1/requi
 
 - Read: `/api/v1/categories`, `/api/v1/requirements`, `/api/v1/tests`, `/api/v1/accelerators` (and `/:slug`), `POST /api/v1/export`. `include=tests,accelerators` returns them with the requirements.
 - With an account or API key: `/api/v1/projects` (and `PUT /:id/items` so the agent marks what is done, in progress or planned), `/api/v1/suggestions`.
-- With a session (Clerk + Google): `POST /api/contribute` (an AI reviews it: is it already there? merge or create), `/api/me/keys`, `/api/me/contributions`, `DELETE /api/me`.
+- With a session (Clerk: Google, GitHub or email with a code): `POST /api/contribute` (an AI reviews it: is it already there? merge or create), `/api/me/keys`, `/api/me/contributions`, `DELETE /api/me`.
 
 ## Run your own copy
 

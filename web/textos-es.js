@@ -103,7 +103,7 @@ export default {
   'idioma.aria': 'Idioma',
   'nav.projects': 'Proyectos', 'nav.keys': 'Claves de API',
   'proy.barra.p': 'Un proyecto por app: recuerda lo que ya le has pasado a tu agente, y la próxima vez eliges solo lo nuevo.',
-  'proy.anonimo': 'Entra con Google para crear proyectos y tener claves de API para tu agente.',
+  'proy.anonimo': 'Entra con Google, GitHub o correo para crear proyectos y tener claves de API para tu agente.',
   'proy.nuevo': '+ Nuevo proyecto',
   'proy.recordar': 'Recordar lo que copio', 'proy.recordar.t': 'Al copiar, los elementos se guardan en el proyecto como planeados (lo que le has pasado a tu agente)',
   'proy.recordado': '{n} elemento(s) guardados como planeados en «{proyecto}»',

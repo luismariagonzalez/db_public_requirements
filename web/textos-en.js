@@ -103,7 +103,7 @@ export default {
   'idioma.aria': 'Language',
   'nav.projects': 'Projects', 'nav.keys': 'API keys',
   'proy.barra.p': 'One project per app: it remembers what you already handed to your agent, so next time you only pick what is new.',
-  'proy.anonimo': 'Sign in (Google) to create projects and get API keys for your agent.',
+  'proy.anonimo': 'Sign in (Google, GitHub or email) to create projects and get API keys for your agent.',
   'proy.nuevo': '+ New project',
   'proy.recordar': 'Remember what I copy', 'proy.recordar.t': 'When you copy, the items are saved in the project as planned (what you handed to your agent)',
   'proy.recordado': '{n} item(s) saved as planned in “{proyecto}”',
