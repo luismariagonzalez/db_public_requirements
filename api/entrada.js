@@ -1,12 +1,22 @@
 // La API entera en UNA función de Vercel (el plan Hobby limita cuántas caben).
 // Las rutas están en lib/rutas.mjs; la lógica, en lib/handlers/.
+//
+// En este tipo de proyecto (framework null + salida estática) Vercel NO enruta por
+// el nombre del fichero rutas dinámicas de api/, así que vercel.json reescribe
+//   /api/:path*  →  /api/entrada?__ruta=:path*
+// y aquí se reconstruye la ruta original. En local (ensayos) llega la ruta tal cual.
 import { rutas } from '../lib/rutas.mjs';
 import { resolver, queryDe } from '../lib/router.mjs';
 import { corsPublico, error } from '../lib/http.mjs';
 
 export default async function handler(req, res) {
   const url = new URL(req.url, 'http://localhost');
-  const ruta = url.pathname;
+  let ruta = url.pathname;
+  if (url.searchParams.has('__ruta')) {
+    const original = url.searchParams.get('__ruta');
+    ruta = '/api/' + original.split('/').map(encodeURIComponent).join('/');
+    url.searchParams.delete('__ruta');
+  }
   req.query = queryDe(url);
 
   // CORS abierto solo en /api/v1: se autentica con la cabecera Authorization, no

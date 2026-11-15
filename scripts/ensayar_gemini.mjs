@@ -38,7 +38,7 @@ await prueba('sembrar.mjs carga categorías y requisitos con embeddings', async 
   assert.match(stdout, /requisitos cargados|ya existen/);
 });
 
-const { default: handler } = await import('../api/[...ruta].js');
+const { default: handler } = await import('../api/entrada.js');
 const { rpc } = await import('../lib/bd.mjs');
 const { generarJson } = await import('../lib/gemini.mjs');
 const { revisar } = await import('../lib/revisar.mjs');

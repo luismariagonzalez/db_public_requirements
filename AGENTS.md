@@ -16,7 +16,7 @@ prioridad 1-5, y se copian como Markdown o JSON para pasárselos al agente.
 ## Lo raro de este proyecto
 
 - **Nada se concede a `anon` ni a `authenticated`.** La web NO habla con Supabase. Todo pasa
-  por `api/[...ruta].js` (UNA sola función de Vercel con un router propio, `lib/rutas.mjs`: el plan Hobby limita cuántas funciones caben; no añadas ficheros en `api/`, añade una ruta y un handler en `lib/handlers/`), que verifica la sesión de Clerk (`jose` + JWKS) o la API
+  por `api/entrada.js` (UNA sola función de Vercel con un router propio, `lib/rutas.mjs`: el plan Hobby limita cuántas funciones caben; no añadas ficheros en `api/`, añade una ruta y un handler en `lib/handlers/`), que verifica la sesión de Clerk (`jose` + JWKS) o la API
   key, aplica el cupo, calcula embeddings con Gemini y llama a
   `public.db_public_requirements_srv_*` con la clave secreta (`service_role`). Por eso el
   ensayo prueba que `anon`/`authenticated` no pueden llamar a ninguna función.

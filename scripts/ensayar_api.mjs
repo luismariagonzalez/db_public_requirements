@@ -4,7 +4,7 @@
 //   npm run db:up && npm run db:ensayar && npm run api:ensayar
 //
 // Levanta un «Supabase falso» (REST /rest/v1/rpc/<función>) que reenvía a Postgres
-// como service_role, y el handler REAL de api/[...ruta].js detrás de un servidor
+// como service_role, y el handler REAL de api/entrada.js detrás de un servidor
 // HTTP. Gemini y Clerk no entran: sin GEMINI_API_KEY la búsqueda cae a solo texto
 // (que es justo el modo degradado) y la sesión de Clerk se cubre con API keys.
 
@@ -18,7 +18,7 @@ process.env.IP_SALT = randomBytes(8).toString('hex');
 delete process.env.GEMINI_API_KEY;
 delete process.env.CLERK_PUBLISHABLE_KEY;
 
-const { default: handler } = await import('../api/[...ruta].js');
+const { default: handler } = await import('../api/entrada.js');
 const { rpc } = await import('../lib/bd.mjs');
 const { hashKey } = await import('../lib/auth.mjs');
 
