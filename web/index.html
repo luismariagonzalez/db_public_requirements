@@ -35,50 +35,69 @@
 
 <section class="hero">
   <div class="hero-txt">
-    <div class="mono acento" data-i18n="hero.kicker">// requirements for your coding agent</div>
-    <h1 data-i18n="hero.h1">Don't let your agent forget the boring essentials.</h1>
-    <p data-i18n-html="hero.p.html">Pick requirements for your kind of app — with the tests that prove them and the libraries that speed them up.
-       They say <em>what</em> the app must do, never <em>where</em> it goes.</p>
+    <div class="mono acento" data-i18n="hero.kicker">// a community-built library of requirements for your coding agent</div>
+    <h1 data-i18n="hero.h1">AI writes good code. What it lacks is requirements.</h1>
+    <p data-i18n-html="hero.p.html">A public database of what each kind of app must do, the tests that prove it and the libraries that speed it up.</p>
   </div>
   <ol class="pasos mono">
-    <li><span>01</span><b data-i18n="hero.paso1">Pick a category &amp; priority</b></li>
-    <li><span>02</span><b data-i18n="hero.paso2">Untick what doesn't apply</b></li>
-    <li><span>03</span><b data-i18n="hero.paso3">Copy Markdown, curl or JSON</b></li>
+    <li><span>01</span><b data-i18n="hero.paso1">Pick what you build (left)</b></li>
+    <li><span>02</span><b data-i18n="hero.paso2">Set priority, kind and extras (bar)</b></li>
+    <li><span>03</span><b data-i18n="hero.paso3">Copy Markdown, curl or JSON (right)</b></li>
   </ol>
+</section>
+
+<section class="entidades" aria-label="What is in the database">
+  <div class="ent"><b data-i18n="ent.req.t">Requirements</b><span data-i18n="ent.req.p"></span></div>
+  <div class="ent"><b data-i18n="ent.test.t">Tests</b><span data-i18n="ent.test.p"></span></div>
+  <div class="ent"><b data-i18n="ent.acel.t">Accelerators</b><span data-i18n="ent.acel.p"></span></div>
+  <div class="ent"><b data-i18n="ent.prio.t">Priority 1–5</b><span data-i18n="ent.prio.p"></span></div>
+  <div class="ent com"><b data-i18n="ent.com.t">Built together</b><span data-i18n="ent.com.p"></span></div>
+</section>
+
+<section class="filtros-barra" aria-label="Search and filters" data-i18n-attr="aria-label:bar.aria">
+  <label class="busca">
+    <span class="mono tenue">⌕</span>
+    <input id="q" type="search" maxlength="300" autocomplete="off" placeholder="Search by meaning…" aria-label="Search requirements by meaning"
+           data-i18n-attr="placeholder:busca.placeholder;aria-label:busca.aria">
+    <kbd>/</kbd>
+  </label>
+  <div class="fb-grupo">
+    <div class="etq-lat" data-i18n="lat.prioridad">Priority up to</div>
+    <div id="prio" class="segmentos" role="group" data-i18n-attr="aria-label:prio.aria"></div>
+    <div id="prioDesc" class="nota"></div>
+  </div>
+  <div class="fb-grupo fb-ancho">
+    <div class="etq-lat"><span data-i18n="bar.tipo">Kind of requirement</span> <span id="tiposNota" class="tenue"></span></div>
+    <div id="kinds" class="pildoras" role="group" data-i18n-attr="aria-label:bar.tipo"></div>
+  </div>
+  <div class="fb-grupo">
+    <div class="etq-lat" data-i18n="bar.extras">Include with each requirement</div>
+    <div class="pildoras">
+      <button id="incTests" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="inc.tests">Tests</button>
+      <button id="incAcel" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="inc.acel">Accelerators</button>
+    </div>
+  </div>
+  <div id="barraProyecto" class="fb-grupo" hidden>
+    <div class="etq-lat" data-i18n="lat.proyecto">Project</div>
+    <div class="pildoras">
+      <select id="proyecto" class="campo" aria-label="Project" data-i18n-attr="aria-label:lat.proyecto"><option value="" data-i18n="proy.ninguno">— none —</option></select>
+      <button id="ocultarHecho" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="proy.ocultar">Hide what I did</button>
+    </div>
+  </div>
 </section>
 
 <main id="browse">
   <aside class="lateral" data-i18n-attr="aria-label:lat.filtros" aria-label="Filters">
-    <label class="busca">
-      <span class="mono tenue">⌕</span>
-      <input id="q" type="search" maxlength="300" autocomplete="off" placeholder="Search by meaning…" aria-label="Search requirements by meaning"
-             data-i18n-attr="placeholder:busca.placeholder;aria-label:busca.aria">
-      <kbd>/</kbd>
-    </label>
-
+    <h2 class="lat-titulo" data-i18n="lat.navegar">What are you building?</h2>
     <div class="grupo-lat">
-      <div class="etq-lat" data-i18n="lat.categoria">Category</div>
+      <div class="etq-lat" data-i18n="lat.acotar">Narrow down</div>
+      <div id="ambito"></div>
+    </div>
+    <div class="grupo-lat">
+      <div class="etq-lat" data-i18n="lat.elegir">Pick categories</div>
       <input id="filtroCat" class="filtro" type="search" maxlength="60" autocomplete="off" placeholder="Filter: CRM, payroll, LMS…" aria-label="Filter software categories"
              data-i18n-attr="placeholder:filtro.placeholder;aria-label:filtro.aria">
       <div id="cats"></div>
-    </div>
-
-    <div class="grupo-lat">
-      <div class="etq-lat" data-i18n="lat.prioridad">Priority up to</div>
-      <div id="prio" class="segmentos" role="group" data-i18n-attr="aria-label:prio.aria"></div>
-      <div id="prioDesc" class="nota"></div>
-    </div>
-
-    <div class="grupo-lat">
-      <div class="etq-lat" data-i18n="lat.incluir">Include</div>
-      <button id="incTests" type="button" class="interruptor" role="switch" aria-checked="false"><span data-i18n="inc.tests">Tests</span><i></i></button>
-      <button id="incAcel" type="button" class="interruptor" role="switch" aria-checked="false"><span data-i18n="inc.acel">Accelerators</span><i></i></button>
-    </div>
-
-    <div id="barraProyecto" class="grupo-lat" hidden>
-      <div class="etq-lat" data-i18n="lat.proyecto">Project</div>
-      <select id="proyecto" class="campo" aria-label="Project" data-i18n-attr="aria-label:lat.proyecto"><option value="" data-i18n="proy.ninguno">— none —</option></select>
-      <button id="ocultarHecho" type="button" class="interruptor" role="switch" aria-checked="false"><span data-i18n="proy.ocultar">Hide what I did</span><i></i></button>
     </div>
   </aside>
 

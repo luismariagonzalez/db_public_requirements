@@ -2,10 +2,11 @@
 // a partir de los filtros elegidos. Se prueba en tests/consulta.test.mjs.
 
 export function paramsDe({ q = '', prio = 5, cats = [], formato = 'json', limite = 50,
-  incluirTests = false, incluirAceleradores = false, proyecto = null, ocultarHecho = false } = {}) {
+  incluirTests = false, incluirAceleradores = false, proyecto = null, ocultarHecho = false, kinds = [] } = {}) {
   const p = new URLSearchParams();
   if (cats.length) p.set('category', cats.join(','));
   if (prio < 5) p.set('max_priority', String(prio));
+  if (kinds.length) p.set('kind', kinds.join(','));
   if (q.trim()) p.set('q', q.trim());
   if (formato === 'md') p.set('format', 'md');
   if (limite !== 50) p.set('limit', String(limite));
@@ -54,6 +55,9 @@ export function dominiosDisponibles(categorias, audiencias) {
   return new Set(categorias.filter((c) => (c.audiences ?? []).some((a) => audiencias.includes(a)))
     .map((c) => c.domain).filter(Boolean));
 }
+
+// Clases de requisito (como en la API): funcional, técnico, seguridad…
+export const CLASES = ['functional', 'technical', 'security', 'privacy', 'performance', 'reliability', 'ux', 'accessibility', 'legal'];
 
 export const GRUPOS = [
   ['app_type', 'App type'],

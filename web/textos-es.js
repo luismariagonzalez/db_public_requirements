@@ -8,10 +8,17 @@ export default {
   'nav.browse': 'Explorar', 'nav.api': 'API', 'nav.cli': 'CLI', 'nav.account': 'Cuenta', 'nav.terms': 'Términos', 'nav.main': 'Principal',
   'cuenta.entrar': 'Entrar', 'cuenta.salir': 'Salir', 'atajo.buscar': 'buscar',
 
-  'hero.kicker': '// requisitos para tu agente de código',
-  'hero.h1': 'Que tu agente no se olvide de lo básico y aburrido.',
-  'hero.p.html': 'Elige los requisitos de tu tipo de app, con los tests que los comprueban y las librerías que los aceleran. Dicen <em>qué</em> debe hacer la app, nunca <em>dónde</em> va.',
-  'hero.paso1': 'Elige categoría y prioridad', 'hero.paso2': 'Desmarca lo que no aplique', 'hero.paso3': 'Copia Markdown, curl o JSON',
+  'hero.kicker': '// una biblioteca colaborativa de requisitos para tu agente de código',
+  'hero.h1': 'La IA programa bien. Lo que le falta son requisitos.',
+  'hero.p.html': 'Una base pública con lo que debe cumplir cada tipo de app, los tests que lo comprueban y las librerías que lo aceleran. Eliges lo que aplica, lo copias en Markdown (o lo traes con el CLI) y se lo pasas a tu agente, que además anota en tu proyecto qué está hecho y qué queda pendiente.',
+  'hero.paso1': 'Elige qué construyes (izquierda)', 'hero.paso2': 'Ajusta prioridad, clase y extras (barra)', 'hero.paso3': 'Copia Markdown, curl o JSON (derecha)',
+  'ent.req.t': 'Requisitos', 'ent.req.p': 'Qué debe hacer la app, con criterios que se pueden comprobar. Nunca dónde va: las pantallas y el diseño los decide tu agente.',
+  'ent.test.t': 'Tests', 'ent.test.p': 'Cómo comprobar que cada requisito se cumple: escenarios «dado, cuando, entonces», cada uno con su prioridad.',
+  'ent.acel.t': 'Aceleradores', 'ent.acel.p': 'Librerías abiertas y servicios que ya resuelven una parte, para que tu agente no reescriba la autenticación o los pagos.',
+  'ent.prio.t': 'Prioridad 1–5', 'ent.prio.p': 'P1 es lo que no puede faltar en una app que funciona; P5, lo que la diferencia. Pide «todo hasta P2».',
+  'ent.com.t': 'Hecho entre todos', 'ent.com.p': 'Cualquiera puede sugerir una corrección o aportar un requisito. Una IA revisa cada aporte y una persona decide los dudosos.',
+  'lat.navegar': '¿Qué estás construyendo?', 'lat.acotar': 'Acota', 'lat.elegir': 'Elige categorías', 'lat.sel': '✓ {n}',
+  'bar.aria': 'Búsqueda y filtros', 'bar.tipo': 'Clase de requisito', 'bar.tipo.todos': 'todas las clases', 'bar.extras': 'Incluir con cada requisito',
 
   'lat.filtros': 'Filtros', 'busca.placeholder': 'Buscar por significado…', 'busca.aria': 'Buscar requisitos por significado',
   'lat.categoria': 'Categoría', 'filtro.placeholder': 'Filtrar: CRM, nóminas, LMS…', 'filtro.aria': 'Filtrar categorías de software',
@@ -94,4 +101,9 @@ export default {
 
   'pie.texto': 'reqdb · curado por la comunidad · código MIT', 'pie.legal': 'Aviso legal y privacidad', 'pie.terminos': 'Términos del contenido', 'pie.cli': 'CLI',
   'idioma.aria': 'Idioma',
+  'k.functional': 'Funcional', 'k.technical': 'Técnico', 'k.security': 'Seguridad', 'k.privacy': 'Privacidad', 'k.performance': 'Rendimiento',
+  'k.reliability': 'Fiabilidad', 'k.ux': 'UX', 'k.accessibility': 'Accesibilidad', 'k.legal': 'Legal',
+  'k.functional.d': 'Lo que pueden hacer los usuarios', 'k.technical.d': 'Cómo se construye y se opera el sistema', 'k.security.d': 'Protección frente a abusos y ataques',
+  'k.privacy.d': 'Datos personales y consentimiento', 'k.performance.d': 'Velocidad y escala', 'k.reliability.d': 'Fallos, copias y recuperación',
+  'k.ux.d': 'Comportamiento que el usuario nota (nunca el diseño)', 'k.accessibility.d': 'Usable por todo el mundo', 'k.legal.d': 'Normas y cumplimiento',
 };

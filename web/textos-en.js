@@ -8,10 +8,17 @@ export default {
   'nav.browse': 'Browse', 'nav.api': 'API', 'nav.cli': 'CLI', 'nav.account': 'Account', 'nav.terms': 'Terms', 'nav.main': 'Main',
   'cuenta.entrar': 'Sign in', 'cuenta.salir': 'Sign out', 'atajo.buscar': 'search',
 
-  'hero.kicker': '// requirements for your coding agent',
-  'hero.h1': "Don't let your agent forget the boring essentials.",
-  'hero.p.html': 'Pick requirements for your kind of app — with the tests that prove them and the libraries that speed them up. They say <em>what</em> the app must do, never <em>where</em> it goes.',
-  'hero.paso1': 'Pick a category & priority', 'hero.paso2': "Untick what doesn't apply", 'hero.paso3': 'Copy Markdown, curl or JSON',
+  'hero.kicker': '// a community-built library of requirements for your coding agent',
+  'hero.h1': "AI writes good code. What it lacks is requirements.",
+  'hero.p.html': 'A public database of what each kind of app must do, the tests that prove it and the libraries that speed it up. Pick what applies, copy it as Markdown (or pull it with the CLI) and hand it to your agent, which then records in your project what is done and what is pending.',
+  'hero.paso1': 'Pick what you build (left)', 'hero.paso2': 'Set priority, kind and extras (bar)', 'hero.paso3': 'Copy Markdown, curl or JSON (right)',
+  'ent.req.t': 'Requirements', 'ent.req.p': 'What the app must do, with criteria you can check. Never where it goes: screens and layout are your agent’s call.',
+  'ent.test.t': 'Tests', 'ent.test.p': 'How to check each requirement is met: given / when / then scenarios, each with its own priority.',
+  'ent.acel.t': 'Accelerators', 'ent.acel.p': 'Open-source libraries and services that already solve part of it, so your agent does not rebuild auth or payments.',
+  'ent.prio.t': 'Priority 1–5', 'ent.prio.p': 'P1 is what a working app cannot lack, P5 what sets it apart. Ask for “everything up to P2”.',
+  'ent.com.t': 'Built together', 'ent.com.p': 'Anyone can suggest a fix or contribute a requirement. An AI reviews every contribution and a person decides the doubtful ones.',
+  'lat.navegar': 'What are you building?', 'lat.acotar': 'Narrow down', 'lat.elegir': 'Pick categories', 'lat.sel': '✓ {n}',
+  'bar.aria': 'Search and filters', 'bar.tipo': 'Kind of requirement', 'bar.tipo.todos': 'all kinds', 'bar.extras': 'Include with each requirement',
 
   'lat.filtros': 'Filters', 'busca.placeholder': 'Search by meaning…', 'busca.aria': 'Search requirements by meaning',
   'lat.categoria': 'Category', 'filtro.placeholder': 'Filter: CRM, payroll, LMS…', 'filtro.aria': 'Filter software categories',
@@ -94,4 +101,9 @@ export default {
 
   'pie.texto': 'reqdb · community-curated · code MIT', 'pie.legal': 'Legal & privacy', 'pie.terminos': 'Content terms', 'pie.cli': 'CLI',
   'idioma.aria': 'Language',
+  'k.functional': 'Functional', 'k.technical': 'Technical', 'k.security': 'Security', 'k.privacy': 'Privacy', 'k.performance': 'Performance',
+  'k.reliability': 'Reliability', 'k.ux': 'UX', 'k.accessibility': 'Accessibility', 'k.legal': 'Legal',
+  'k.functional.d': 'What users can do', 'k.technical.d': 'How the system is built and run', 'k.security.d': 'Protection against abuse and attacks',
+  'k.privacy.d': 'Personal data and consent', 'k.performance.d': 'Speed and scale', 'k.reliability.d': 'Failures, backups, recovery',
+  'k.ux.d': 'Behaviour users notice (never layout)', 'k.accessibility.d': 'Usable by everyone', 'k.legal.d': 'Rules and compliance',
 };

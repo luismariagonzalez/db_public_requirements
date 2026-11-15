@@ -1,6 +1,6 @@
 // La página. Todo el texto de la base se pinta con textContent, nunca con
 // innerHTML: los requisitos los escribe la comunidad y son datos no confiables.
-import { rutaBusqueda, hayFiltro, urlSegura, GRUPOS, ESTADOS, categoriasEfectivas, visibles, dominiosDisponibles, MAX_SOFTWARE } from './consulta.js';
+import { rutaBusqueda, hayFiltro, urlSegura, GRUPOS, CLASES, ESTADOS, categoriasEfectivas, visibles, dominiosDisponibles, MAX_SOFTWARE } from './consulta.js';
 import { entrar, salir, token, usuario, cargarClerk, huboSesion, marcarSesion } from './clerk.js';
 import { iniciar, t as T, tn as TN, fecha as FECHA } from './i18n.js';
 
@@ -12,7 +12,7 @@ iniciar(() => renderTodo());
 // API ('/api/v1/…') se cuelgan de ahí, así que todo es relativo y funciona en los dos sitios.
 const BASE = new URL('./', location.href).pathname.replace(/\/$/, '');
 const estado = { q: '', prio: 5, cats: [], audiencias: [], dominios: [], filtroCat: '', items: [], sel: new Set(), categorias: [],
-  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false, tab: 'md' };
+  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false, kinds: [], tab: 'md' };
 let sesion = false;
 let proyectos = [];
 
@@ -69,16 +69,18 @@ function alternar(lista, slug) {
   if (i >= 0) lista.splice(i, 1); else lista.push(slug);
   pintarLateral(); buscar();
 }
-function subgrupo(id, titulo, filas, n) {
+function subgrupo(id, titulo, filas, n, elegidas = 0) {
   const d = el('details', { class: 'sub' });
   d.open = gruposAbiertos.has(id);
   d.addEventListener('toggle', () => { if (d.open) gruposAbiertos.add(id); else gruposAbiertos.delete(id); });
-  d.append(el('summary', {}, el('span', {}, titulo), el('span', { class: 'n' }, String(n))), ...filas);
+  d.append(el('summary', {}, el('span', { class: 'tit' }, titulo),
+    el('span', { class: 'cifras' }, elegidas ? el('span', { class: 'sel' }, T('lat.sel', { n: elegidas })) : null, el('span', { class: 'n' }, String(n)))), ...filas);
   return d;
 }
 
 function pintarLateral() {
   const cont = $('#cats'); cont.replaceChildren();
+  const ambito = $('#ambito'); ambito.replaceChildren();
   const cs = estado.categorias;
   const porTipo = (t) => cs.filter((c) => c.type === t);
   const nav = { audiencias: estado.audiencias, dominios: estado.dominios };
@@ -86,25 +88,26 @@ function pintarLateral() {
   if (estado.filtroCat) gruposAbiertos.add('software_category');
 
   const aud = porTipo('audience');
-  if (aud.length) cont.append(subgrupo('audience', T('g.audience'), aud.map((c) =>
-    filaCat(c.name, estado.audiencias.includes(c.slug), null, () => { estado.cats = []; alternar(estado.audiencias, c.slug); }, c.description || c.name)), aud.length));
+  if (aud.length) ambito.append(subgrupo('audience', T('g.audience'), aud.map((c) =>
+    filaCat(c.name, estado.audiencias.includes(c.slug), null, () => { estado.cats = []; alternar(estado.audiencias, c.slug); }, c.description || c.name)), aud.length, estado.audiencias.length));
 
   const disp = dominiosDisponibles(cs.filter((c) => c.type !== 'domain'), estado.audiencias);
   const dom = porTipo('domain').filter((d) => !disp || disp.has(d.slug) || estado.dominios.includes(d.slug));
-  if (dom.length) cont.append(subgrupo('domain', T('g.domain'), dom.map((c) =>
-    filaCat(c.name, estado.dominios.includes(c.slug), null, () => { estado.cats = []; alternar(estado.dominios, c.slug); }, c.description || c.name)), dom.length));
+  if (dom.length) ambito.append(subgrupo('domain', T('g.domain'), dom.map((c) =>
+    filaCat(c.name, estado.dominios.includes(c.slug), null, () => { estado.cats = []; alternar(estado.dominios, c.slug); }, c.description || c.name)), dom.length, estado.dominios.length));
 
   const sw = visibles(porTipo('software_category'), { ...nav, texto: estado.filtroCat })
     .sort((a, b) => (estado.cats.includes(b.slug) - estado.cats.includes(a.slug)) || b.requirements - a.requirements || a.name.localeCompare(b.name));
   if (sw.length || estado.filtroCat) cont.append(subgrupo('software_category', T('g.software_category'),
     [...sw.slice(0, MAX_SOFTWARE).map(hoja),
-      sw.length > MAX_SOFTWARE ? el('div', { class: 'mas' }, T('g.mas', { n: sw.length - MAX_SOFTWARE })) : null].filter(Boolean), sw.length));
+      sw.length > MAX_SOFTWARE ? el('div', { class: 'mas' }, T('g.mas', { n: sw.length - MAX_SOFTWARE })) : null].filter(Boolean), sw.length,
+    sw.filter((c) => estado.cats.includes(c.slug)).length));
 
   const tipos = visibles(porTipo('app_type'), nav);
-  if (tipos.length) cont.append(subgrupo('app_type', T('g.app_type'), tipos.map(hoja), tipos.length));
+  if (tipos.length) cont.append(subgrupo('app_type', T('g.app_type'), tipos.map(hoja), tipos.length, tipos.filter((c) => estado.cats.includes(c.slug)).length));
   for (const [tipo] of GRUPOS.filter(([x]) => x !== 'app_type')) {
     const lista = porTipo(tipo);
-    if (lista.length) cont.append(subgrupo(tipo, T(`g.${tipo}`), lista.map(hoja), lista.length));
+    if (lista.length) cont.append(subgrupo(tipo, T(`g.${tipo}`), lista.map(hoja), lista.length, lista.filter((c) => estado.cats.includes(c.slug)).length));
   }
 }
 $('#filtroCat').addEventListener('input', (e) => { estado.filtroCat = e.target.value; pintarLateral(); });
@@ -117,6 +120,11 @@ function pintarPrio() {
   $('#prio').replaceChildren(...PRIOS.map((p) => el('button', { type: 'button', 'aria-pressed': String(estado.prio === p),
     title: `P${p} · ${T(`p${p}.n`)}: ${T(`p${p}.d`)}`, onclick: () => { estado.prio = p; pintarPrio(); buscar(); } }, `P${p}`)));
   $('#prioDesc').textContent = estado.prio === 5 ? T('prio.todo') : T('prio.hasta', { n: estado.prio, nombre: T(`p${estado.prio}.n`), desc: T(`p${estado.prio}.d`) });
+}
+function pintarKinds() {
+  $('#kinds').replaceChildren(...CLASES.map((k) => el('button', { type: 'button', class: 'pildora', 'aria-pressed': String(estado.kinds.includes(k)), title: T(`k.${k}.d`),
+    onclick: () => { const i = estado.kinds.indexOf(k); if (i >= 0) estado.kinds.splice(i, 1); else estado.kinds.push(k); pintarKinds(); buscar(); } }, T(`k.${k}`))));
+  $('#tiposNota').textContent = estado.kinds.length ? '' : `· ${T('bar.tipo.todos')}`;
 }
 function interruptor(id, clave) {
   const b = $(id);
@@ -490,11 +498,11 @@ $('#ejemploCurl').textContent =
   `curl "${location.origin}${BASE}/api/v1/requirements?category=messaging&max_priority=2&include=tests,accelerators&format=md"`;
 $('#ejemploCli').textContent =
   `curl -fsSL ${location.origin}${BASE}/reqdb.mjs -o reqdb.mjs\nnode reqdb.mjs pull --category messaging --max-priority 2`;
-pintarPrio(); pintarTitulo();
+pintarPrio(); pintarKinds(); pintarTitulo();
 
 // Al cambiar de idioma se vuelve a pintar todo lo que genera este script (lo estático lo hace i18n.js).
 function renderTodo() {
-  pintarPrio(); pintarLeyenda(); pintarTitulo(); pintarLateral(); pintarEstadosProyecto(); pintarLista();
+  pintarPrio(); pintarKinds(); pintarLeyenda(); pintarTitulo(); pintarLateral(); pintarEstadosProyecto(); pintarLista();
   $('#btnCuenta').textContent = T(sesion ? 'cuenta.salir' : 'cuenta.entrar');
   if (sesion) { cargarProyectos(); cargarAportes(); cargarClaves(); cargarSugerencias(); }
 }

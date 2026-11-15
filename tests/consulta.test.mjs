@@ -64,3 +64,8 @@ test('dominios con algo para la audiencia elegida', () => {
   assert.deepEqual([...dominiosDisponibles(cs, ['b2c'])].sort(), ['finance', 'health']);
   assert.deepEqual([...dominiosDisponibles(cs.slice(0, 3), ['b2c'])], ['finance']);
 });
+
+test('las clases de requisito (funcional, técnico…) viajan como kind=', () => {
+  assert.equal(paramsDe({ cats: ['messaging'], kinds: ['functional', 'technical'] }).get('kind'), 'functional,technical');
+  assert.equal(paramsDe({ cats: ['messaging'] }).has('kind'), false);
+});
