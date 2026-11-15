@@ -36,7 +36,7 @@ export default {
   'estado.elige': 'Pick an audience, a category or an app type — or search by meaning.',
   'estado.buscando': 'Searching…',
   'estado.vacio': 'No requirements for this selection yet. Try the cross-cutting concerns (security, privacy…), fewer filters, or contribute one.',
-  'err.429': 'Too many requests. Try again in {s} seconds, or sign in for a higher limit.', 'err.429.poco': 'a few',
+  'err.429': 'Too many requests. Try again in {s}, or sign in for a higher limit.', 'err.429.poco': 'a few seconds',
 
   'item.incluir': 'Include {titulo}', 'det.tests': 'Tests', 'det.acel': 'Accelerators', 'det.sugerir': 'Suggest',
   'n.test.one': '{n} test', 'n.test.other': '{n} tests', 'n.acel.one': '{n} accelerator', 'n.acel.other': '{n} accelerators',

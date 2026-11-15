@@ -36,7 +36,7 @@ export default {
   'estado.elige': 'Elige una audiencia, una categoría o un tipo de app, o busca por significado.',
   'estado.buscando': 'Buscando…',
   'estado.vacio': 'Todavía no hay requisitos para esta selección. Prueba con los asuntos transversales (seguridad, privacidad…), con menos filtros, o aporta uno.',
-  'err.429': 'Demasiadas peticiones. Inténtalo de nuevo en {s} segundos, o entra para tener un límite mayor.', 'err.429.poco': 'unos pocos',
+  'err.429': 'Demasiadas peticiones. Inténtalo de nuevo en {s}, o entra para tener un límite mayor.', 'err.429.poco': 'unos segundos',
 
   'item.incluir': 'Incluir {titulo}', 'det.tests': 'Tests', 'det.acel': 'Aceleradores', 'det.sugerir': 'Sugerir',
   'n.test.one': '{n} test', 'n.test.other': '{n} tests', 'n.acel.one': '{n} acelerador', 'n.acel.other': '{n} aceleradores',

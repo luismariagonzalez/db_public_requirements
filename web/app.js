@@ -50,7 +50,7 @@ async function api(metodo, ruta, cuerpo, conSesion = false) {
   }
   return datos;
 }
-const msgError = (e) => e.status === 429 ? T('err.429', { s: e.reintentar ?? T('err.429.poco') }) : e.message;
+const msgError = (e) => e.status === 429 ? T('err.429', { s: e.reintentar ? `${e.reintentar} s` : T('err.429.poco') }) : e.message;
 
 // ── barra lateral: audiencia → dominio → categoría
 const PRIOS = [1, 2, 3, 4, 5];   // nombres y descripciones, en el diccionario: p1.n, p1.d…
