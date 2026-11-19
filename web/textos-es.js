@@ -64,7 +64,7 @@ export default {
   'api.ep.tests': 'tests por categoría y prioridad', 'api.ep.acel': 'librerías y servicios',
   'api.ep.proyectos': 'tus proyectos', 'api.ep.marcar': 'marcar hecho / planeado / descartado', 'api.ep.sugerir': 'sugerir algo',
   'api.nota.html': 'Añade <code>project=&lt;id&gt;</code> a una búsqueda para ver lo que ya has hecho, y <code>hide=done</code> para saltártelo.',
-  'api.cli.titulo': '¿Prefieres la terminal?', 'api.cli.p': 'El CLI reqdb es un solo fichero sin dependencias: baja los requisitos a tu repo, deja que tu agente marque el avance y haz que falle el CI mientras haya trabajo P1 pendiente.',
+  'api.cli.titulo': '¿Prefieres la terminal?', 'api.cli.p': 'El CLI de airedb (reqdb.mjs) es un solo fichero sin dependencias: baja los requisitos a tu repo, deja que tu agente marque el avance y haz que falle el CI mientras haya trabajo P1 pendiente.',
   'api.cli.enlace': 'Documentación del CLI para agentes →',
 
   'proy.h2': 'Mis proyectos',
@@ -99,7 +99,7 @@ export default {
   'datos.borrar': 'Borrar mis datos', 'datos.confirmar': 'Esto borra tus claves de API, aportaciones, proyectos y sugerencias, y anonimiza el contenido del que eres autor. ¿Continuar?',
   'datos.borrados': 'Tus datos se han borrado.', 'nada.todavia': 'Todavía nada.',
 
-  'pie.texto': 'reqdb · curado por la comunidad · código MIT', 'pie.legal': 'Aviso legal y privacidad', 'pie.terminos': 'Términos del contenido', 'pie.cli': 'CLI',
+  'pie.texto': 'airedb · curado por la comunidad · código MIT', 'pie.legal': 'Aviso legal y privacidad', 'pie.terminos': 'Términos del contenido', 'pie.cli': 'CLI',
   'idioma.aria': 'Idioma',
   'nav.projects': 'Proyectos', 'nav.keys': 'Claves de API',
   'proy.barra.p': 'Un proyecto por app: recuerda lo que ya le has pasado a tu agente, y la próxima vez eliges solo lo nuevo.',

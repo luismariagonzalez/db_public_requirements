@@ -23,3 +23,5 @@ semilla/capterra_bruto.json
 semilla/categorias_software.json
 semilla/aceleradores_primera_pasada.json
 .claude/
+
+.vercel

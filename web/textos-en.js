@@ -64,7 +64,7 @@ export default {
   'api.ep.tests': 'tests by category and priority', 'api.ep.acel': 'libraries and services',
   'api.ep.proyectos': 'your projects', 'api.ep.marcar': 'mark done / planned / skipped', 'api.ep.sugerir': 'suggest something',
   'api.nota.html': 'Add <code>project=&lt;id&gt;</code> to a search to see what you already shipped, and <code>hide=done</code> to skip it.',
-  'api.cli.titulo': 'Prefer the terminal?', 'api.cli.p': 'The reqdb CLI is one file, no dependencies: pull requirements into your repo, let your agent mark progress, and fail CI while P1 work is pending.',
+  'api.cli.titulo': 'Prefer the terminal?', 'api.cli.p': 'The airedb CLI (reqdb.mjs) is one file, no dependencies: pull requirements into your repo, let your agent mark progress, and fail CI while P1 work is pending.',
   'api.cli.enlace': 'CLI docs for agents →',
 
   'proy.h2': 'My projects',
@@ -99,7 +99,7 @@ export default {
   'datos.borrar': 'Delete my data', 'datos.confirmar': 'This deletes your API keys, contributions, projects and suggestions, and anonymises content you authored. Continue?',
   'datos.borrados': 'Your data was deleted.', 'nada.todavia': 'Nothing yet.',
 
-  'pie.texto': 'reqdb · community-curated · code MIT', 'pie.legal': 'Legal & privacy', 'pie.terminos': 'Content terms', 'pie.cli': 'CLI',
+  'pie.texto': 'airedb · community-curated · code MIT', 'pie.legal': 'Legal & privacy', 'pie.terminos': 'Content terms', 'pie.cli': 'CLI',
   'idioma.aria': 'Language',
   'nav.projects': 'Projects', 'nav.keys': 'API keys',
   'proy.barra.p': 'One project per app: it remembers what you already handed to your agent, so next time you only pick what is new.',
