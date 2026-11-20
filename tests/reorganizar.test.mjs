@@ -37,7 +37,8 @@ test('transversales que faltan: solo los de su tema y con la mejor prioridad que
 
 test('los arquetipos nuevos y los flujos de acceso existen en la migración 0004', () => {
   const sql = readFileSync(new URL('../supabase/migraciones/0004_modelo_filtros.sql', import.meta.url), 'utf8');
-  for (const [slug] of ARQUETIPOS_NUEVOS) assert.ok(sql.includes(`'${slug}'`), slug);
+  // marketing-automation-platform nació después (el slug «marketing-automation» ya era una categoría de Capterra): lo crea la semilla
+  for (const [slug] of ARQUETIPOS_NUEVOS.filter(([s]) => s !== 'marketing-automation-platform')) assert.ok(sql.includes(`'${slug}'`), slug);
   for (const f of FLUJOS_ACCESO) assert.ok(sql.includes(`'${f}'`), f);
   assert.equal(new Set(ARQUETIPOS).size, ARQUETIPOS.length);
 });

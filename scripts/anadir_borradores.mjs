@@ -23,7 +23,10 @@ const cats = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 if (!cats.length) throw new Error('indica las categorías: node scripts/anadir_borradores.mjs crm-sales …');
 
 const raiz = new URL('../semilla/', import.meta.url);
-const slugs = new Set(JSON.parse(readFileSync(new URL('categorias.json', raiz), 'utf8')).map((c) => c.slug));
+const base = JSON.parse(readFileSync(new URL('categorias.json', raiz), 'utf8'));
+const slugs = new Set(base.map((c) => c.slug));
+// Los requisitos cuelgan de las HOJAS: audiencias y dominios solo acotan, nunca son una categoría del requisito.
+const noHoja = new Set(base.filter((c) => ['audience', 'domain'].includes(c.tipo)).map((c) => c.slug));
 const slugify = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 110);
 const coseno = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
 
@@ -36,7 +39,10 @@ for (const c of cats) {
   if (!existsSync(f)) { console.log(`  ✗ ${c}: no hay borrador`); continue; }
   for (const raw of JSON.parse(readFileSync(f, 'utf8'))) {
     const v = validarItem(raw, slugs);
-    if (v.ok) nuevos.push({ ...v.item, _cat: c });
+    if (!v.ok) continue;
+    const categories = v.item.categories.filter((x) => !noHoja.has(x.slug));
+    if (!categories.some((x) => x.slug === c)) categories.unshift({ slug: c, priority: 3 });
+    nuevos.push({ ...v.item, categories, _cat: c });
   }
 }
 console.log(`  ${nuevos.length} requisitos en los borradores de ${cats.length} categorías`);
@@ -61,7 +67,7 @@ let repetidos = 0; const salida = new Map();
 for (const { item, vec } of reps) {
   const s = slugify(item.title);
   let parecido = null;
-  try { parecido = (await rpc('similares', { p_vec: aLiteral(vec), p_limite: 1 }))?.[0]; } catch { /* sin base: se sigue */ }
+  try { parecido = (await rpc('similares', { p_vec: aLiteral(vec), p_n: 1 }))?.[0]; } catch { /* sin base: se sigue */ }
   if (existentes.has(s) || (parecido && Number(parecido.similarity) >= umbral)) {
     repetidos++; console.log(`    · omitido «${item.title}» ~ ${parecido?.slug ?? s} (${parecido ? Number(parecido.similarity).toFixed(2) : 'mismo slug'})`);
     continue;

@@ -553,9 +553,9 @@
   ]
  },
  {
-  "slug": "marketing-automation",
+  "slug": "marketing-automation-platform",
   "tipo": "app_type",
-  "nombre": "Marketing automation",
+  "nombre": "Marketing automation platform",
   "descripcion": "Campaigns, audiences, email/SMS sending, landing pages, lead scoring and attribution.",
   "orden": 162,
   "audiencias": [
