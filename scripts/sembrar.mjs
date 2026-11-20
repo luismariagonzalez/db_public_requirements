@@ -38,9 +38,11 @@ if (!DRY) {
   // Orden: audiencias, dominios y luego el resto (los dominios y audiencias han de
   // existir antes de que algo cuelgue de ellos). El resto, en paralelo.
   const upsert = (c) => rpc('upsert_categoria', { p_slug: c.slug, p_tipo: c.tipo, p_nombre: c.nombre,
-    p_descripcion: c.descripcion ?? '', p_orden: c.orden, p_dominio: c.dominio ?? null, p_audiencias: c.audiencias ?? null });
+    p_descripcion: c.descripcion ?? '', p_orden: c.orden, p_dominio: c.dominio ?? null, p_audiencias: c.audiencias ?? null,
+    p_familia: c.familia ?? null, p_arquetipos: c.arquetipos ?? null });
   for (const tipo of ['audience', 'domain']) for (const c of categorias.filter((x) => x.tipo === tipo)) await upsert(c);
-  const resto = categorias.filter((x) => !['audience', 'domain'].includes(x.tipo));
+  for (const c of categorias.filter((x) => x.tipo === 'app_type')) await upsert(c);   // los arquetipos, antes de quien hereda de ellos
+  const resto = categorias.filter((x) => !['audience', 'domain', 'app_type'].includes(x.tipo));
   const cola = [...resto];
   await Promise.all(Array.from({ length: 8 }, async () => { for (let c; (c = cola.shift());) await upsert(c); }));
   console.log(`  ✓ ${categorias.length} categorías al día`);

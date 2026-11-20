@@ -6,6 +6,7 @@
 //   node scripts/generar_semilla.mjs --solo=messaging,security
 //   node scripts/generar_semilla.mjs --n=25          requisitos por categoría (por defecto 25)
 //   node scripts/generar_semilla.mjs --fusionar      no genera: solo rehace la deduplicación
+//   node scripts/generar_semilla.mjs --solo=crm-sales --solo-borrador   solo el borrador (no reescribe semilla/requisitos/)
 //
 // Fase 1: un borrador por categoría en semilla/borrador/<slug>.json (se puede
 //         borrar y regenerar una sola con --solo).
@@ -150,4 +151,4 @@ async function fase2() {
 }
 
 if (!SOLO_FUSIONAR) await fase1();
-await fase2();
+if (!process.argv.includes('--solo-borrador')) await fase2();   // --solo-borrador: deja los borradores y no toca semilla/requisitos/
