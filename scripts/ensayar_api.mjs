@@ -411,6 +411,71 @@ await prueba('CLI: login guarda la clave y los comandos con clave funcionan sin 
   assert.equal((await cli(['projects'], { clave: false })).code, 3);
 });
 
+// ── métricas de aceleradores (0009): el cron real contra la base local, con GitHub y npm SIMULADOS
+await prueba('métricas: ruta del cron protegida, refresco por lotes y popularidad en la API, el Markdown y el CLI', async () => {
+  await rpc('crear_acelerador', { p_nombre: 'Realtime Cloud', p_descripcion: 'Hosted realtime messaging service with presence and typing events.', p_modelo: 'saas',
+    p_coste: 'freemium', p_url: 'https://example.com/rt', p_plataformas: ['any'],
+    p_requisitos: [{ slug: 'typing-indicator', coverage: 'partial' }], p_vec: null, p_autor: null, p_slug: 'realtime-cloud' });
+  await rpc('fijar_origen', { p_slug: 'lucia-auth', p_repo_url: 'https://github.com/lucia-auth/lucia', p_registro: 'npm', p_paquete: 'lucia' });
+  await rpc('fijar_origen', { p_slug: 'realtime-cloud', p_repo_url: null, p_registro: 'pypi', p_paquete: 'realtime-cloud' });
+
+  // sin secreto o con uno malo, cerrada
+  delete process.env.CRON_SECRET;
+  assert.equal((await pedir('GET', '/api/cron/metricas')).estado, 503);
+  process.env.CRON_SECRET = 'secreto-de-ensayo-0123456789';
+  const cab = (s) => ({ authorization: `Bearer ${s}` });
+  const llamar = async (metodo, secreto) => {
+    const r = await fetch(BASE + '/api/cron/metricas', { method: metodo, headers: secreto ? cab(secreto) : {} });
+    return { estado: r.status, json: await r.json() };
+  };
+  assert.equal((await llamar('GET', null)).estado, 401);
+  assert.equal((await llamar('GET', 'otro')).estado, 401);
+
+  // GitHub, npm y PyPI simulados; lo local (la API y el Supabase falso) pasa al fetch de verdad
+  const fetchReal = globalThis.fetch;
+  const pedidos = [];
+  globalThis.fetch = async (url, init) => {
+    const u = String(url);
+    if (/^http:\/\/127\.0\.0\.1/.test(u)) return fetchReal(url, init);
+    pedidos.push(u);
+    const j = (o, estado = 200) => new Response(JSON.stringify(o), { status: estado, headers: { 'content-type': 'application/json' } });
+    if (u.startsWith('https://api.github.com/repos/lucia-auth/lucia'))
+      return j({ stargazers_count: 9876, forks_count: 321, archived: false, pushed_at: '2026-11-10T09:00:00Z' });
+    if (u.startsWith('https://api.npmjs.org/downloads/point/last-month/lucia')) return j({ downloads: 2_500_000 });
+    if (u.startsWith('https://pypistats.org/')) return j({ message: 'not found' }, 404);
+    throw new Error(`red real no permitida en el ensayo: ${u}`);
+  };
+  try {
+    const r = await llamar('POST', 'secreto-de-ensayo-0123456789');
+    assert.equal(r.estado, 200, JSON.stringify(r.json));
+    assert.equal(r.json.processed, 2); assert.equal(r.json.saved, 2); assert.equal(r.json.with_error, 1); assert.equal(r.json.pending_after, 0);
+    // reanudable: ahora no hay nada pendiente y no se vuelve a preguntar
+    const n = pedidos.length;
+    assert.equal((await llamar('GET', 'secreto-de-ensayo-0123456789')).json.processed, 0);
+    assert.equal(pedidos.length, n);
+  } finally { globalThis.fetch = fetchReal; delete process.env.CRON_SECRET; }
+
+  // la API publica las métricas (ficha, listado, requisito con include=accelerators)
+  const a = (await pedir('GET', '/api/v1/accelerators/lucia-auth')).json;
+  assert.equal(a.stars, 9876); assert.equal(a.forks, 321); assert.equal(a.downloads_month, 2_500_000); assert.equal(a.registry, 'npm');
+  assert.equal(a.package, 'lucia'); assert.equal(a.archived, false); assert.match(a.metrics_updated_at, /^\d{4}-/); assert.equal(a.metrics_source, 'github+npm');
+  assert.ok(!('metricas_error' in a) && !('metrics_error' in a));
+  const rt = (await pedir('GET', '/api/v1/accelerators/realtime-cloud')).json;
+  assert.equal(rt.stars, null); assert.equal(rt.metrics_updated_at, null);   // pypi falló: sin datos, error anotado solo en la base
+  const lista = (await pedir('GET', '/api/v1/accelerators?sort=popularity')).json.accelerators;
+  assert.equal(lista[0].slug, 'lucia-auth');
+  assert.equal((await pedir('GET', '/api/v1/accelerators?sort=copies')).estado, 400);
+  const req = (await pedir('GET', '/api/v1/requirements/password-reset-by-email-link')).json;
+  assert.equal(req.accelerators[0].stars, 9876);
+  const inc = (await pedir('GET', '/api/v1/requirements?category=messaging&max_priority=2&include=accelerators')).json.requirements;
+  const acc = inc.flatMap((x) => x.accelerators).find((x) => x.slug === 'lucia-auth');
+  assert.equal(acc.stars, 9876); assert.equal(acc.downloads_month, 2_500_000); assert.equal(acc.registry, 'npm');
+  const md = (await pedir('GET', '/api/v1/requirements?category=messaging&max_priority=2&format=md&include=tests,accelerators')).texto;
+  assert.match(md, /\*\*Lucia Auth\*\* \(open source · free · 9\.9k stars · 2\.5M downloads\/mo\)/);
+  const c = await cli(['accelerators', '--sort', 'popularity']);
+  assert.equal(c.code, 0, c.err); assert.match(c.out.split('\n')[0], /^lucia-auth\s+Lucia Auth\s+\(open_source, free, 9\.9k stars, 2\.5M downloads\/mo\)/);
+});
+
 api.close(); await falso.cerrar();
 console.log(fallos.length ? `\n  ${fallos.length} fallo(s).\n` : '\n  API ensayada de punta a punta.\n');
 process.exit(fallos.length ? 1 : 0);

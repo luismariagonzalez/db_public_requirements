@@ -119,4 +119,9 @@ export default {
   'k.functional.d': 'What users can do', 'k.technical.d': 'How the system is built and run', 'k.security.d': 'Protection against abuse and attacks',
   'k.privacy.d': 'Personal data and consent', 'k.performance.d': 'Speed and scale', 'k.reliability.d': 'Failures, backups, recovery',
   'k.ux.d': 'Behaviour users notice (never layout)', 'k.accessibility.d': 'Usable by everyone', 'k.legal.d': 'Rules and compliance',
+  // popularidad de los aceleradores (estrellas de GitHub y descargas del registro oficial)
+  'met.stars.t': '{n} GitHub stars', 'met.mes': '/mo', 'met.total': ' total', 'met.archived': 'archived',
+  'met.mes.t': '{n} downloads in the last 30 days ({registro})', 'met.mes.brew.t': '{n} installs in the last 30 days (Homebrew)',
+  'met.total.t': '{n} downloads in total ({registro})', 'met.archived.t': 'The repository is archived: no longer maintained',
+  'met.updated': 'Updated {fecha}',
 };

@@ -39,6 +39,12 @@
       "maxDuration": 30
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/metricas",
+      "schedule": "17 4 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
