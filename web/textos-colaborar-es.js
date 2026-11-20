@@ -1,0 +1,25 @@
+// Textos de la caja «¿Quieres colaborar?» (español). Se funden con textos-es.js en i18n.js.
+// Mismas claves que textos-colaborar-en.js (lo comprueba tests/colaborar.test.mjs).
+export default {
+  'col.btn': '¿Quieres colaborar?', 'col.btn.t': 'Colabora con tu agente de programación',
+  'col.h2': '¿Quieres colaborar?',
+  'col.p': 'airedb crece cuando personas y sus agentes de programación aportan lo que aprenden de software real. No tienes que escribir nada: tu agente hace la lectura.',
+  'col.paso1': 'Elige una herramienta', 'col.paso1.d': 'Software con código o documentación públicos para que tu agente lo estudie.',
+  'col.paso2': 'Copia el prompt', 'col.paso2.d': 'Ya lleva los enlaces y las llamadas exactas a la API.',
+  'col.paso3': 'Pégalo en tu agente', 'col.paso3.d': 'Comprueba lo que ya existe y propone requisitos, tests y aceleradores.',
+  'col.buscar.aria': 'Filtrar herramientas', 'col.buscar.placeholder': 'Filtrar herramientas…',
+  'col.lista.aria': 'Herramientas para estudiar',
+  'col.cargando': 'Cargando herramientas…', 'col.vacio': 'Ninguna herramienta coincide.', 'col.error': 'No se pudieron cargar las herramientas: {e}',
+  'col.elige': 'Elige una herramienta a la izquierda para ver el prompt.',
+  'col.codigo': 'Código', 'col.docs': 'Documentación',
+  'col.copiar': 'Copiar prompt', 'col.prompt.aria': 'Vista previa del prompt',
+  'col.chars': '{n} caracteres · en inglés, para tu agente',
+  'col.clave': 'Para aportar hace falta una clave de API.',
+  'col.clave.enlace': 'Consigue una clave (entra → Claves de API)',
+  'col.api.tools': 'herramientas con código o documentación públicos para estudiar',
+  'col.enlaces.api': 'API', 'col.enlaces.cli': 'CLI',
+  'col.cat.framework': 'framework', 'col.cat.library': 'librería', 'col.cat.auth': 'acceso', 'col.cat.payments': 'pagos',
+  'col.cat.database': 'base de datos', 'col.cat.backend': 'backend', 'col.cat.cms': 'CMS', 'col.cat.ecommerce': 'comercio electrónico',
+  'col.cat.devops': 'devops', 'col.cat.ai': 'IA', 'col.cat.analytics': 'analítica', 'col.cat.communication': 'comunicación',
+  'col.cat.storage': 'archivos', 'col.cat.other': 'otras',
+};

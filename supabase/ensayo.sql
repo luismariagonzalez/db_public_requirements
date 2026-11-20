@@ -443,28 +443,71 @@ end $$;
 do $$
 declare id1 bigint; r jsonb;
 begin
-  id1 := public.db_public_requirements_srv_sugerir('user_s', 'improvement', 'requirement', 'typing-indicator',
-    'It should also cover group conversations with more than two people.');
-  perform public.db_public_requirements_srv_sugerir('user_s', 'new_item', 'general', null, 'A requirement about message retention policies.');
+  -- fila antigua (0002): sigue siendo válida y se sigue leyendo
+  reset role;
+  insert into db_public_requirements.sugerencia (autor, tipo, objetivo_tipo, objetivo_slug, texto)
+  values ('user_s', 'improvement', 'requirement', 'typing-indicator', 'It should also cover group conversations with more than two people.');
+  set local role service_role;
+  -- sugerencia nueva (0010): sobre la app
+  id1 := public.db_public_requirements_srv_sugerir('user_s', 'feature', 'app', null, 'Let me export my whole project as a single file.');
   r := public.db_public_requirements_srv_mis_sugerencias('user_s');
   if jsonb_array_length(r) <> 2 then raise exception 'mis_sugerencias falla: %', r; end if;
+  if (select count(*) from jsonb_array_elements(r) e where e->>'kind' = 'feature' and e->>'target_type' = 'app') <> 1 then
+    raise exception 'la sugerencia nueva no queda como feature/app: %', r;
+  end if;
+  if (select count(*) from jsonb_array_elements(r) e where e->>'kind' = 'improvement' and e->>'target' = 'typing-indicator') <> 1 then
+    raise exception 'la fila antigua ya no se lee: %', r;
+  end if;
+  begin
+    perform public.db_public_requirements_srv_sugerir('user_s', 'improvement', 'requirement', 'typing-indicator', 'Old style suggestions are not accepted any more.');
+    raise exception 'ha aceptado un tipo antiguo';
+  exception when others then if sqlerrm not like 'tipo de sugerencia no válido%' then raise; end if; end;
+  begin
+    perform public.db_public_requirements_srv_sugerir('user_s', 'problem', 'test', 'reset-link-works-only-once', 'A suggestion about a test must go through contribute.');
+    raise exception 'ha aceptado un objetivo que no es la app';
+  exception when others then if sqlerrm not like 'las sugerencias son sobre la app%' then raise; end if; end;
   if jsonb_array_length(public.db_public_requirements_srv_mis_sugerencias('user_z')) <> 0 then
     raise exception 'user_z ve las sugerencias de user_s';
   end if;
   begin
-    perform public.db_public_requirements_srv_sugerir('user_s', 'report', 'test', 'no-existe-el-test', 'This test does not seem right at all.');
-    raise exception 'ha aceptado un objetivo inexistente';
-  exception when others then if sqlerrm not like 'el objetivo no existe%' then raise; end if; end;
-  begin
-    perform public.db_public_requirements_srv_sugerir(null, 'report', 'general', null, 'Sin autor no debería entrar.');
+    perform public.db_public_requirements_srv_sugerir(null, 'problem', 'app', null, 'Sin autor no debería entrar.');
     raise exception 'ha aceptado una sugerencia sin autor';
   exception when others then if sqlerrm not like 'hace falta una cuenta%' then raise; end if; end;
   begin
     for i in 1..25 loop
-      perform public.db_public_requirements_srv_sugerir('user_s', 'report', 'general', null, 'Sugerencia número ' || i || ' de relleno.');
+      perform public.db_public_requirements_srv_sugerir('user_s', 'problem', 'app', null, 'Sugerencia número ' || i || ' de relleno.');
     end loop;
     raise exception 'el tope diario de sugerencias no corta';
   exception when others then if sqlerrm not like 'demasiadas sugerencias%' then raise; end if; end;
+end $$;
+
+-- ── herramientas (0010)
+do $$
+declare r jsonb;
+begin
+  perform public.db_public_requirements_srv_upsert_herramienta('ensayo-b', 'Beta tool', 'library', 'Second by order.',
+    'https://github.com/example/beta', null, array['web'], 'active', 20);
+  perform public.db_public_requirements_srv_upsert_herramienta('ensayo-a', 'Alpha tool', 'auth', 'First by order.',
+    null, 'https://example.com/docs', array['web', 'node'], 'active', 10);
+  perform public.db_public_requirements_srv_upsert_herramienta('ensayo-oculta', 'Hidden tool', 'other', '',
+    'https://github.com/example/hidden', null, '{}', 'hidden', 5);
+  r := public.db_public_requirements_srv_herramientas();
+  if jsonb_array_length(r) <> 2 then raise exception 'herramientas: debería haber 2 activas: %', r; end if;
+  if r->0->>'slug' <> 'ensayo-a' or r->1->>'slug' <> 'ensayo-b' then raise exception 'herramientas: orden incorrecto: %', r; end if;
+  if r->0->>'code_url' is not null or r->0->>'docs_url' <> 'https://example.com/docs' then raise exception 'herramientas: urls: %', r; end if;
+  -- upsert: actualiza, no duplica
+  perform public.db_public_requirements_srv_upsert_herramienta('ensayo-a', 'Alpha tool 2', 'auth', 'x', null, 'https://example.com/docs', '{}', 'active', 10);
+  r := public.db_public_requirements_srv_herramientas();
+  if jsonb_array_length(r) <> 2 or r->0->>'name' <> 'Alpha tool 2' then raise exception 'herramientas: el upsert duplica o no actualiza: %', r; end if;
+  -- sin ninguna URL, o con una URL que no es https, no entra
+  begin
+    perform public.db_public_requirements_srv_upsert_herramienta('ensayo-sin', 'No url', 'other', '', null, null, '{}', 'active', 1);
+    raise exception 'ha aceptado una herramienta sin url';
+  exception when check_violation then null; end;
+  begin
+    perform public.db_public_requirements_srv_upsert_herramienta('ensayo-http', 'Http url', 'other', '', 'http://example.com', null, '{}', 'active', 1);
+    raise exception 'ha aceptado una url http';
+  exception when check_violation then null; end;
 end $$;
 
 -- ── borrar mis datos ahora también borra proyectos y sugerencias

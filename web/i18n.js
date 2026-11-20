@@ -8,9 +8,11 @@
 // o, si no, con el del navegador.
 import en from './textos-en.js';
 import es from './textos-es.js';
+import colEn from './textos-colaborar-en.js';   // la caja «¿Quieres colaborar?» tiene sus propios diccionarios
+import colEs from './textos-colaborar-es.js';
 
 export const IDIOMAS = ['en', 'es'];
-const DICC = { en, es };
+const DICC = { en: { ...en, ...colEn }, es: { ...es, ...colEs } };
 let actual = 'en';
 
 export function idiomaInicial(ubicacion = globalThis.location, almacen = globalThis.localStorage, navegador = globalThis.navigator) {

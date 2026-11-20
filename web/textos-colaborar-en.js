@@ -1,0 +1,25 @@
+// Textos de la caja «¿Quieres colaborar?» (inglés). Se funden con textos-en.js en i18n.js.
+// Mismas claves que textos-colaborar-es.js (lo comprueba tests/colaborar.test.mjs).
+export default {
+  'col.btn': 'Want to help?', 'col.btn.t': 'Contribute with your coding agent',
+  'col.h2': 'Want to help?',
+  'col.p': 'airedb grows when people and their coding agents contribute what they learn from real software. No writing needed: your agent does the reading.',
+  'col.paso1': 'Pick a tool', 'col.paso1.d': 'Software with public code or documentation for your agent to study.',
+  'col.paso2': 'Copy the prompt', 'col.paso2.d': 'It already has the links and the exact API calls.',
+  'col.paso3': 'Paste it into your agent', 'col.paso3.d': 'It checks what already exists and proposes requirements, tests and accelerators.',
+  'col.buscar.aria': 'Filter tools', 'col.buscar.placeholder': 'Filter tools…',
+  'col.lista.aria': 'Tools to study',
+  'col.cargando': 'Loading tools…', 'col.vacio': 'No tool matches.', 'col.error': 'Could not load the tools: {e}',
+  'col.elige': 'Choose a tool on the left to see the prompt.',
+  'col.codigo': 'Code', 'col.docs': 'Documentation',
+  'col.copiar': 'Copy prompt', 'col.prompt.aria': 'Prompt preview',
+  'col.chars': '{n} characters · English, for your agent',
+  'col.clave': 'Contributing needs an API key.',
+  'col.clave.enlace': 'Get a key (sign in → API keys)',
+  'col.api.tools': 'tools with public code or docs to study',
+  'col.enlaces.api': 'API', 'col.enlaces.cli': 'CLI',
+  'col.cat.framework': 'framework', 'col.cat.library': 'library', 'col.cat.auth': 'auth', 'col.cat.payments': 'payments',
+  'col.cat.database': 'database', 'col.cat.backend': 'backend', 'col.cat.cms': 'CMS', 'col.cat.ecommerce': 'e-commerce',
+  'col.cat.devops': 'devops', 'col.cat.ai': 'AI', 'col.cat.analytics': 'analytics', 'col.cat.communication': 'communication',
+  'col.cat.storage': 'storage', 'col.cat.other': 'other',
+};

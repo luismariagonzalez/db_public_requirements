@@ -4,6 +4,7 @@ import { rutaBusqueda, hayFiltro, urlSegura, CLASES, ORDENES, ESTADOS, categoria
   chipsActivos, quitarFiltro, limpiarFiltros, contarFiltros, flujosPorFamilia } from './consulta.js';
 import { entrar, salir, token, usuario, cargarClerk, huboSesion, marcarSesion } from './clerk.js';
 import { iniciar, t as T, tn as TN, fecha as FECHA } from './i18n.js';
+import { iniciarColaborar } from './colaborar.js';
 
 const $ = (s) => document.querySelector(s);
 // Idioma: se fija ya (EN/ES) y, al cambiarlo, se vuelve a pintar todo lo dinámico (renderTodo).
@@ -219,22 +220,20 @@ async function buscar() {
 }
 
 const insignia = (st) => (st ? el('span', { class: `est est-${st}` }, T(`est.${st}`)) : null);
-const enlaceSugerir = (tipo, slug) => el('button', { type: 'button', class: 'enlace', onclick: () => sugerirSobre(tipo, slug) }, T('det.sugerir'));
 
 function detalleDe(it) {
   const partes = [el('p', {}, it.statement)];
   if (it.criteria?.length) partes.push(el('ul', {}, ...it.criteria.map((c) => el('li', {}, c))));
   if (it.tests?.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, T('det.tests')),
     ...it.tests.map((t) => el('div', { class: 'test' }, el('span', { class: 'pb', 'data-p': String(t.priority) }, `P${t.priority}`),
-      el('span', {}, el('b', {}, t.title), ` · ${t.type} — ${t.scenario} `, insignia(t.project_status), ' ', enlaceSugerir('test', t.slug))))));
+      el('span', {}, el('b', {}, t.title), ` · ${t.type} — ${t.scenario} `, insignia(t.project_status))))));
   if (it.accelerators?.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, T('det.acel')),
     el('div', { class: 'chips' }, ...it.accelerators.map((a) => {
       const href = urlSegura(a.url);
       const txt = [a.name, el('small', {}, `${a.model.replace('_', ' ')} · ${a.cost} · ${a.coverage}`)];
       return href ? el('a', { class: 'chip', href, rel: 'noopener noreferrer', target: '_blank' }, ...txt) : el('span', { class: 'chip' }, ...txt);
     }))));
-  partes.push(el('div', { class: 'chips' }, ...it.categories.slice(0, 8).map((c) => el('span', { class: 'tag' }, `${c.slug} · P${c.priority}`)),
-    enlaceSugerir('requirement', it.slug)));
+  partes.push(el('div', { class: 'chips' }, ...it.categories.slice(0, 8).map((c) => el('span', { class: 'tag' }, `${c.slug} · P${c.priority}`))));
   return el('div', { class: 'detalle' }, ...partes);
 }
 
@@ -391,7 +390,7 @@ function pintarSesion(user) {
   if (user) { cargarAportes(); cargarClaves(); cargarProyectos(); cargarSugerencias(); }
 }
 // Proyectos y claves están siempre en el menú: sin sesión llevan a entrar.
-for (const id of ['#navProy', '#navClaves', '#proyEntrar'])
+for (const id of ['#navProy', '#navClaves', '#proyEntrar', '#colClaves'])
   $(id).addEventListener('click', async (e) => { if (!sesion) { e.preventDefault(); try { await entrar(); } catch (err) { avisar(err.message); } } });
 $('#btnCuenta').addEventListener('click', async () => {
   try {
@@ -481,29 +480,22 @@ $('#proyNombreRapido').addEventListener('keydown', (e) => { if (e.key === 'Enter
 $('#proyNuevo').addEventListener('click', () => { const f = $('#proyNuevoForm'); f.hidden = !f.hidden; if (!f.hidden) $('#proyNombreRapido').focus(); });
 
 // ── sugerencias
-function sugerirSobre(tipo, slug) {
-  $('#sugObjetivoTipo').value = tipo; $('#sugObjetivo').value = slug;
-  if (!sesion) { avisar(T('sug.entra')); return; }
-  $('#sugerencias').scrollIntoView({ behavior: 'smooth' });
-  $('#sugTexto').focus();
-}
+// Sugerencias SOBRE LA APP (funcionalidad nueva o problema). Lo de requisitos/tests/aceleradores se aporta (caja «¿Quieres colaborar?»).
 async function cargarSugerencias() {
   try {
     const r = await api('GET', '/api/v1/suggestions', null, true);
     const ul = $('#misSugerencias'); ul.replaceChildren();
     if (!r.suggestions.length) ul.append(el('li', { class: 'tenue' }, T('nada.todavia')));
     for (const s of r.suggestions)
-      ul.append(el('li', {}, el('strong', {}, T(`sug.estado.${s.status}`)), ' · ', s.target ? `${s.target_type} ${s.target}: ` : '', s.text.slice(0, 200)));
+      ul.append(el('li', {}, el('strong', {}, T(`sug.estado.${s.status}`)), ' · ', el('span', { class: 'tenue' }, T(`sug.tipo.${s.kind}`)), ' · ',
+        s.target ? `${s.target_type} ${s.target}: ` : '', s.text.slice(0, 200)));
   } catch (e) { avisar(msgError(e)); }
 }
 $('#sugEnviar').addEventListener('click', async () => {
   const texto = $('#sugTexto').value.trim();
   if (texto.length < 10) return avisar(T('aporte.corto'));
-  const objetivo = $('#sugObjetivo').value.trim();
-  const tipo = $('#sugObjetivoTipo').value;
   try {
-    await api('POST', '/api/v1/suggestions', { kind: $('#sugTipo').value, text: texto,
-      target_type: objetivo ? (tipo === 'general' ? 'requirement' : tipo) : 'general', target: objetivo || undefined }, true);
+    await api('POST', '/api/v1/suggestions', { kind: $('#sugTipo').value, text: texto }, true);
     $('#sugTexto').value = ''; avisar(T('sug.gracias')); cargarSugerencias();
   } catch (e) { avisar(msgError(e)); }
 });
@@ -584,10 +576,12 @@ $('#ejemploCurl').textContent =
 $('#ejemploCli').textContent =
   `curl -fsSL ${location.origin}${BASE}/reqdb.mjs -o reqdb.mjs\nnode reqdb.mjs pull --category messaging --max-priority 2`;
 pintarPrio(); pintarKinds(); pintarOrden(); pintarTitulo();
+// «¿Quieres colaborar?»: catálogo de herramientas y prompt para el agente (web/colaborar.js)
+const colaborar = iniciarColaborar({ $, el, api, copiar, base: `${location.origin}${BASE}` });
 
 // Al cambiar de idioma se vuelve a pintar todo lo que genera este script (lo estático lo hace i18n.js).
 function renderTodo() {
-  pintarPrio(); pintarLeyenda(); pintarTitulo(); pintarFiltros(); pintarEstadosProyecto(); pintarLista();
+  pintarPrio(); pintarLeyenda(); pintarTitulo(); pintarFiltros(); pintarEstadosProyecto(); pintarLista(); colaborar.repintar();
   $('#btnCuenta').textContent = T(sesion ? 'cuenta.salir' : 'cuenta.entrar');
   if (sesion) { cargarProyectos(); cargarAportes(); cargarClaves(); cargarSugerencias(); }
 }

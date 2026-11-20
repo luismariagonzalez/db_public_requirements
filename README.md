@@ -61,4 +61,4 @@ The web app never talks to the database: everything goes through one serverless 
 
 ## Contributing
 
-Suggest a requirement, test or accelerator from the website, the API or `reqdb suggest`. Bug reports and pull requests for the code are welcome.
+Want to help? The website has a “Want to help?” box: pick a tool with public code or docs (`GET /api/v1/tools`), copy the ready-made prompt and paste it into your coding agent; it will check what already exists and propose requirements, tests and accelerators. Feature ideas and problems about the app itself go through `reqdb suggest` / `POST /api/v1/suggestions`. Bug reports and pull requests for the code are welcome.

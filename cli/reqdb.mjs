@@ -152,7 +152,8 @@ Work on a project (needs an API key)
                                         item: slug | test:slug | accelerator:slug
   status                                what is done and what is pending
   check [--max-priority N]              exit 1 if requirements up to P<N> are still pending (for CI)
-  suggest <text> [--about slug] [--type requirement|test|accelerator]
+  suggest <text> [--kind feature|problem]   a feature you miss or a problem you found in airedb itself
+  tools [text] [--category c]           tools with public code or docs you can study to contribute
   agent                                 print the instructions your agent should follow
 
 Global options
@@ -296,11 +297,15 @@ const COMANDOS = {
 
   async suggest({ ctx, f, pos, io }) {
     const texto = pos.join(' ').trim();
-    if (texto.length < 10) throw new Fallo('Usage: reqdb suggest "what should change, and why" [--about slug] [--type requirement|test|accelerator]  (at least 10 characters)', 2);
-    const r = await llamar(ctx, io, 'POST', '/api/v1/suggestions', { clave: true, cuerpo: {
-      kind: f.kind ?? (f.about ? 'improvement' : 'new_item'), target_type: f.about ? (f.type ?? 'requirement') : 'general',
-      target: f.about ?? undefined, text: texto } });
+    if (f.about || f.type) throw new Fallo('Suggestions are about airedb itself (a new feature or a problem). To add or improve a requirement, test or accelerator, contribute it with POST /api/contribute (see the "Want to help?" prompts on the website).', 2);
+    if (texto.length < 10) throw new Fallo('Usage: reqdb suggest "the feature you miss, or the problem you found in airedb" [--kind feature|problem]  (at least 10 characters)', 2);
+    const r = await llamar(ctx, io, 'POST', '/api/v1/suggestions', { clave: true, cuerpo: { kind: f.kind ?? 'feature', text: texto } });
     imprimir(io, f, r, () => `Suggestion ${r.id} received. A person will review it.`);
+  },
+
+  async tools({ ctx, f, pos, io }) {
+    const r = await llamar(ctx, io, 'GET', '/api/v1/tools', { query: { q: pos.join(' '), category: f.category } });
+    imprimir(io, f, r, () => [...r.tools.map((t) => `${t.slug}  ${t.name}  [${t.category}]  ${t.code_url ?? t.docs_url}`), `${r.count} tool(s).`].join('\n'));
   },
 
   async agent({ ctx, io }) {

@@ -45,7 +45,7 @@ export default {
   'estado.vacio': 'No requirements for this selection yet. Try the cross-cutting concerns (security, privacy…), fewer filters, or contribute one.',
   'err.429': 'Too many requests. Try again in {s}, or sign in for a higher limit.', 'err.429.poco': 'a few seconds',
 
-  'item.incluir': 'Include {titulo}', 'det.tests': 'Tests', 'det.acel': 'Accelerators', 'det.sugerir': 'Suggest',
+  'item.incluir': 'Include {titulo}', 'det.tests': 'Tests', 'det.acel': 'Accelerators',
   'n.test.one': '{n} test', 'n.test.other': '{n} tests', 'n.acel.one': '{n} accelerator', 'n.acel.other': '{n} accelerators',
   'n.req.one': '{n} requirement', 'n.req.other': '{n} requirements',
 
@@ -62,7 +62,7 @@ export default {
   'api.lectura': 'Read · public', 'api.clave': 'With a key',
   'api.ep.cats': 'audiences, domains, categories', 'api.ep.reqs.html': 'search, filter, <code>format=md</code>',
   'api.ep.tests': 'tests by category and priority', 'api.ep.acel': 'libraries and services',
-  'api.ep.proyectos': 'your projects', 'api.ep.marcar': 'mark done / planned / skipped', 'api.ep.sugerir': 'suggest something',
+  'api.ep.proyectos': 'your projects', 'api.ep.marcar': 'mark done / planned / skipped', 'api.ep.sugerir': 'suggest a feature or report a problem with the app',
   'api.nota.html': 'Add <code>project=&lt;id&gt;</code> to a search to see what you already shipped, and <code>hide=done</code> to skip it.',
   'api.cli.titulo': 'Prefer the terminal?', 'api.cli.p': 'The airedb CLI (reqdb.mjs) is one file, no dependencies: pull requirements into your repo, let your agent mark progress, and fail CI while P1 work is pending.',
   'api.cli.enlace': 'CLI docs for agents →',
@@ -84,10 +84,10 @@ export default {
   'ap.created': 'Created', 'ap.merged': 'Merged', 'ap.rejected': 'Not added', 'ap.needs_human': 'Needs a human look', 'ap.pending': 'Pending',
 
   'sug.h2': 'Suggest something',
-  'sug.p': 'A missing test or accelerator, a requirement that could be better, or something wrong? A person reviews every suggestion. Use “Suggest” on any result to point at it.',
-  'sug.tipo.aria': 'Kind', 'sug.tipo.improvement': 'Improve something', 'sug.tipo.new_item': 'Add something new', 'sug.tipo.report': 'Report a problem',
-  'sug.obj.aria': 'Type of item', 'sug.obj.requirement': 'requirement', 'sug.obj.test': 'test', 'sug.obj.accelerator': 'accelerator', 'sug.obj.general': 'general',
-  'sug.slug.placeholder': 'About (slug, optional)', 'sug.slug.aria': 'Slug it is about', 'sug.placeholder': 'What should change, and why?',
+  'sug.p': 'A feature you miss in airedb, or a problem you found in the app? A person reviews every suggestion. To add or improve a requirement, test or accelerator, use “Want to help?” above instead.',
+  'sug.tipo.aria': 'Kind', 'sug.tipo.feature': 'A feature I would like', 'sug.tipo.problem': 'A problem with the app',
+  'sug.tipo.improvement': 'Improvement (old)', 'sug.tipo.new_item': 'New item (old)', 'sug.tipo.report': 'Report (old)',
+  'sug.placeholder': 'What would you like airedb to do, or what went wrong?',
   'sug.enviar': 'Send suggestion', 'sug.mias': 'My suggestions', 'sug.entra': 'Sign in to send suggestions', 'sug.gracias': 'Thanks! A person will review it.',
   'sug.estado.new': 'new', 'sug.estado.accepted': 'accepted', 'sug.estado.dismissed': 'dismissed',
 
