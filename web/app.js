@@ -1,6 +1,7 @@
 // La página. Todo el texto de la base se pinta con textContent, nunca con
 // innerHTML: los requisitos los escribe la comunidad y son datos no confiables.
-import { rutaBusqueda, hayFiltro, urlSegura, GRUPOS, CLASES, ESTADOS, categoriasEfectivas, visibles, dominiosDisponibles, MAX_SOFTWARE } from './consulta.js';
+import { rutaBusqueda, hayFiltro, urlSegura, CLASES, ORDENES, ESTADOS, categoriasEfectivas, visibles, dominiosDisponibles, MAX_SOFTWARE,
+  chipsActivos, quitarFiltro, limpiarFiltros, contarFiltros, flujosPorFamilia } from './consulta.js';
 import { entrar, salir, token, usuario, cargarClerk, huboSesion, marcarSesion } from './clerk.js';
 import { iniciar, t as T, tn as TN, fecha as FECHA } from './i18n.js';
 
@@ -12,7 +13,7 @@ iniciar(() => renderTodo());
 // API ('/api/v1/…') se cuelgan de ahí, así que todo es relativo y funciona en los dos sitios.
 const BASE = new URL('./', location.href).pathname.replace(/\/$/, '');
 const estado = { q: '', prio: 5, cats: [], audiencias: [], dominios: [], filtroCat: '', items: [], sel: new Set(), categorias: [],
-  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false, kinds: [], recordar: true, tab: 'md' };
+  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false, kinds: [], orden: null, recordar: true, tab: 'md', pestana: 'tipos' };
 let sesion = false;
 let proyectos = [];
 
@@ -52,80 +53,126 @@ async function api(metodo, ruta, cuerpo, conSesion = false) {
 }
 const msgError = (e) => e.status === 429 ? T('err.429', { s: e.reintentar ? `${e.reintentar} s` : T('err.429.poco') }) : e.message;
 
-// ── barra lateral: audiencia → dominio → categoría
+// ── filtros: una barra horizontal con dos paneles desplegables
+//   «Qué construyes»: tipo de app (plantillas) o categoría de software (dominio → categoría, que hereda de arquetipos)
+//   «Además»: temas transversales (seguridad, privacidad…) y flujos (registro, inicio de sesión, ajustes…)
+// Audiencia y dominio son el ÁMBITO: acotan las listas y, al elegirlos, empiezan una selección nueva (se vacían las
+// categorías). Lo que se busca son las categorías elegidas o, si no hay ninguna, la audiencia/dominio mismos: la API
+// los expande a sus categorías (y a los arquetipos de los que heredan).
 const PRIOS = [1, 2, 3, 4, 5];   // nombres y descripciones, en el diccionario: p1.n, p1.d…
-// Audiencia y dominio son el ÁMBITO: acotan las categorías que se ven y, al elegirlos, empiezan una
-// selección nueva (se vacían las categorías). Lo que se busca son las categorías elegidas o, si no
-// hay ninguna, la audiencia/dominio mismos: la API los expande a sus categorías.
 const consulta = () => ({ ...estado, cats: categoriasEfectivas(estado) });
-const gruposAbiertos = new Set(['audience', 'app_type']);
+const porTipo = (t) => estado.categorias.filter((c) => c.type === t);
+const nombreDe = (slug) => estado.categorias.find((c) => c.slug === slug)?.name ?? slug;
 
-function filaCat(texto, activo, conteo, alPulsar, titulo = '') {
-  return el('button', { type: 'button', class: 'fila-cat' + (conteo === 0 ? ' vacia' : ''), 'aria-pressed': String(activo),
-    title: titulo, onclick: alPulsar }, el('span', {}, texto), conteo != null ? el('span', { class: 'n' }, String(conteo)) : null);
+function filaCat(texto, activo, nota, alPulsar, titulo = '') {
+  return el('button', { type: 'button', class: 'fila-cat', 'aria-pressed': String(activo), title: titulo, onclick: alPulsar },
+    el('span', {}, texto), nota != null ? el('span', { class: 'n' }, String(nota)) : null);
 }
 function alternar(lista, slug) {
   const i = lista.indexOf(slug);
   if (i >= 0) lista.splice(i, 1); else lista.push(slug);
-  pintarLateral(); buscar();
+  pintarFiltros(); buscar();
 }
-function subgrupo(id, titulo, filas, n, elegidas = 0) {
-  const d = el('details', { class: 'sub' });
-  d.open = gruposAbiertos.has(id);
-  d.addEventListener('toggle', () => { if (d.open) gruposAbiertos.add(id); else gruposAbiertos.delete(id); });
-  d.append(el('summary', {}, el('span', { class: 'tit' }, titulo),
-    el('span', { class: 'cifras' }, elegidas ? el('span', { class: 'sel' }, T('lat.sel', { n: elegidas })) : null, el('span', { class: 'n' }, String(n)))), ...filas);
-  return d;
-}
+const pildora = (texto, activo, alPulsar, titulo = '') =>
+  el('button', { type: 'button', class: 'pildora', 'aria-pressed': String(activo), title: titulo, onclick: alPulsar }, texto);
 
-function pintarLateral() {
-  const cont = $('#cats'); cont.replaceChildren();
-  const ambito = $('#ambito'); ambito.replaceChildren();
-  const cs = estado.categorias;
-  const porTipo = (t) => cs.filter((c) => c.type === t);
-  const nav = { audiencias: estado.audiencias, dominios: estado.dominios };
-  const hoja = (c) => filaCat(c.name, estado.cats.includes(c.slug), c.requirements, () => alternar(estado.cats, c.slug), c.description || c.name);
-  if (estado.filtroCat) gruposAbiertos.add('software_category');
-
-  const aud = porTipo('audience');
-  if (aud.length) ambito.append(subgrupo('audience', T('g.audience'), aud.map((c) =>
-    filaCat(c.name, estado.audiencias.includes(c.slug), null, () => { estado.cats = []; alternar(estado.audiencias, c.slug); }, c.description || c.name)), aud.length, estado.audiencias.length));
-
-  const disp = dominiosDisponibles(cs.filter((c) => c.type !== 'domain'), estado.audiencias);
-  const dom = porTipo('domain').filter((d) => !disp || disp.has(d.slug) || estado.dominios.includes(d.slug));
-  if (dom.length) ambito.append(subgrupo('domain', T('g.domain'), dom.map((c) =>
-    filaCat(c.name, estado.dominios.includes(c.slug), null, () => { estado.cats = []; alternar(estado.dominios, c.slug); }, c.description || c.name)), dom.length, estado.dominios.length));
-
-  const sw = visibles(porTipo('software_category'), { ...nav, texto: estado.filtroCat })
-    .sort((a, b) => (estado.cats.includes(b.slug) - estado.cats.includes(a.slug)) || b.requirements - a.requirements || a.name.localeCompare(b.name));
-  if (sw.length || estado.filtroCat) cont.append(subgrupo('software_category', T('g.software_category'),
-    [...sw.slice(0, MAX_SOFTWARE).map(hoja),
-      sw.length > MAX_SOFTWARE ? el('div', { class: 'mas' }, T('g.mas', { n: sw.length - MAX_SOFTWARE })) : null].filter(Boolean), sw.length,
-    sw.filter((c) => estado.cats.includes(c.slug)).length));
-
-  const tipos = visibles(porTipo('app_type'), nav);
-  if (tipos.length) cont.append(subgrupo('app_type', T('g.app_type'), tipos.map(hoja), tipos.length, tipos.filter((c) => estado.cats.includes(c.slug)).length));
-  for (const [tipo] of GRUPOS.filter(([x]) => x !== 'app_type')) {
-    const lista = porTipo(tipo);
-    if (lista.length) cont.append(subgrupo(tipo, T(`g.${tipo}`), lista.map(hoja), lista.length, lista.filter((c) => estado.cats.includes(c.slug)).length));
+// paneles desplegables: uno abierto como mucho; se cierran con Escape o pulsando fuera
+const PANELES = { construyes: ['#btnConstruyes', '#panelConstruyes'], ademas: ['#btnAdemas', '#panelAdemas'] };
+function abrirPanel(id) {
+  for (const [k, [b, p]] of Object.entries(PANELES)) {
+    const abrir = k === id && $(p).hidden;
+    $(p).hidden = !abrir; $(b).setAttribute('aria-expanded', String(abrir));
   }
 }
-$('#filtroCat').addEventListener('input', (e) => { estado.filtroCat = e.target.value; pintarLateral(); });
-$('#q').addEventListener('input', (e) => { estado.q = e.target.value; buscarConRetraso(); });
+for (const [k, [b]] of Object.entries(PANELES)) $(b).addEventListener('click', () => abrirPanel(k));
+// (el botón pulsado puede haberse repintado ya: si está desconectado, el clic fue dentro del panel)
+document.addEventListener('click', (e) => { if (e.target.isConnected && !e.target.closest('.fb-bloque')) abrirPanel(null); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') abrirPanel(null); });
+
+function pintarConstruyes() {
+  const nav = { audiencias: estado.audiencias, dominios: estado.dominios };
+  $('#audiencias').replaceChildren(...porTipo('audience').map((c) =>
+    pildora(c.name, estado.audiencias.includes(c.slug), () => { estado.cats = []; alternar(estado.audiencias, c.slug); }, c.description)));
+  for (const b of document.querySelectorAll('[data-pestana]')) b.setAttribute('aria-selected', String(b.dataset.pestana === estado.pestana));
+  $('#pestanaTipos').hidden = estado.pestana !== 'tipos'; $('#pestanaSector').hidden = estado.pestana !== 'sector';
+
+  // tipos de app: lo que más requisitos tiene primero
+  const tipos = visibles(porTipo('app_type'), { audiencias: estado.audiencias }).sort((a, b) => b.requirements - a.requirements || a.name.localeCompare(b.name));
+  $('#pestanaTipos').replaceChildren(...tipos.map((c) =>
+    filaCat(c.name, estado.cats.includes(c.slug), c.requirements, () => alternar(estado.cats, c.slug), c.description || c.name)));
+
+  // por sector: dominio (select) → categoría de software, con lo que hereda
+  const disp = dominiosDisponibles(porTipo('software_category'), estado.audiencias);
+  const dominios = porTipo('domain').filter((d) => !disp || disp.has(d.slug) || estado.dominios.includes(d.slug));
+  const sel = $('#selDominio');
+  sel.replaceChildren(el('option', { value: '' }, T('pan.todos.dominios')), ...dominios.map((d) => el('option', { value: d.slug }, d.name)));
+  sel.value = estado.dominios[0] ?? '';
+  const sw = visibles(porTipo('software_category'), { ...nav, texto: estado.filtroCat })
+    .sort((a, b) => (estado.cats.includes(b.slug) - estado.cats.includes(a.slug)) || a.name.localeCompare(b.name));
+  $('#listaSector').replaceChildren(...sw.slice(0, MAX_SOFTWARE).map((c) =>
+    filaCat(c.name, estado.cats.includes(c.slug), null, () => alternar(estado.cats, c.slug), c.description || c.name)),
+    ...(sw.length > MAX_SOFTWARE ? [el('div', { class: 'mas' }, T('g.mas', { n: sw.length - MAX_SOFTWARE }))] : []));
+  // lo que hereda cada categoría, en pequeño
+  [...$('#listaSector').querySelectorAll('.fila-cat')].forEach((fila, i) => {
+    const h = (sw[i]?.archetypes ?? []).map(nombreDe);
+    if (h.length) fila.append(el('small', { class: 'hereda' }, T('pan.hereda', { a: h.join(', ') })));
+  });
+}
+
+function pintarAdemas() {
+  $('#transversales').replaceChildren(...porTipo('cross_cutting').map((c) =>
+    pildora(c.name, estado.cats.includes(c.slug), () => alternar(estado.cats, c.slug), c.description || c.name)));
+  const bloques = flujosPorFamilia(estado.categorias).map(([fam, lista]) => el('div', { class: 'pd-fam' },
+    el('span', { class: 'etq' }, T(`fam.${fam}`)),
+    el('div', { class: 'pildoras' }, ...lista.map((c) => pildora(c.name, estado.cats.includes(c.slug), () => alternar(estado.cats, c.slug), c.description || c.name)))));
+  $('#flujos').replaceChildren(el('div', { class: 'pd-fila' }, el('span', { class: 'etq' }, T('pan.flujos'))), ...bloques);
+}
+
+// resúmenes de los dos botones y chips de lo activo
+function pintarResumenes() {
+  const tipoDe = (slug) => estado.categorias.find((c) => c.slug === slug)?.type;
+  const construyes = estado.cats.filter((s) => ['app_type', 'software_category'].includes(tipoDe(s))).map(nombreDe);
+  const ambito = [...estado.audiencias, ...estado.dominios].map(nombreDe);
+  const lista = construyes.length ? construyes : ambito;
+  $('#resConstruyes').textContent = lista.length ? lista.slice(0, 2).join(' · ') + (lista.length > 2 ? ` +${lista.length - 2}` : '') : T('bar.construyes.vacio');
+  const extra = estado.cats.filter((s) => ['cross_cutting', 'screen_type'].includes(tipoDe(s)));
+  $('#resAdemas').textContent = extra.length ? extra.slice(0, 2).map(nombreDe).join(' · ') + (extra.length > 2 ? ` +${extra.length - 2}` : '') : T('bar.ademas.vacio');
+  const n = contarFiltros(estado, estado.categorias);
+  $('#btnFiltros').textContent = T('bar.filtros', { n });
+  const chips = chipsActivos(estado, estado.categorias).map((c) => ({ ...c, texto: c.tipo === 'clase' ? T(`k.${c.valor}`) : c.tipo === 'orden' ? T(`orden.${c.valor}`) : c.texto }));
+  $('#zonaChips').hidden = chips.length === 0;
+  $('#chipsActivos').replaceChildren(...chips.map((c) => el('button', { type: 'button', class: 'chip-act', 'aria-label': T('chip.quitar', { texto: c.texto }),
+    onclick: () => { quitarFiltro(estado, c); if (c.tipo === 'q') $('#q').value = ''; pintarFiltros(); buscar(); } }, c.texto, el('i', { 'aria-hidden': 'true' }, '×'))));
+}
+function pintarFiltros() { pintarConstruyes(); pintarAdemas(); pintarKinds(); pintarOrden(); pintarResumenes(); }
+
+$('#borrarFiltros').addEventListener('click', () => { limpiarFiltros(estado); $('#q').value = ''; $('#filtroCat').value = ''; pintarPrio(); pintarFiltros(); buscar(); });
+for (const b of document.querySelectorAll('[data-pestana]')) b.addEventListener('click', () => { estado.pestana = b.dataset.pestana; pintarConstruyes(); });
+$('#selDominio').addEventListener('change', (e) => { estado.cats = []; estado.dominios = e.target.value ? [e.target.value] : []; pintarFiltros(); buscar(); });
+$('#filtroCat').addEventListener('input', (e) => { estado.filtroCat = e.target.value; pintarConstruyes(); });
+$('#btnFiltros').addEventListener('click', () => {
+  const abierto = $('#fbCuerpo').classList.toggle('abierto'); $('#btnFiltros').setAttribute('aria-expanded', String(abierto));
+});
+$('#q').addEventListener('input', (e) => { estado.q = e.target.value; pintarResumenes(); buscarConRetraso(); });
 document.addEventListener('keydown', (e) => {
   if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName ?? '')) { e.preventDefault(); $('#q').focus(); }
 });
 
 function pintarPrio() {
   $('#prio').replaceChildren(...PRIOS.map((p) => el('button', { type: 'button', 'aria-pressed': String(estado.prio === p),
-    title: `P${p} · ${T(`p${p}.n`)}: ${T(`p${p}.d`)}`, onclick: () => { estado.prio = p; pintarPrio(); buscar(); } }, `P${p}`)));
-  $('#prioDesc').textContent = estado.prio === 5 ? T('prio.todo') : T('prio.hasta', { n: estado.prio, nombre: T(`p${estado.prio}.n`), desc: T(`p${estado.prio}.d`) });
+    title: `P${p} · ${T(`p${p}.n`)}: ${T(`p${p}.d`)}`, onclick: () => { estado.prio = p; pintarPrio(); pintarResumenes(); buscar(); } }, `P${p}`)));
+  $('#prioDesc').textContent = estado.prio === 5 ? '' : T('prio.hasta', { n: estado.prio, nombre: T(`p${estado.prio}.n`), desc: T(`p${estado.prio}.d`) });
 }
 function pintarKinds() {
-  $('#kinds').replaceChildren(...CLASES.map((k) => el('button', { type: 'button', class: 'pildora', 'aria-pressed': String(estado.kinds.includes(k)), title: T(`k.${k}.d`),
-    onclick: () => { const i = estado.kinds.indexOf(k); if (i >= 0) estado.kinds.splice(i, 1); else estado.kinds.push(k); pintarKinds(); buscar(); } }, T(`k.${k}`))));
-  $('#tiposNota').textContent = estado.kinds.length ? '' : `· ${T('bar.tipo.todos')}`;
+  $('#kinds').replaceChildren(...CLASES.map((k) => pildora(T(`k.${k}`), estado.kinds.includes(k),
+    () => { const i = estado.kinds.indexOf(k); if (i >= 0) estado.kinds.splice(i, 1); else estado.kinds.push(k); pintarKinds(); pintarResumenes(); buscar(); }, T(`k.${k}.d`))));
 }
+function pintarOrden() {
+  const sel = $('#orden');
+  sel.replaceChildren(el('option', { value: '' }, T('orden.auto')), ...ORDENES.map((o) => el('option', { value: o }, T(`orden.${o}`))));
+  sel.value = estado.orden ?? '';
+}
+$('#orden').addEventListener('change', (e) => { estado.orden = e.target.value || null; pintarResumenes(); buscar(); });
 function interruptor(id, clave) {
   const b = $(id);
   b.addEventListener('click', () => { estado[clave] = !estado[clave]; b.setAttribute('aria-checked', String(estado[clave])); buscar(); });
@@ -156,7 +203,9 @@ async function buscar() {
   pintarTitulo();
   if (!hayFiltro(estado)) {
     estado.items = []; pintarLista();
-    $('#estado').textContent = T('estado.elige');
+    const rapidos = porTipo('app_type').sort((a, b) => b.requirements - a.requirements).slice(0, 6);
+    $('#estado').replaceChildren(T('estado.elige'), ...(rapidos.length ? [el('div', { class: 'rapidos' }, el('span', { class: 'tenue' }, T('estado.prueba')),
+      ...rapidos.map((c) => pildora(c.name, false, () => { estado.cats = [c.slug]; pintarFiltros(); buscar(); })))] : []));
     return;
   }
   $('#estado').textContent = T('estado.buscando');
@@ -210,7 +259,7 @@ function filaReq(it) {
   li.append(el('div', { class: 'item-cab', onclick: () => { if (abiertos.has(it.slug)) abiertos.delete(it.slug); else abiertos.add(it.slug); mostrar(); } },
     marca, el('span', { class: 'pb', 'data-p': String(it.priority) }, `P${it.priority}`),
     el('div', { class: 'item-txt' }, el('div', { class: 'item-tit' }, it.title),
-      el('div', { class: 'item-meta' }, el('span', {}, it.slug), nT ? el('span', {}, TN('n.test', nT)) : null,
+      el('div', { class: 'item-meta' }, el('span', {}, it.slug), it.copies ? el('span', { title: T('item.copias.t') }, `⧉ ${it.copies}`) : null, nT ? el('span', {}, TN('n.test', nT)) : null,
         nA ? el('span', {}, TN('n.acel', nA)) : null, insignia(it.project_status))),
     el('span', { class: 'chev', 'aria-hidden': 'true' }, '›')));
   mostrar();
@@ -228,6 +277,7 @@ function actualizarCuenta() {
   const n = estado.sel.size;
   $('#acciones').hidden = !estado.items.length;
   $('#accionesProyecto').hidden = !(estado.items.length && estado.proyecto);
+  $('#franjaProyecto').hidden = !estado.proyecto;
   $('#cuenta').textContent = T('sel.cuenta', { n, total: estado.items.length });
   $('#marcar').disabled = n === 0;
   actualizarSalida();
@@ -286,6 +336,7 @@ async function copiar(texto) {
 }
 $('#copiarCodigo').addEventListener('click', async () => {
   await copiar(textoActual);
+  if (estado.tab !== 'curl' && estado.sel.size) api('POST', '/api/v1/copied', { slugs: [...estado.sel].slice(0, 200) }).catch(() => {});   // contador global de copias
   if (sesion && estado.proyecto && estado.recordar && estado.tab !== 'curl') await recordarEntregado();
 });
 // Lo que se copia para el agente queda anotado en el proyecto como «planeado» (no pisa lo que ya tenga estado).
@@ -334,7 +385,8 @@ function pintarSesion(user) {
   marcarSesion(sesion);
   $('#btnCuenta').textContent = T(user ? 'cuenta.salir' : 'cuenta.entrar');
   for (const id of ['#aportar', '#claves', '#proyectos', '#sugerencias']) $(id).hidden = !user;
-  $('#proyAnonimo').hidden = !!user; $('#proyConSesion').hidden = !user;
+  $('#proyEntrar').hidden = !!user; $('#proyecto').hidden = !user; $('#proyNuevo').hidden = !user;
+  if (!user) $('#proyNuevoForm').hidden = true;
   if (!user) { estado.proyecto = null; proyectos = []; }
   if (user) { cargarAportes(); cargarClaves(); cargarProyectos(); cargarSugerencias(); }
 }
@@ -531,20 +583,18 @@ $('#ejemploCurl').textContent =
   `curl "${location.origin}${BASE}/api/v1/requirements?category=messaging&max_priority=2&include=tests,accelerators&format=md"`;
 $('#ejemploCli').textContent =
   `curl -fsSL ${location.origin}${BASE}/reqdb.mjs -o reqdb.mjs\nnode reqdb.mjs pull --category messaging --max-priority 2`;
-pintarPrio(); pintarKinds(); pintarTitulo();
+pintarPrio(); pintarKinds(); pintarOrden(); pintarTitulo();
 
 // Al cambiar de idioma se vuelve a pintar todo lo que genera este script (lo estático lo hace i18n.js).
 function renderTodo() {
-  pintarPrio(); pintarKinds(); pintarLeyenda(); pintarTitulo(); pintarLateral(); pintarEstadosProyecto(); pintarLista();
+  pintarPrio(); pintarLeyenda(); pintarTitulo(); pintarFiltros(); pintarEstadosProyecto(); pintarLista();
   $('#btnCuenta').textContent = T(sesion ? 'cuenta.salir' : 'cuenta.entrar');
   if (sesion) { cargarProyectos(); cargarAportes(); cargarClaves(); cargarSugerencias(); }
 }
 (async () => {
   try {
     estado.categorias = (await api('GET', '/api/v1/categories')).categories;
-    // Punto de partida: lo transversal que casi toda app necesita (seguridad), como en el diseño.
-    if (!estado.cats.length && estado.categorias.some((c) => c.slug === 'security')) estado.cats = ['security'];
-    pintarLateral();
+    pintarFiltros();
   } catch (e) { $('#estado').textContent = msgError(e); }
   await buscar();
   iniciarSesion();

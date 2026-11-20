@@ -16,14 +16,14 @@ test('lista separada por comas y repetida', () => {
 
 test('rechaza lo inválido', () => {
   const malos = [{ max_priority: '0' }, { max_priority: '6' }, { max_priority: 'x' }, { limit: '500' },
-    { format: 'xml' }, { kind: 'magic' }, { category: 'bad slug!' }, { q: 'x'.repeat(301) }];
+    { format: 'xml' }, { kind: 'magic' }, { kind: 'security' }, { sort: 'newest' }, { category: 'bad slug!' }, { q: 'x'.repeat(301) }];
   for (const q of malos) assert.ok(parseFiltros(q).error, JSON.stringify(q));
 });
 
 test('acepta prioridad, formato y límite válidos', () => {
-  const f = parseFiltros({ max_priority: '2', format: 'MD', limit: '10', kind: 'security,privacy', q: ' chat ' });
-  assert.deepEqual([f.prioridadMax, f.formato, f.limite, f.clases, f.q],
-    [2, 'md', 10, ['security', 'privacy'], 'chat']);
+  const f = parseFiltros({ max_priority: '2', format: 'MD', limit: '10', kind: 'functional,technical', q: ' chat ', sort: 'copies' });
+  assert.deepEqual([f.prioridadMax, f.formato, f.limite, f.clases, f.q, f.orden],
+    [2, 'md', 10, ['functional', 'technical'], 'chat', 'copies']);
 });
 
 import { parseFiltrosTests, parseFiltrosAceleradores } from '../lib/filtros.mjs';
@@ -43,4 +43,9 @@ test('filtros de tests y aceleradores', () => {
   assert.deepEqual([a.modelos, a.plataformas], [['open_source', 'saas'], ['javascript', 'any']]);
   assert.ok(parseFiltrosAceleradores({ model: 'gratis' }).error);
   assert.ok(parseFiltrosAceleradores({ platform: 'a b!' }).error);
+});
+
+test('sort: sin valor no se manda orden (la base elige: prioridad sin texto, relevancia con texto)', () => {
+  assert.equal(parseFiltros({}).orden, null);
+  for (const o of ['priority', 'copies', 'relevance']) assert.equal(parseFiltros({ sort: o }).orden, o);
 });

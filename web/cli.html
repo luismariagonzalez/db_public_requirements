@@ -52,8 +52,8 @@ reqdb check --max-priority 1              # exit 1 while any P1 is pending</pre>
   <table>
     <thead><tr><th>Command</th><th>What it does</th></tr></thead>
     <tbody>
-      <tr><td>categories [--type T] [--q text]</td><td>Audiences, domains, software categories, app types and screen types you can filter by.</td></tr>
-      <tr><td>search [text]</td><td>Hybrid (semantic + keyword) search of requirements. Options: <code>--category a,b</code>, <code>--max-priority N</code>, <code>--tests</code>, <code>--accelerators</code>, <code>--limit N</code>.</td></tr>
+      <tr><td>categories [--type T] [--q text]</td><td>Audiences, domains, software categories, app types, flows (sign-up, sign-in, settings…) and cross-cutting topics you can filter by.</td></tr>
+      <tr><td>search [text]</td><td>Hybrid (semantic + keyword) search of requirements. Options: <code>--category a,b</code>, <code>--max-priority N</code>, <code>--kind functional|technical</code>, <code>--sort priority|copies|relevance</code> (most copied by people and agents), <code>--tests</code>, <code>--accelerators</code>, <code>--limit N</code>.</td></tr>
       <tr><td>show &lt;slug&gt;</td><td>One requirement with its tests and accelerators.</td></tr>
       <tr><td>tests [text]</td><td>Search tests. Same <code>--category</code> and <code>--max-priority</code> filters.</td></tr>
       <tr><td>accelerators [text]</td><td>Libraries and services that speed up a requirement. Also <code>--model open_source|proprietary|saas</code> and <code>--platform p</code>.</td></tr>
@@ -135,8 +135,8 @@ reqdb check --max-priority 1              # sale con 1 mientras haya algún P1 p
   <table>
     <thead><tr><th>Comando</th><th>Qué hace</th></tr></thead>
     <tbody>
-      <tr><td>categories [--type T] [--q texto]</td><td>Audiencias, dominios, categorías de software, tipos de app y de pantalla por los que puedes filtrar.</td></tr>
-      <tr><td>search [texto]</td><td>Búsqueda híbrida (semántica + palabras) de requisitos. Opciones: <code>--category a,b</code>, <code>--max-priority N</code>, <code>--tests</code>, <code>--accelerators</code>, <code>--limit N</code>.</td></tr>
+      <tr><td>categories [--type T] [--q texto]</td><td>Audiencias, dominios, categorías de software, tipos de app, flujos (registro, inicio de sesión, ajustes…) y temas transversales por los que puedes filtrar.</td></tr>
+      <tr><td>search [texto]</td><td>Búsqueda híbrida (semántica + palabras) de requisitos. Opciones: <code>--category a,b</code>, <code>--max-priority N</code>, <code>--kind functional|technical</code>, <code>--sort priority|copies|relevance</code> (más copiados por personas y agentes), <code>--tests</code>, <code>--accelerators</code>, <code>--limit N</code>.</td></tr>
       <tr><td>show &lt;slug&gt;</td><td>Un requisito con sus tests y aceleradores.</td></tr>
       <tr><td>tests [texto]</td><td>Busca tests. Mismos filtros <code>--category</code> y <code>--max-priority</code>.</td></tr>
       <tr><td>accelerators [texto]</td><td>Librerías y servicios que aceleran un requisito. También <code>--model open_source|proprietary|saas</code> y <code>--platform p</code>.</td></tr>

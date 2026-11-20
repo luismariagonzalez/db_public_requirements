@@ -29,6 +29,16 @@
       <div class="idiomas" role="group" data-i18n-attr="aria-label:idioma.aria">
         <button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="es" aria-pressed="false">ES</button>
       </div>
+      <div class="proy-cab">
+        <button id="proyEntrar" type="button" class="boton" data-i18n="proy.cab">Project</button>
+        <select id="proyecto" class="campo" aria-label="Project" data-i18n-attr="aria-label:lat.proyecto" hidden><option value="" data-i18n="proy.ninguno">— none —</option></select>
+        <button id="proyNuevo" type="button" class="boton" aria-label="New project" data-i18n-attr="aria-label:proy.nuevo" hidden>+</button>
+        <div id="proyNuevoForm" class="proy-form" hidden>
+          <input id="proyNombreRapido" class="campo" type="text" maxlength="80" placeholder="Project name" aria-label="Project name"
+                 data-i18n-attr="placeholder:proy.nombre.placeholder;aria-label:proy.nombre.aria">
+          <button id="proyCrearRapido" type="button" class="boton acento-b" data-i18n="proy.crear">Create project</button>
+        </div>
+      </div>
       <button id="btnCuenta" type="button" class="boton" data-i18n="cuenta.entrar">Sign in</button>
     </div>
   </div>
@@ -41,8 +51,8 @@
     <p data-i18n-html="hero.p.html">A public database of what each kind of app must do, the tests that prove it and the libraries that speed it up.</p>
   </div>
   <ol class="pasos mono">
-    <li><span>01</span><b data-i18n="hero.paso1">Pick what you build (left)</b></li>
-    <li><span>02</span><b data-i18n="hero.paso2">Set priority, kind and extras (bar)</b></li>
+    <li><span>01</span><b data-i18n="hero.paso1">Pick what you build</b></li>
+    <li><span>02</span><b data-i18n="hero.paso2">Narrow by priority, kind and extras</b></li>
     <li><span>03</span><b data-i18n="hero.paso3">Copy Markdown, curl or JSON (right)</b></li>
   </ol>
 </section>
@@ -55,69 +65,83 @@
   <div class="ent com"><b data-i18n="ent.com.t">Built together</b><span data-i18n="ent.com.p"></span></div>
 </section>
 
-<section id="barraProyecto" class="proyecto-barra" aria-label="Project" data-i18n-attr="aria-label:lat.proyecto">
-  <div class="pb-izq">
-    <div class="etq-lat" data-i18n="lat.proyecto">Project</div>
-    <p class="nota" data-i18n="proy.barra.p">One project per app.</p>
+<section class="filtros-barra" id="filtros" aria-label="Search and filters" data-i18n-attr="aria-label:bar.aria">
+  <div class="fb-fila">
+    <label class="busca">
+      <span class="mono tenue">⌕</span>
+      <input id="q" type="search" maxlength="300" autocomplete="off" placeholder="Search by meaning…" aria-label="Search requirements by meaning"
+             data-i18n-attr="placeholder:busca.placeholder;aria-label:busca.aria">
+      <kbd>/</kbd>
+    </label>
+    <button id="btnFiltros" type="button" class="pildora solo-movil" aria-expanded="false" aria-controls="fbCuerpo"></button>
   </div>
-  <div id="proyAnonimo" class="pb-fila">
-    <span class="nota" data-i18n="proy.anonimo">Sign in to create projects.</span>
-    <button id="proyEntrar" type="button" class="boton acento-b" data-i18n="cuenta.entrar">Sign in</button>
-  </div>
-  <div id="proyConSesion" class="pb-fila" hidden>
-    <select id="proyecto" class="campo" aria-label="Project" data-i18n-attr="aria-label:lat.proyecto"><option value="" data-i18n="proy.ninguno">— none —</option></select>
-    <button id="proyNuevo" type="button" class="pildora" data-i18n="proy.nuevo">+ New project</button>
-    <span id="proyNuevoForm" class="pb-fila" hidden>
-      <input id="proyNombreRapido" class="campo" type="text" maxlength="80" placeholder="Project name" aria-label="Project name"
-             data-i18n-attr="placeholder:proy.nombre.placeholder;aria-label:proy.nombre.aria">
-      <button id="proyCrearRapido" type="button" class="boton acento-b" data-i18n="proy.crear">Create project</button>
-    </span>
-    <button id="ocultarHecho" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="proy.ocultar">Hide what I did</button>
-    <button id="recordarCopia" type="button" class="pildora" role="switch" aria-checked="true" data-i18n-attr="title:proy.recordar.t" data-i18n="proy.recordar">Remember what I copy</button>
-    <span id="resumenProyecto" class="nota"></span>
-  </div>
-</section>
 
-<section class="filtros-barra" aria-label="Search and filters" data-i18n-attr="aria-label:bar.aria">
-  <label class="busca">
-    <span class="mono tenue">⌕</span>
-    <input id="q" type="search" maxlength="300" autocomplete="off" placeholder="Search by meaning…" aria-label="Search requirements by meaning"
-           data-i18n-attr="placeholder:busca.placeholder;aria-label:busca.aria">
-    <kbd>/</kbd>
-  </label>
-  <div class="fb-grupo">
-    <div class="etq-lat" data-i18n="lat.prioridad">Priority up to</div>
-    <div id="prio" class="segmentos" role="group" data-i18n-attr="aria-label:prio.aria"></div>
-    <div id="prioDesc" class="nota"></div>
-  </div>
-  <div class="fb-grupo fb-ancho">
-    <div class="etq-lat"><span data-i18n="bar.tipo">Kind of requirement</span> <span id="tiposNota" class="tenue"></span></div>
-    <div id="kinds" class="pildoras" role="group" data-i18n-attr="aria-label:bar.tipo"></div>
-  </div>
-  <div class="fb-grupo">
-    <div class="etq-lat" data-i18n="bar.extras">Include with each requirement</div>
-    <div class="pildoras">
-      <button id="incTests" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="inc.tests">Tests</button>
-      <button id="incAcel" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="inc.acel">Accelerators</button>
+  <div id="fbCuerpo" class="fb-cuerpo">
+    <div class="fb-bloque">
+      <button id="btnConstruyes" type="button" class="desplegable" aria-expanded="false" aria-controls="panelConstruyes">
+        <span class="etq" data-i18n="bar.construyes">What are you building?</span><b id="resConstruyes"></b><i aria-hidden="true">▾</i>
+      </button>
+      <div id="panelConstruyes" class="panel-desp" hidden>
+        <div class="pd-fila">
+          <span class="etq" data-i18n="pan.audiencia">Audience</span>
+          <div id="audiencias" class="pildoras"></div>
+        </div>
+        <div class="pd-tabs" role="tablist">
+          <button type="button" role="tab" data-pestana="tipos" aria-selected="true" data-i18n="pan.tipos">App types</button>
+          <button type="button" role="tab" data-pestana="sector" aria-selected="false" data-i18n="pan.sector">By sector</button>
+        </div>
+        <div id="pestanaTipos" class="pd-lista"></div>
+        <div id="pestanaSector" class="pd-sector" hidden>
+          <div class="pd-fila">
+            <select id="selDominio" class="campo" aria-label="Sector" data-i18n-attr="aria-label:pan.sector"></select>
+            <input id="filtroCat" class="filtro" type="search" maxlength="60" autocomplete="off" placeholder="Filter: CRM, payroll, LMS…" aria-label="Filter software categories"
+                   data-i18n-attr="placeholder:filtro.placeholder;aria-label:filtro.aria">
+          </div>
+          <div id="listaSector" class="pd-lista"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fb-bloque">
+      <button id="btnAdemas" type="button" class="desplegable" aria-expanded="false" aria-controls="panelAdemas">
+        <span class="etq" data-i18n="bar.ademas">Also include</span><b id="resAdemas"></b><i aria-hidden="true">▾</i>
+      </button>
+      <div id="panelAdemas" class="panel-desp" hidden>
+        <div class="pd-fila"><span class="etq" data-i18n="pan.transversales">Topics for every app</span></div>
+        <div id="transversales" class="pildoras"></div>
+        <div id="flujos"></div>
+      </div>
+    </div>
+
+    <div class="fb-grupo">
+      <div class="etq-lat"><span data-i18n="bar.tipo">Kind of requirement</span></div>
+      <div id="kinds" class="pildoras" role="group" data-i18n-attr="aria-label:bar.tipo"></div>
+    </div>
+    <div class="fb-grupo">
+      <div class="etq-lat" data-i18n="lat.prioridad">Priority up to</div>
+      <div id="prio" class="segmentos" role="group" data-i18n-attr="aria-label:prio.aria"></div>
+    </div>
+    <div class="fb-grupo">
+      <div class="etq-lat" data-i18n="bar.orden">Sort</div>
+      <select id="orden" class="campo" aria-label="Sort" data-i18n-attr="aria-label:bar.orden"></select>
+    </div>
+    <div class="fb-grupo">
+      <div class="etq-lat" data-i18n="bar.extras">Include with each requirement</div>
+      <div class="pildoras">
+        <button id="incTests" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="inc.tests">Tests</button>
+        <button id="incAcel" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="inc.acel">Accelerators</button>
+      </div>
     </div>
   </div>
+
+  <div class="chips-activos" id="zonaChips" hidden>
+    <div id="chipsActivos" class="pildoras"></div>
+    <button id="borrarFiltros" type="button" class="enlace" data-i18n="bar.borrar">Clear filters</button>
+  </div>
+  <div id="prioDesc" class="nota"></div>
 </section>
 
 <main id="browse">
-  <aside class="lateral" data-i18n-attr="aria-label:lat.filtros" aria-label="Filters">
-    <h2 class="lat-titulo" data-i18n="lat.navegar">What are you building?</h2>
-    <div class="grupo-lat">
-      <div class="etq-lat" data-i18n="lat.acotar">Narrow down</div>
-      <div id="ambito"></div>
-    </div>
-    <div class="grupo-lat">
-      <div class="etq-lat" data-i18n="lat.elegir">Pick categories</div>
-      <input id="filtroCat" class="filtro" type="search" maxlength="60" autocomplete="off" placeholder="Filter: CRM, payroll, LMS…" aria-label="Filter software categories"
-             data-i18n-attr="placeholder:filtro.placeholder;aria-label:filtro.aria">
-      <div id="cats"></div>
-    </div>
-  </aside>
-
   <section class="panel lista-panel" aria-labelledby="tituloCat">
     <div class="panel-cab">
       <div>
@@ -129,6 +153,11 @@
         <button id="selTodo" type="button" class="mini" data-i18n="sel.todos">all</button>
         <button id="selNada" type="button" class="mini" data-i18n="sel.ninguno">none</button>
       </div>
+    </div>
+    <div id="franjaProyecto" class="barra-proy" hidden>
+      <span id="resumenProyecto" class="nota"></span>
+      <button id="ocultarHecho" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="proy.ocultar">Hide what I did</button>
+      <button id="recordarCopia" type="button" class="pildora" role="switch" aria-checked="true" data-i18n-attr="title:proy.recordar.t" data-i18n="proy.recordar">Remember what I copy</button>
     </div>
     <div id="accionesProyecto" class="barra-proy" hidden>
       <span class="tenue" data-i18n="marcar.texto">Mark the selected in the project as</span>

@@ -69,7 +69,7 @@ Write exactly ${N} distinct requirements. Rules:
 - Each states WHAT the software must do or guarantee, one behaviour per requirement, starting like "The app must…", "Users can…" or "The system must…".
 - NEVER say where or how it is shown: no screens, pages, buttons, menus, layout, placement, colours, component names.
 - Title 5-120 chars; statement 10-400 chars; 2-5 testable acceptance criteria (each under 160 chars). English. No brand names unless unavoidable.
-- "kind": one of ${CLASES.join(', ')}.
+- "kind": one of ${CLASES.join(', ')}: "functional" = something a person can do or notice; "technical" = how the system is built or operated (invisible to the user). Security, privacy, accessibility, performance… are topics expressed through the categories, not kinds.
 - "categories": MUST include "${cat.slug}" and may include other relevant slugs from this list: ${lista}. Give each a priority 1-5 (1 = essential: broken or unsafe without it; 2 = expected; 3 = recommended; 4 = nice to have; 5 = differentiator). Priority is per category. Make most requirements P1-P3; only a few P4-P5.
 - Cover the breadth of the category, ordered from most to least important, with no near-duplicates.`;
 }

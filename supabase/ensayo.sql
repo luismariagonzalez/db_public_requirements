@@ -47,7 +47,7 @@ begin
   a := public.db_public_requirements_srv_crear_requisito(
     'Password reset by email link',
     'Users who forgot their password can reset it through a single-use link sent by email.',
-    '["The link expires","The link works only once"]', 'security',
+    '["The link expires","The link works only once"]', 'technical',
     '[{"slug":"messaging","priority":1},{"slug":"security","priority":2}]',
     pg_temp.v(1), 'user_a');
   b := public.db_public_requirements_srv_crear_requisito(
@@ -538,3 +538,164 @@ begin
 end $$;
 
 reset role;
+
+-- ════════════════════════════════════════════════════════════════════════════
+--  0004: arquetipos con herencia, flujos con familia, copias y orden
+-- ════════════════════════════════════════════════════════════════════════════
+set local role service_role;
+
+do $$
+declare r jsonb; c jsonb; a jsonb; d jsonb; e jsonb; n int;
+begin
+  -- el dominio de mentira ya no existe y los flujos/arquetipos nuevos sí
+  r := public.db_public_requirements_srv_categorias();
+  if exists (select 1 from jsonb_array_elements(r) x where x->>'slug' = 'app-archetypes') then
+    raise exception 'app-archetypes debería haber desaparecido';
+  end if;
+  select x into c from jsonb_array_elements(r) x where x->>'slug' = 'flow-sign-in';
+  if c->>'type' <> 'screen_type' or c->>'family' <> 'account' then raise exception 'flow-sign-in mal: %', c; end if;
+  select x into c from jsonb_array_elements(r) x where x->>'slug' = 'other-business-software';
+  if c->>'type' <> 'app_type' or c->>'domain' is not null then raise exception 'other-business-software mal: %', c; end if;
+
+  -- una categoría de software hereda de arquetipos que existen (y solo de tipos de app)
+  perform public.db_public_requirements_srv_upsert_categoria('crm-tools', 'software_category', 'CRM', '', 5,
+    'finance', '{b2b}', null, '{crm-sales,helpdesk-support}');
+  select x into c from jsonb_array_elements(public.db_public_requirements_srv_categorias()) x where x->>'slug' = 'crm-tools';
+  if c->'archetypes' <> '["crm-sales","helpdesk-support"]'::jsonb then raise exception 'archetypes mal: %', c; end if;
+  begin
+    perform public.db_public_requirements_srv_upsert_categoria('crm-bad', 'software_category', 'Bad', '', 5,
+      'finance', '{b2b}', null, '{b2b}');
+    raise exception 'ha aceptado una audiencia como arquetipo';
+  exception when others then if sqlerrm not like 'el arquetipo % no existe' then raise; end if; end;
+  begin
+    perform public.db_public_requirements_srv_upsert_categoria('crm-bad', 'software_category', 'Bad', '', 5,
+      'finance', '{b2b}', null, '{crm-sales,helpdesk-support,erp-operations,hr-people}');
+    raise exception 'ha aceptado más de 3 arquetipos';
+  exception when check_violation then null; end;
+
+  -- copias y orden: E (P1, 0 copias), D (P2, 3 copias), C (P2, 1 copia), todos en saas-b2b
+  perform public.db_public_requirements_srv_upsert_categoria('saas-b2b', 'app_type', 'B2B SaaS', '', 20);
+  e := public.db_public_requirements_srv_crear_requisito('Order test essential item',
+    'The product must keep an essential behaviour for the ordering test.', '[]', 'functional',
+    '[{"slug":"saas-b2b","priority":1}]', pg_temp.v(11), null);
+  d := public.db_public_requirements_srv_crear_requisito('Order test popular item',
+    'The product must keep a popular behaviour for the ordering test.', '[]', 'functional',
+    '[{"slug":"saas-b2b","priority":2}]', pg_temp.v(12), null);
+  c := public.db_public_requirements_srv_crear_requisito('Order test quiet item',
+    'The product must keep a quiet behaviour for the ordering test.', '[]', 'functional',
+    '[{"slug":"saas-b2b","priority":2}]', pg_temp.v(13), null);
+
+  if public.db_public_requirements_srv_contar_copias(array[c->>'slug'], 'p1') <> 1 then raise exception 'primera copia no cuenta'; end if;
+  if public.db_public_requirements_srv_contar_copias(array[c->>'slug'], 'p1') <> 0 then raise exception 'la misma persona el mismo día no debería sumar'; end if;
+  perform public.db_public_requirements_srv_contar_copias(array[d->>'slug'], 'p1');
+  perform public.db_public_requirements_srv_contar_copias(array[d->>'slug'], 'p2');
+  n := public.db_public_requirements_srv_contar_copias(array[d->>'slug', 'no-existe'], 'p3');
+  if n <> 1 then raise exception 'un slug inexistente no debe contar: %', n; end if;
+  if public.db_public_requirements_srv_contar_copias('{}', 'p1') <> 0 then raise exception 'lista vacía debería dar 0'; end if;
+
+  -- orden por defecto (priority): P1 primero y, entre P2, el más copiado
+  r := public.db_public_requirements_srv_buscar(null, null, '{saas-b2b}', 5, null, 50);
+  if r->0->>'slug' <> e->>'slug' or r->1->>'slug' <> d->>'slug' or r->2->>'slug' <> c->>'slug' then
+    raise exception 'orden priority falla: %', (select jsonb_agg(x->>'slug') from jsonb_array_elements(r) x);
+  end if;
+  if (r->1->>'copies')::int <> 3 or (r->2->>'copies')::int <> 1 then raise exception 'copies mal en la ficha: %', r; end if;
+  -- orden por copiados: D, C, E
+  r := public.db_public_requirements_srv_buscar(null, null, '{saas-b2b}', 5, null, 50, 'copies');
+  if r->0->>'slug' <> d->>'slug' or r->1->>'slug' <> c->>'slug' or r->2->>'slug' <> e->>'slug' then
+    raise exception 'orden copies falla: %', (select jsonb_agg(x->>'slug') from jsonb_array_elements(r) x);
+  end if;
+  -- con límite, el orden se aplica antes de cortar
+  r := public.db_public_requirements_srv_buscar(null, null, '{saas-b2b}', 5, null, 1, 'copies');
+  if r->0->>'slug' <> d->>'slug' or jsonb_array_length(r) <> 1 then raise exception 'copies + limite falla: %', r; end if;
+  begin
+    perform public.db_public_requirements_srv_buscar(null, null, null, 5, null, 5, 'raro');
+    raise exception 'ha aceptado un orden desconocido';
+  exception when others then if sqlerrm not like 'orden desconocido%' then raise; end if; end;
+end $$;
+
+-- lo que se guarda para contar copias se purga a los 2 días
+reset role;
+insert into db_public_requirements.copia (requisito_id, quien, dia)
+  select id, 'viejo', current_date - 5 from db_public_requirements.requisito limit 1;
+select set_config('ensayo.slug', (select slug from db_public_requirements.requisito limit 1), true);
+set local role service_role;
+select public.db_public_requirements_srv_contar_copias(array[current_setting('ensayo.slug')], 'otro');
+reset role;
+do $$ begin
+  if exists (select 1 from db_public_requirements.copia where dia < current_date - 2) then
+    raise exception 'las copias de hace más de 2 días deberían purgarse';
+  end if;
+end $$;
+
+-- ════════════════════════════════════════════════════════════════════════════
+--  0005: clase funcional/técnico, acceso en tres flujos y fechas que se mantienen solas
+-- ════════════════════════════════════════════════════════════════════════════
+set local role service_role;
+
+do $$
+declare a jsonb; b jsonb; r jsonb; v1 timestamptz; v2 timestamptz; n jsonb;
+begin
+  -- la clase ya solo admite dos valores
+  begin
+    perform public.db_public_requirements_srv_crear_requisito('Rejected class item',
+      'The product must reject any class that is not functional or technical.', '[]', 'security',
+      '[{"slug":"saas-b2b","priority":3}]', pg_temp.v(21), null);
+    raise exception 'ha aceptado la clase security';
+  exception when check_violation then null; end;
+
+  -- srv_reorganizar: clases, transversales, herencia y acceso
+  perform public.db_public_requirements_srv_upsert_categoria('flow-sign-up', 'screen_type', 'Sign-up', '', 11);
+  a := public.db_public_requirements_srv_crear_requisito('Reorg access item',
+    'The product must let people recover access to a locked account.', '[]', 'functional',
+    '[{"slug":"flow-sign-up","priority":2},{"slug":"flow-sign-in","priority":2},{"slug":"flow-recovery","priority":2}]',
+    pg_temp.v(22), null);
+  select (x->>'updated_at')::timestamptz into v1 from (select public.db_public_requirements_srv_requisito(a->>'slug') x) q;
+
+  n := public.db_public_requirements_srv_reorganizar(jsonb_build_object(
+    'clases', jsonb_build_object(a->>'slug', 'technical', 'no-existe', 'functional', 'otro', 'raro'),
+    'acceso', jsonb_build_object(a->>'slug', '["flow-recovery"]'::jsonb),
+    'transversales', jsonb_build_array(jsonb_build_object('slug', a->>'slug', 'categoria', 'security', 'prioridad', 1),
+                                       jsonb_build_object('slug', a->>'slug', 'categoria', 'saas-b2b', 'prioridad', 1)),
+    'herencia', jsonb_build_object('crm-tools', '["crm-sales","b2b","helpdesk-support","erp-operations"]'::jsonb)));
+  if n <> '{"clases":1,"acceso":1,"transversales":1,"herencia":1}'::jsonb then raise exception 'srv_reorganizar devuelve %', n; end if;
+
+  r := public.db_public_requirements_srv_requisito(a->>'slug');
+  if r->>'kind' <> 'technical' then raise exception 'la clase no cambió: %', r->>'kind'; end if;
+  if (select array_agg(x->>'slug' order by x->>'slug') from jsonb_array_elements(r->'categories') x)
+       <> array['flow-recovery', 'security'] then
+    raise exception 'categorías tras reorganizar: %', r->'categories';
+  end if;
+  if (r->'categories'->0->>'priority')::int <> 1 and (r->'categories'->1->>'priority')::int <> 1 then
+    raise exception 'la prioridad del transversal nuevo se perdió: %', r->'categories';
+  end if;
+  -- solo cuenta arquetipos que existen y son tipos de app, y como mucho 3
+  select x into b from jsonb_array_elements(public.db_public_requirements_srv_categorias()) x where x->>'slug' = 'crm-tools';
+  if b->'archetypes' <> '["crm-sales","erp-operations","helpdesk-support"]'::jsonb then raise exception 'herencia mal: %', b->'archetypes'; end if;
+  -- reorganizar no cuenta como editar: la fecha no se movió
+  if (r->>'updated_at')::timestamptz <> v1 then raise exception 'srv_reorganizar no debería tocar actualizado_en'; end if;
+end $$;
+
+-- las fechas se mantienen solas: editar el contenido o una prioridad la mueve; sumar copias no
+reset role;
+-- (en producción cada llamada es su propia transacción; aquí todo es una, así que se apaga el interruptor de srv_reorganizar)
+select set_config('reqdb.sin_fechas', '', true);
+do $$
+declare id1 bigint; v0 timestamptz; v1 timestamptz;
+begin
+  select id into id1 from db_public_requirements.requisito where slug = 'order-test-popular-item';
+  update db_public_requirements.requisito set actualizado_en = now() - interval '10 days' where id = id1;
+  select actualizado_en into v0 from db_public_requirements.requisito where id = id1;
+
+  update db_public_requirements.requisito set copias = copias + 5 where id = id1;
+  select actualizado_en into v1 from db_public_requirements.requisito where id = id1;
+  if v1 <> v0 then raise exception 'sumar copias no debería mover actualizado_en'; end if;
+
+  update db_public_requirements.requisito set enunciado = enunciado || ' (reworded)' where id = id1;
+  select actualizado_en into v1 from db_public_requirements.requisito where id = id1;
+  if v1 <= v0 then raise exception 'cambiar el enunciado debería mover actualizado_en'; end if;
+
+  update db_public_requirements.requisito set actualizado_en = v0 where id = id1;
+  update db_public_requirements.requisito_categoria set prioridad = 4 where requisito_id = id1;
+  select actualizado_en into v1 from db_public_requirements.requisito where id = id1;
+  if v1 <= v0 then raise exception 'cambiar una prioridad debería mover actualizado_en del requisito'; end if;
+end $$;

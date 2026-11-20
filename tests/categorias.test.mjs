@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { expandir, expandirCombinado, NINGUNA } from '../lib/categorias.mjs';
+import { expandir, expandirCombinado, conAlias, NINGUNA } from '../lib/categorias.mjs';
 
 const cats = [
   { slug: 'b2b', type: 'audience' }, { slug: 'b2c', type: 'audience' },
@@ -44,4 +44,25 @@ test('slugs desconocidos se devuelven para poder dar un 400', () => {
   const r = expandir(['b2b', 'nope'], cats);
   assert.deepEqual(r.desconocidas, ['nope']);
   assert.deepEqual(orden(r), ['accounting', 'emr', 'payroll']);
+});
+
+const conHerencia = [
+  ...cats,
+  { slug: 'crm-sales', type: 'app_type', audiences: ['b2b'] },
+  { slug: 'helpdesk-support', type: 'app_type', audiences: ['b2b'] },
+  { slug: 'crm-tools', type: 'software_category', domain: 'finance', audiences: ['b2b'], archetypes: ['crm-sales', 'helpdesk-support'] },
+];
+
+test('una categoría de software hereda de sus arquetipos, pedida sola o por dominio o audiencia', () => {
+  assert.deepEqual(orden(expandir(['crm-tools'], conHerencia)), ['crm-sales', 'crm-tools', 'helpdesk-support']);
+  assert.deepEqual(orden(expandir(['finance'], conHerencia)), ['accounting', 'crm-sales', 'crm-tools', 'helpdesk-support', 'payroll']);
+  assert.ok(expandir(['b2b'], conHerencia).slugs.includes('crm-sales'));
+});
+
+test('screen-auth sigue valiendo: se expande a los tres flujos de acceso', () => {
+  assert.deepEqual(conAlias(['screen-auth', 'security']), ['flow-sign-up', 'flow-sign-in', 'flow-recovery', 'security']);
+  const flujos = ['flow-sign-up', 'flow-sign-in', 'flow-recovery'].map((slug) => ({ slug, type: 'screen_type' }));
+  const r = expandir(['screen-auth'], [...cats, ...flujos]);
+  assert.deepEqual(orden(r), ['flow-recovery', 'flow-sign-in', 'flow-sign-up']);
+  assert.deepEqual(r.desconocidas, []);
 });

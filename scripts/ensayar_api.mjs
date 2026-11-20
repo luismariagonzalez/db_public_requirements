@@ -49,16 +49,18 @@ console.log('');
 // ── datos de partida (por el mismo camino que usa la semilla)
 for (const [slug, tipo, nombre, orden] of [['messaging', 'app_type', 'Messaging app', 10], ['security', 'cross_cutting', 'Security', 10]])
   await rpc('upsert_categoria', { p_slug: slug, p_tipo: tipo, p_nombre: nombre, p_descripcion: '', p_orden: orden });
-// Jerarquía: audiencias → dominios → categorías (messaging cuelga de «app-archetypes» y sirve a b2b)
+// Jerarquía: audiencias → dominios → categorías (messaging cuelga de un dominio de prueba y sirve a b2b)
 const cat = (slug, tipo, nombre, orden, dominio = null, audiencias = null) =>
   rpc('upsert_categoria', { p_slug: slug, p_tipo: tipo, p_nombre: nombre, p_descripcion: '', p_orden: orden, p_dominio: dominio, p_audiencias: audiencias });
 await cat('b2b', 'audience', 'B2B', 10); await cat('b2c', 'audience', 'B2C', 20);
-await cat('app-archetypes', 'domain', 'Common app types', 10); await cat('finance-accounting', 'domain', 'Finance & Accounting', 20);
-await cat('messaging', 'app_type', 'Messaging app', 10, 'app-archetypes', ['b2b']);
+await cat('consumer-apps', 'domain', 'Common app types', 10); await cat('finance-accounting', 'domain', 'Finance & Accounting', 20);
+await cat('messaging', 'app_type', 'Messaging app', 10, 'consumer-apps', ['b2b']);
 await cat('accounting-software', 'software_category', 'Accounting', 10, 'finance-accounting', ['b2b']);
 await cat('crm-software', 'software_category', 'CRM', 20, 'finance-accounting', ['b2c']);
+await rpc('upsert_categoria', { p_slug: 'crm-software', p_tipo: 'software_category', p_nombre: 'CRM', p_descripcion: '', p_orden: 20,
+  p_dominio: 'finance-accounting', p_audiencias: ['b2c'], p_arquetipos: ['messaging'] });   // hereda de messaging
 await rpc('crear_requisito', { p_titulo: 'Password reset by email link', p_enunciado: 'Users who forgot their password can reset it through a single-use link sent by email.',
-  p_criterios: ['The link expires', 'The link works only once'], p_clase: 'security',
+  p_criterios: ['The link expires', 'The link works only once'], p_clase: 'technical',
   p_categorias: [{ slug: 'messaging', priority: 1 }, { slug: 'security', priority: 2 }], p_vec: null, p_autor: null, p_aporte_id: null, p_slug: 'password-reset-by-email-link' });
 await rpc('crear_requisito', { p_titulo: 'Typing indicator', p_enunciado: 'Participants of a conversation can see when another participant is typing.',
   p_criterios: [], p_clase: 'functional', p_categorias: [{ slug: 'messaging', priority: 4 }], p_vec: null, p_autor: null, p_aporte_id: null, p_slug: 'typing-indicator' });
@@ -134,27 +136,78 @@ await prueba('parámetros inválidos → 400; ruta desconocida → 404; método 
 await prueba('audiencias y dominios se expanden a sus categorías', async () => {
   const t = await pedir('GET', '/api/v1/categories?type=audience,domain');
   assert.equal(t.estado, 200);
-  assert.deepEqual(t.json.categories.map((c) => c.slug).sort(), ['app-archetypes', 'b2b', 'b2c', 'finance-accounting']);
+  assert.deepEqual(t.json.categories.map((c) => c.slug).sort(), ['b2b', 'b2c', 'consumer-apps', 'finance-accounting']);
   const m = (await pedir('GET', '/api/v1/categories?q=accounting-soft')).json.categories;
   assert.deepEqual(m.map((c) => c.slug), ['accounting-software']);
   assert.equal(m[0].domain, 'finance-accounting'); assert.deepEqual(m[0].audiences, ['b2b']);
 
   const b2b = await pedir('GET', '/api/v1/requirements?category=b2b');                      // messaging sirve a b2b
   assert.deepEqual(b2b.json.requirements.map((x) => x.slug).sort(), ['password-reset-by-email-link', 'typing-indicator']);
-  const dom = await pedir('GET', '/api/v1/requirements?category=app-archetypes');           // …y cuelga de ese dominio
+  const dom = await pedir('GET', '/api/v1/requirements?category=consumer-apps');           // …y cuelga de ese dominio
   assert.equal(dom.json.count, 2);
-  const cruce = await pedir('GET', '/api/v1/requirements?category=b2b,app-archetypes');     // audiencia Y dominio
+  const cruce = await pedir('GET', '/api/v1/requirements?category=b2b,consumer-apps');     // audiencia Y dominio
   assert.equal(cruce.json.count, 2);
-  const vacio = await pedir('GET', '/api/v1/requirements?category=b2c');                    // ninguna hoja de b2c tiene requisitos: vacío, NO todo
+  const b2c = await pedir('GET', '/api/v1/requirements?category=b2c');                      // b2c solo tiene crm-software, que hereda de messaging
+  assert.equal(b2c.json.count, 2);
+  const vacio = await pedir('GET', '/api/v1/requirements?category=accounting-software');    // una hoja sin requisitos ni herencia: vacío, NO todo
   assert.equal(vacio.json.count, 0);
-  const noCruza = await pedir('GET', '/api/v1/requirements?category=b2b,finance-accounting'); // finanzas no tiene requisitos
-  assert.equal(noCruza.json.count, 0);
+  const cruzaPorHerencia = await pedir('GET', '/api/v1/requirements?category=b2b,finance-accounting'); // finanzas solo tiene los de su arquetipo (messaging), que sirve a b2b
+  assert.equal(cruzaPorHerencia.json.count, 2);
   assert.equal((await pedir('GET', '/api/v1/requirements?category=no-existe-esta')).estado, 400);
   assert.equal((await pedir('GET', '/api/v1/tests?category=b2b')).json.count, 1);
-  assert.equal((await pedir('GET', '/api/v1/accelerators?category=b2c')).json.count, 0);
+  assert.equal((await pedir('GET', '/api/v1/accelerators?category=b2c')).json.count, 1);   // hereda de messaging
   assert.equal((await pedir('GET', '/api/v1/categories?type=magia')).estado, 400);
   const md = await pedir('GET', '/api/v1/requirements?category=b2b&format=md&max_priority=2');
   assert.match(md.texto, /## Messaging app/);
+});
+
+// ── filtros nuevos: clase, orden, copias, herencia y flujos
+await prueba('kind solo admite functional y technical; sort solo sus tres valores', async () => {
+  assert.equal((await pedir('GET', '/api/v1/requirements?kind=security')).estado, 400);
+  assert.equal((await pedir('GET', '/api/v1/requirements?sort=newest')).estado, 400);
+  assert.equal((await pedir('GET', '/api/v1/requirements?category=messaging&kind=functional')).json.count, 1);
+});
+
+await prueba('una categoría de software hereda los requisitos de su arquetipo', async () => {
+  const r = await pedir('GET', '/api/v1/requirements?category=crm-software');
+  assert.equal(r.estado, 200);
+  assert.deepEqual(r.json.requirements.map((x) => x.slug).sort(), ['password-reset-by-email-link', 'typing-indicator']);
+  const cats = (await pedir('GET', '/api/v1/categories?q=crm-software')).json.categories;
+  assert.deepEqual(cats[0].archetypes, ['messaging']);
+});
+
+await prueba('type=flow es el nombre nuevo de screen_type, y screen-auth sigue valiendo', async () => {
+  const f = await pedir('GET', '/api/v1/categories?type=flow');
+  assert.equal(f.estado, 200);
+  assert.ok(f.json.categories.every((c) => c.type === 'screen_type'));
+  assert.ok(f.json.categories.some((c) => c.slug === 'flow-sign-in' && c.family === 'account'));
+  assert.equal((await pedir('GET', '/api/v1/requirements?category=screen-auth')).estado, 200);
+});
+
+await prueba('copias: format=md y POST /copied cuentan una vez por persona y día; sort=copies ordena', async () => {
+  const yo = '198.51.100.9', otro = '198.51.100.10';
+  const copies = async (slug) => (await pedir('GET', `/api/v1/requirements/${slug}`)).json.copies;
+  const base = await copies('typing-indicator');   // las pruebas anteriores ya pidieron Markdown: se mide la diferencia
+  const a = await pedir('POST', '/api/v1/copied', { cuerpo: { slugs: ['typing-indicator'] }, ipFija: yo });
+  assert.equal(a.estado, 200); assert.equal(a.json.counted, 1);
+  assert.equal((await pedir('POST', '/api/v1/copied', { cuerpo: { slugs: ['typing-indicator'] }, ipFija: yo })).json.counted, 0);   // misma persona, mismo día
+  assert.equal((await pedir('POST', '/api/v1/copied', { cuerpo: { slugs: ['typing-indicator'] }, ipFija: otro })).json.counted, 1);
+  assert.equal(await copies('typing-indicator'), base + 2);
+  assert.equal((await pedir('POST', '/api/v1/copied', { cuerpo: { slugs: [] } })).estado, 400);
+  assert.equal((await pedir('POST', '/api/v1/copied', { cuerpo: { slugs: ['Mal Slug!'] } })).estado, 400);
+  // pedir el Markdown (lo que hace el agente) también cuenta; el JSON de la vista previa no
+  const antes = await copies('password-reset-by-email-link');
+  await pedir('GET', '/api/v1/requirements?category=security&format=md', { ipFija: yo });
+  await pedir('GET', '/api/v1/requirements?category=security', { ipFija: otro });
+  assert.equal(await copies('password-reset-by-email-link'), antes + 1);
+  // orden: priority = mejor prioridad primero; copies = más copiados primero
+  const porPrio = await pedir('GET', '/api/v1/requirements?category=messaging');
+  assert.equal(porPrio.json.requirements[0].slug, 'password-reset-by-email-link');
+  // typing-indicator (P4) pasa por delante de password-reset (P1) solo si tiene más copias
+  const porCopias = await pedir('GET', '/api/v1/requirements?category=messaging&sort=copies');
+  const c = Object.fromEntries(porCopias.json.requirements.map((x) => [x.slug, x.copies]));
+  const orden = porCopias.json.requirements.map((x) => x.slug);
+  assert.equal(orden[0], c['typing-indicator'] > c['password-reset-by-email-link'] ? 'typing-indicator' : 'password-reset-by-email-link');
 });
 
 // ── export

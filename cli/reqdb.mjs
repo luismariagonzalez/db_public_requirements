@@ -126,7 +126,7 @@ function imprimir(io, f, datos, texto) { io.out(f.json ? JSON.stringify(datos, n
 const flagsBusqueda = (ctx, f, conProyecto = false) => ({
   category: lista(f.category ?? (conProyecto ? ctx.proy.categories : undefined)),
   max_priority: f['max-priority'] ?? (conProyecto ? ctx.proy.maxPriority : undefined),
-  kind: f.kind, limit: f.limit,
+  kind: f.kind, sort: f.sort, limit: f.limit,
 });
 
 // ── comandos ───────────────────────────────────────────────────────────────
@@ -135,8 +135,9 @@ const AYUDA = `reqdb ${VERSION}: client for Requirements DB (requirements, tests
 Usage: reqdb <command> [options]
 
 Discover
-  categories [--type T] [--q text]      audiences, domains, software categories, app/screen types
-  search [text] [--category a,b] [--max-priority N] [--tests] [--accelerators] [--limit N]
+  categories [--type T] [--q text]      audiences, domains, software categories, app types, flows, topics
+  search [text] [--category a,b] [--max-priority N] [--kind functional|technical]
+         [--sort priority|copies|relevance] [--tests] [--accelerators] [--limit N]
   show <slug>                           one requirement with its tests and accelerators
   tests [text] [--category a,b] [--max-priority N]
   accelerators [text] [--category a,b] [--model open_source|proprietary|saas] [--platform p]
@@ -188,7 +189,7 @@ const COMANDOS = {
     const r = await llamar(ctx, io, 'GET', '/api/v1/categories', { query: { type: lista(f.type), q: f.q } });
     imprimir(io, f, r, () => [
       ...r.categories.map((c) => `${c.slug.padEnd(40)} ${c.type.padEnd(18)} ${String(c.requirements).padStart(4)}  ${c.name}`),
-      `${r.count} categories. Use --type audience|domain|software_category|app_type|screen_type|cross_cutting and --q to narrow.`].join('\n'));
+      `${r.count} categories. Use --type audience|domain|software_category|app_type|flow|cross_cutting and --q to narrow.`].join('\n'));
   },
 
   async search({ ctx, f, pos, io }) {

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { rutaBusqueda, hayFiltro, paramsDe } from '../web/consulta.js';
+import { rutaBusqueda, hayFiltro, paramsDe, chipsActivos, quitarFiltro, limpiarFiltros, contarFiltros, flujosPorFamilia, CLASES } from '../web/consulta.js';
 
 test('sin filtros no hay nada que buscar', () => {
   assert.equal(hayFiltro({ q: '  ', cats: [] }), false);
@@ -68,4 +68,52 @@ test('dominios con algo para la audiencia elegida', () => {
 test('las clases de requisito (funcional, técnico…) viajan como kind=', () => {
   assert.equal(paramsDe({ cats: ['messaging'], kinds: ['functional', 'technical'] }).get('kind'), 'functional,technical');
   assert.equal(paramsDe({ cats: ['messaging'] }).has('kind'), false);
+});
+
+test('la clase del cliente es la misma que la del servidor (functional | technical)', () => {
+  assert.deepEqual(CLASES, ['functional', 'technical']);
+});
+
+test('sort viaja solo si se ha elegido', () => {
+  assert.equal(paramsDe({ cats: ['messaging'], orden: 'copies' }).get('sort'), 'copies');
+  assert.equal(paramsDe({ cats: ['messaging'] }).has('sort'), false);
+});
+
+const cats = [
+  { slug: 'messaging', name: 'Messaging app', type: 'app_type' },
+  { slug: 'b2b', name: 'B2B', type: 'audience' },
+  { slug: 'flow-sign-in', name: 'Sign-in', type: 'screen_type', family: 'account' },
+  { slug: 'flow-sign-up', name: 'Sign-up', type: 'screen_type', family: 'account' },
+  { slug: 'screen-checkout', name: 'Checkout', type: 'screen_type', family: 'buy' },
+  { slug: 'screen-rara', name: 'Rara', type: 'screen_type', family: 'otra' },
+];
+const nuevo = () => ({ q: ' chat ', prio: 2, cats: ['messaging', 'flow-sign-in'], audiencias: ['b2b'], dominios: [], kinds: ['technical'],
+  orden: 'copies', incluirTests: true, proyecto: 7, filtroCat: 'x' });
+
+test('chips activos: uno por filtro, con el nombre de la categoría y sin los extras', () => {
+  const t = chipsActivos(nuevo(), cats).map((c) => `${c.tipo}:${c.texto}`);
+  assert.deepEqual(t, ['audiencia:B2B', 'cat:Messaging app', 'cat:Sign-in', 'clase:technical', 'prio:P1–P2', 'q:“chat”', 'orden:copies']);
+  assert.equal(contarFiltros(nuevo(), cats), 7);
+  assert.deepEqual(chipsActivos({ q: '', prio: 5, cats: [], audiencias: [], dominios: [], kinds: [] }, cats), []);
+});
+
+test('quitar un chip quita solo eso', () => {
+  const e = nuevo();
+  quitarFiltro(e, { tipo: 'cat', valor: 'messaging' });
+  assert.deepEqual(e.cats, ['flow-sign-in']);
+  quitarFiltro(e, { tipo: 'prio' }); quitarFiltro(e, { tipo: 'q' }); quitarFiltro(e, { tipo: 'orden' }); quitarFiltro(e, { tipo: 'clase', valor: 'technical' });
+  assert.deepEqual([e.prio, e.q, e.orden, e.kinds, e.audiencias], [5, '', null, [], ['b2b']]);
+});
+
+test('«Borrar filtros» vacía los filtros y conserva tests/aceleradores y el proyecto', () => {
+  const e = limpiarFiltros(nuevo());
+  assert.deepEqual([e.q, e.prio, e.cats, e.audiencias, e.dominios, e.kinds, e.orden, e.filtroCat], ['', 5, [], [], [], [], null, '']);
+  assert.deepEqual([e.incluirTests, e.proyecto], [true, 7]);
+  assert.equal(hayFiltro(e), false);
+});
+
+test('los flujos se agrupan por familia, en orden, y una familia desconocida va al final', () => {
+  const g = flujosPorFamilia(cats);
+  assert.deepEqual(g.map(([f, l]) => [f, l.map((c) => c.slug)]),
+    [['account', ['flow-sign-in', 'flow-sign-up']], ['buy', ['screen-checkout']], ['otra', ['screen-rara']]]);
 });
