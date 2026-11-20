@@ -411,6 +411,247 @@ await prueba('CLI: login guarda la clave y los comandos con clave funcionan sin 
   assert.equal((await cli(['projects'], { clave: false })).code, 3);
 });
 
+// ═══ zona admin (/api/admin/*) ═══
+// La sesión de Clerk se simula con un JWKS propio (se intercepta el fetch de jose) y Gemini con respuestas
+// fijas (se intercepta el fetch a generativelanguage). Ninguna llamada sale a internet.
+const { generateKeyPair, exportJWK, SignJWT } = await import('jose');
+const par = await generateKeyPair('RS256');
+const jwk = { ...(await exportJWK(par.publicKey)), kid: 'k1', alg: 'RS256', use: 'sig' };
+process.env.CLERK_PUBLISHABLE_KEY = 'pk_test_' + Buffer.from('clerk.ensayo.test$').toString('base64');
+process.env.ADMIN_SUBS = 'user_admin_ens, user_otro_admin';
+process.env.GEMINI_API_KEY = 'simulada';
+const SUB_ADMIN = 'user_admin_ens';
+const sesion = (sub) => new SignJWT({}).setProtectedHeader({ alg: 'RS256', kid: 'k1' }).setSubject(sub)
+  .setIssuer('https://clerk.ensayo.test').setIssuedAt().setExpirationTime('10m').sign(par.privateKey);
+const fetchReal = globalThis.fetch;
+const llamadasGemini = [];
+let respuestaDividir = { reason: 'Two independent behaviours', parts: [
+  { title: 'Create and edit invoices', statement: 'Users can create and edit invoices.', criteria: ['An invoice can be created', 'An invoice can be edited'] },
+  { title: 'Send and archive invoices', statement: 'Users can send and archive invoices.', criteria: ['An invoice can be sent'] }] };
+globalThis.fetch = async (u, o) => {
+  const url = String(u?.url ?? u);
+  if (url.startsWith('https://clerk.ensayo.test/')) return Response.json({ keys: [jwk] });
+  if (url.includes('generativelanguage.googleapis.com')) {
+    llamadasGemini.push(url);
+    if (url.includes(':generateContent')) return Response.json({ candidates: [{ content: { parts: [{ text: JSON.stringify(respuestaDividir) }] } }] });
+    return Response.json({ embedding: { values: Array.from({ length: 768 }, (_, i) => (i === 7 ? 1 : 0)) } });
+  }
+  return fetchReal(u, o);
+};
+const admin = async (metodo, ruta, cuerpo, sub = SUB_ADMIN) => {
+  const r = await fetchReal(BASE + ruta, { method: metodo, headers: { 'x-real-ip': `10.9.0.${++ip}`, authorization: `Bearer ${await sesion(sub)}`,
+    ...(cuerpo ? { 'content-type': 'application/json' } : {}) }, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
+  const texto = await r.text(); let json; try { json = JSON.parse(texto); } catch { json = null; }
+  return { estado: r.status, json, texto, cab: r.headers };
+};
+
+await prueba('admin: sin sesión, con sesión que no es admin, con API key y con token falso → 403 y sin caché pública', async () => {
+  const intentos = [
+    await pedir('GET', '/api/admin/overview'),
+    await pedir('GET', '/api/admin/overview', { key: KEY }),                                       // una API key NUNCA vale
+    await pedir('GET', '/api/admin/me', { key: 'token-que-no-vale' }),
+    await admin('GET', '/api/admin/overview', null, 'user_cualquiera'),                           // sesión válida, no es admin
+    await admin('GET', '/api/admin/contributions', null, 'user_cualquiera'),
+  ];
+  for (const r of intentos) {
+    assert.equal(r.estado, 403, r.texto);
+    assert.equal(r.cab.get('cache-control'), 'no-store');
+    assert.ok(!/public|s-maxage/.test(r.cab.get('cache-control')));
+    assert.equal(r.cab.get('access-control-allow-origin'), null);
+    assert.deepEqual(r.json, { error: 'forbidden' });
+  }
+  for (const [m, ruta] of [['POST', '/api/admin/contributions/1/approve'], ['POST', '/api/admin/split/propose'], ['POST', '/api/admin/suggestions/1/status']]) {
+    const r = await pedir(m, ruta, { key: KEY, cuerpo: {} });
+    assert.equal(r.estado, 403, `${m} ${ruta}`);
+  }
+});
+
+await prueba('admin: los intentos fallidos repetidos desde una IP acaban en 429', async () => {
+  let ultimo;
+  for (let i = 0; i < 20; i++) ultimo = await pedir('GET', '/api/admin/me', { ipFija: '10.77.7.7' });
+  assert.equal(ultimo.estado, 429);
+  assert.equal((await pedir('GET', '/api/admin/me', { ipFija: '10.77.7.8' })).estado, 403);   // otra IP no se ve afectada
+});
+
+await prueba('admin: GET /api/admin/me con sesión de admin → hash corto, nunca el sub', async () => {
+  const r = await admin('GET', '/api/admin/me');
+  assert.equal(r.estado, 200); assert.equal(r.json.admin, true);
+  assert.match(r.json.id, /^[0-9a-f]{10}$/); assert.ok(!r.texto.includes(SUB_ADMIN));
+  assert.equal(r.cab.get('cache-control'), 'no-store');
+});
+
+await prueba('admin: la actividad (lecturas, búsquedas…) se cuenta por lotes y sale en la serie', async () => {
+  const { registro } = await import('../lib/actividad.mjs');
+  await pedir('GET', '/api/v1/requirements/typing-indicator');
+  await pedir('GET', '/api/v1/requirements?q=typing');
+  await registro.vaciar();
+  const r = await admin('GET', '/api/admin/activity?days=30');
+  assert.equal(r.estado, 200); assert.equal(r.json.days, 30); assert.equal(r.json.series.length, 30);
+  assert.ok(r.json.totals.counters.read >= 1, JSON.stringify(r.json.totals));
+  assert.ok(r.json.totals.counters.search >= 1);
+  assert.ok(r.json.totals.counters.api_total >= 2);
+  assert.equal((await admin('GET', '/api/admin/activity?days=90')).json.series.length, 90);
+  assert.equal((await admin('GET', '/api/admin/activity?days=7')).json.series.length, 30);   // valores raros → 30
+  const sinAdmin = await pedir('GET', '/api/v1/requirements/typing-indicator');
+  assert.equal(sinAdmin.estado, 200);                                                          // el tráfico admin no entra en lo público
+});
+
+await prueba('admin: resumen, paneles y auditoría', async () => {
+  const r = await admin('GET', '/api/admin/overview');
+  assert.equal(r.estado, 200); assert.ok(r.json.requirements.published >= 2); assert.ok(r.json.database_bytes > 0); assert.ok(r.json.tables.length > 10);
+  const p = await admin('GET', '/api/admin/panels');
+  assert.equal(p.estado, 200); assert.ok(Array.isArray(p.json.top_copied)); assert.ok(p.json.without_accelerators.count >= 1);
+  assert.ok(Array.isArray((await admin('GET', '/api/admin/audit')).json.audit));
+});
+
+// aportes en needs_human: uno con ítem guardado (aprobable), uno sin él y otro para rechazar
+const SUB_AUTOR = 'user_autor_aporte_' + process.env.IP_SALT;
+const mk = async (texto) => rpc('registrar_aporte', { p_autor: SUB_AUTOR, p_texto: texto, p_categorias: ['messaging'] });
+const apConItem = await mk('Users can pin a message to keep it at the top of a chat.');
+await rpc('resolver_aporte', { p_id: apConItem, p_estado: 'needs_human', p_veredicto: { items: [{ action: 'needs_human', reason: 'low confidence in the automatic review',
+  item: { title: 'Pin messages in a chat', statement: 'Users can pin a message so it stays at the top of the conversation.', criteria: ['A pinned message stays at the top'], kind: 'functional',
+    categories: [{ slug: 'messaging', priority: 3 }] } }] }, p_requisito_id: null });
+const apSinItem = await mk('Texto de otro aporte sin ítem guardado en el veredicto.');
+await rpc('resolver_aporte', { p_id: apSinItem, p_estado: 'needs_human', p_veredicto: { items: [{ action: 'needs_human', reason: 'error while checking for duplicates' }] }, p_requisito_id: null });
+const apRechazar = await mk('Otro aporte que habrá que rechazar desde el cuadro de control.');
+await rpc('resolver_aporte', { p_id: apRechazar, p_estado: 'needs_human', p_veredicto: { items: [] }, p_requisito_id: null });
+
+await prueba('admin: línea de tiempo de aportes con filtros, sin sub en claro, validando parámetros', async () => {
+  const r = await admin('GET', '/api/admin/contributions?status=needs_human');
+  assert.equal(r.estado, 200); assert.equal(r.json.items.length, 3);
+  assert.ok(!r.texto.includes(SUB_AUTOR), 'no debe salir el sub en claro');
+  assert.match(r.json.items[0].who, /^[0-9a-f]{10}$/);
+  const quien = r.json.items[0].who;
+  assert.equal((await admin('GET', `/api/admin/contributions?who=${quien}`)).json.items.length, 3);
+  assert.equal((await admin('GET', '/api/admin/contributions?who=0000000000')).json.items.length, 0);
+  assert.equal((await admin('GET', '/api/admin/contributions?limit=2')).json.items.length, 2);
+  assert.ok((await admin('GET', '/api/admin/contributions?limit=2')).json.next);
+  assert.equal((await admin('GET', '/api/admin/contributions?status=inventado')).estado, 400);
+  assert.equal((await admin('GET', '/api/admin/contributions?who=zzz')).estado, 400);
+  assert.equal((await admin('GET', '/api/admin/contributions?requirement=NO VALE')).estado, 400);
+});
+
+await prueba('admin: aprobar un aporte needs_human crea el requisito, lo enlaza, audita y no se puede repetir', async () => {
+  const r = await admin('POST', `/api/admin/contributions/${apConItem}/approve`, {});
+  assert.equal(r.estado, 200, r.texto); assert.equal(r.json.status, 'created');
+  const slug = r.json.items[0].slug;
+  const det = await pedir('GET', `/api/v1/requirements/${slug}`);
+  assert.equal(det.estado, 200); assert.equal(det.json.title, 'Pin messages in a chat');
+  const ap = await admin('GET', `/api/admin/contributions?status=created&requirement=${slug}`);
+  assert.equal(ap.json.items.length, 1); assert.equal(ap.json.items[0].verdict.admin.decision, 'approved');
+  assert.equal((await admin('POST', `/api/admin/contributions/${apConItem}/approve`, {})).estado, 409);     // ya no está en needs_human
+  const aud = (await admin('GET', '/api/admin/audit')).json.audit;
+  assert.ok(aud.some((a) => a.action === 'contribution_approved' && a.target === `contribution:${apConItem}`));
+  assert.ok(!JSON.stringify(aud).includes(SUB_ADMIN));
+  const h = await admin('GET', `/api/admin/requirements/${slug}/history`);
+  assert.equal(h.estado, 200); assert.equal(h.json.current.title, 'Pin messages in a chat'); assert.deepEqual(h.json.versions, []);
+  assert.equal((await admin('GET', '/api/admin/requirements/no-existe-este/history')).estado, 404);
+});
+
+await prueba('admin: aprobar un aporte sin ítem guardado no inventa nada (409) y sigue en la cola; rechazar lo cierra', async () => {
+  const r = await admin('POST', `/api/admin/contributions/${apSinItem}/approve`, {});
+  assert.equal(r.estado, 409);
+  assert.equal((await admin('GET', '/api/admin/contributions?status=needs_human')).json.items.length, 2);
+  const rj = await admin('POST', `/api/admin/contributions/${apRechazar}/reject`, { reason: 'not a requirement' });
+  assert.equal(rj.estado, 200); assert.equal(rj.json.status, 'rejected');
+  assert.equal((await admin('POST', `/api/admin/contributions/${apRechazar}/reject`, {})).estado, 409);
+  assert.equal((await admin('POST', '/api/admin/contributions/abc/approve', {})).estado, 400);
+  const lista = await admin('GET', '/api/admin/contributions?status=rejected');
+  assert.ok(lista.json.items.some((a) => a.id === apRechazar && a.verdict.admin.reason === 'not a requirement'));
+});
+
+await prueba('admin: sugerencias — cola y cambio de estado', async () => {
+  const sub = await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { kind: 'improvement', target: 'typing-indicator', text: 'Please mention group conversations in the criteria.' } });
+  assert.equal(sub.estado, 201);
+  const r = await admin('GET', '/api/admin/suggestions?status=new');
+  assert.equal(r.estado, 200); assert.ok(r.json.suggestions.length >= 1);
+  assert.match(r.json.suggestions[0].who, /^[0-9a-f]{10}$/); assert.ok(!r.texto.includes('user_e2e_'));
+  const id = r.json.suggestions[0].id;
+  assert.equal((await admin('POST', `/api/admin/suggestions/${id}/status`, { status: 'accepted' })).estado, 200);
+  assert.equal((await admin('POST', `/api/admin/suggestions/${id}/status`, { status: 'otra' })).estado, 400);
+  assert.equal((await admin('POST', '/api/admin/suggestions/999999/status', { status: 'dismissed' })).estado, 404);
+  assert.ok((await admin('GET', '/api/admin/suggestions?status=accepted')).json.suggestions.some((s) => s.id === id));
+  assert.equal((await admin('GET', '/api/admin/suggestions?status=xx')).estado, 400);
+});
+
+// un requisito largo para el informe y la división
+await rpc('crear_requisito', { p_titulo: 'Manage invoices end to end', p_clase: 'functional', p_vec: null, p_autor: null, p_aporte_id: null, p_slug: 'manage-invoices-end-to-end',
+  p_enunciado: 'Users can create, edit, send, archive and delete invoices, export them as reports, import contacts, share them with an accountant and receive notifications whenever a customer pays or disputes anything on an invoice.'.padEnd(560, ' and track every change'),
+  p_criterios: ['Create', 'Edit', 'Send', 'Archive', 'Delete', 'Export', 'Import', 'Share'].map((x) => `An invoice can be ${x.toLowerCase()}d`),
+  p_categorias: [{ slug: 'messaging', priority: 2 }, { slug: 'security', priority: 1 }] });
+await rpc('crear_test', { p_titulo: 'Invoices can be created', p_escenario: 'Create an invoice and check it appears in the list of invoices.', p_tipo: 'e2e', p_prioridad: 2,
+  p_requisitos: ['manage-invoices-end-to-end'], p_vec: null, p_autor: null, p_slug: 'invoices-can-be-created' });
+
+await prueba('admin: informe de requisitos partibles con métricas y puntuación', async () => {
+  const r = await admin('GET', '/api/admin/split/candidates');
+  assert.equal(r.estado, 200);
+  const c = r.json.candidates.find((x) => x.slug === 'manage-invoices-end-to-end');
+  assert.ok(c, JSON.stringify(r.json.candidates.map((x) => x.slug)));
+  assert.ok(c.score >= 40 && c.candidate); assert.ok(c.metrics.chars >= 500); assert.equal(c.metrics.criteria, 8); assert.equal(c.metrics.tests, 1);
+  assert.ok(c.metrics.verbs.length >= 4); assert.ok(c.reasons.includes('many_verbs'));
+  assert.ok(!r.json.candidates.some((x) => x.slug === 'typing-indicator'), 'un requisito corto no es candidato');
+  assert.ok((await admin('GET', '/api/admin/split/candidates?min_score=0')).json.candidates.length > r.json.candidates.length);
+});
+
+await prueba('admin: proponer división (Gemini simulado) guarda la propuesta SIN aplicarla; descartar la cierra', async () => {
+  const antes = llamadasGemini.length;
+  const p = await admin('POST', '/api/admin/split/propose', { slug: 'manage-invoices-end-to-end' });
+  assert.equal(p.estado, 201, p.texto); assert.equal(p.json.parts.length, 2); assert.equal(p.json.status, 'pending');
+  assert.ok(llamadasGemini.length > antes);
+  assert.equal((await pedir('GET', '/api/v1/requirements/manage-invoices-end-to-end')).estado, 200);   // sigue publicado
+  const lista = await admin('GET', '/api/admin/split/proposals?status=pending');
+  assert.equal(lista.json.proposals.length, 1); assert.equal(lista.json.proposals[0].requirement, 'manage-invoices-end-to-end');
+  assert.equal((await admin('GET', '/api/admin/split/candidates')).json.candidates.find((x) => x.slug === 'manage-invoices-end-to-end').proposal, p.json.id);
+  assert.equal((await admin('POST', `/api/admin/split/proposals/${p.json.id}/dismiss`, {})).estado, 200);
+  assert.equal((await admin('POST', `/api/admin/split/proposals/${p.json.id}/dismiss`, {})).estado, 404);
+  assert.equal((await admin('POST', '/api/admin/split/propose', { slug: 'no-existe-este-slug' })).estado, 404);
+  assert.equal((await admin('POST', '/api/admin/split/propose', { slug: 'NO VALE' })).estado, 400);
+});
+
+await prueba('admin: si Gemini devuelve algo inválido → 502 y no se guarda nada', async () => {
+  const buena = respuestaDividir;
+  respuestaDividir = { reason: '', parts: [{ title: 'Only one part', statement: 'A single part is not a split at all.', criteria: [] }] };
+  const p = await admin('POST', '/api/admin/split/propose', { slug: 'manage-invoices-end-to-end' });
+  respuestaDividir = buena;
+  assert.equal(p.estado, 502);
+  assert.equal((await admin('GET', '/api/admin/split/proposals?status=pending')).json.proposals.length, 0);
+});
+
+await prueba('admin: aceptar la división crea las partes con las mismas prioridades, archiva el original y deja auditoría', async () => {
+  const p = await admin('POST', '/api/admin/split/propose', { slug: 'manage-invoices-end-to-end' });
+  assert.equal(p.estado, 201);
+  const a = await admin('POST', `/api/admin/split/proposals/${p.json.id}/accept`, {});
+  assert.equal(a.estado, 200, a.texto); assert.equal(a.json.created.length, 2); assert.equal(a.json.archived, 'manage-invoices-end-to-end');
+  assert.equal((await pedir('GET', '/api/v1/requirements/manage-invoices-end-to-end')).estado, 404);   // archivado: ya no es público
+  for (const s of a.json.created) {
+    const d = await pedir('GET', `/api/v1/requirements/${s}`);
+    assert.equal(d.estado, 200); assert.equal(d.json.priority, 1);
+    assert.deepEqual(d.json.categories.map((c) => `${c.slug}:${c.priority}`).sort(), ['messaging:2', 'security:1']);
+    assert.equal(d.json.tests.length, 1);                                                               // el test sigue enlazado
+  }
+  assert.equal((await admin('POST', `/api/admin/split/proposals/${p.json.id}/accept`, {})).estado, 404);   // ya resuelta
+  const aud = (await admin('GET', '/api/admin/audit')).json.audit.map((x) => x.action);
+  for (const acc of ['split_proposed', 'split_dismissed', 'split_accepted', 'contribution_approved', 'contribution_rejected', 'suggestion_status'])
+    assert.ok(aud.includes(acc), `falta ${acc} en la auditoría: ${aud}`);
+  assert.equal((await admin('GET', '/api/admin/split/proposals?status=accepted')).json.proposals.length, 1);
+});
+
+await prueba('admin: rutas inexistentes, métodos erróneos y la API pública sigue sin CORS en /api/admin', async () => {
+  assert.equal((await admin('GET', '/api/admin/nada')).estado, 404);
+  assert.equal((await admin('GET', '/api/admin/split/propose')).estado, 405);
+  const pre = await fetchReal(BASE + '/api/admin/me', { method: 'OPTIONS' });
+  assert.equal(pre.headers.get('access-control-allow-origin'), null);
+});
+
+globalThis.fetch = fetchReal;
+delete process.env.ADMIN_SUBS;
+await prueba('admin: sin ADMIN_SUBS nadie es admin (ni con sesión válida)', async () => {
+  globalThis.fetch = async (u, o) => (String(u?.url ?? u).startsWith('https://clerk.ensayo.test/') ? Response.json({ keys: [jwk] }) : fetchReal(u, o));
+  const r = await admin('GET', '/api/admin/me');
+  assert.equal(r.estado, 403);
+  globalThis.fetch = fetchReal;
+});
+
 api.close(); await falso.cerrar();
 console.log(fallos.length ? `\n  ${fallos.length} fallo(s).\n` : '\n  API ensayada de punta a punta.\n');
 process.exit(fallos.length ? 1 : 0);
