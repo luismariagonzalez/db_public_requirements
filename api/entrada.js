@@ -8,6 +8,7 @@
 import { rutas } from '../lib/rutas.mjs';
 import { resolver, queryDe } from '../lib/router.mjs';
 import { corsPublico, error } from '../lib/http.mjs';
+import { clasificar, registro } from '../lib/actividad.mjs';
 
 export default async function handler(req, res) {
   const url = new URL(req.url, 'http://localhost');
@@ -30,4 +31,7 @@ export default async function handler(req, res) {
   if (r.estado === 405) return error(res, 405, `method not allowed (use ${r.permitidos.join(', ')})`, { allow: r.permitidos.join(', ') });
   try { await r.handler(req, res, r.params); }
   catch { if (!res.headersSent) error(res, 500, 'internal error'); }
+  // Contadores de actividad del cuadro de control: en memoria y por lotes (lib/actividad.mjs).
+  try { const m = clasificar(req.method, ruta, res.statusCode, req.query); if (m.length) await registro.anotar(m); }
+  catch { /* las estadísticas nunca rompen una respuesta */ }
 }

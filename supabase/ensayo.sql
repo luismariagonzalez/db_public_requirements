@@ -908,3 +908,228 @@ begin
   if jsonb_array_length(public.db_public_requirements_srv_mis_aportes('otra_persona')) <> 0 then raise exception 'mis_aportes filtra a otros'; end if;
 end $$;
 reset role;
+
+
+-- ════════════════════════════════════════════════════════════════════════════
+--  0008 · zona admin / cuadro de control
+-- ════════════════════════════════════════════════════════════════════════════
+set local role anon;
+do $$ begin
+  perform public.db_public_requirements_srv_admin_resumen();
+  raise exception 'anon ha podido llamar a srv_admin_resumen';
+exception when insufficient_privilege then null;
+end $$;
+do $$ begin
+  perform public.db_public_requirements_srv_registrar_eventos('{"read":1}');
+  raise exception 'anon ha podido registrar eventos';
+exception when insufficient_privilege then null;
+end $$;
+reset role;
+set local role authenticated;
+do $$ begin
+  perform public.db_public_requirements_srv_admin_auditar('x', 'accion', null, '{}');
+  raise exception 'authenticated ha podido escribir en la auditoría';
+exception when insufficient_privilege then null;
+end $$;
+do $$ begin
+  perform 1 from db_public_requirements.auditoria;
+  raise exception 'authenticated ha leído la auditoría directamente';
+exception when insufficient_privilege then null;
+end $$;
+reset role;
+
+-- todas las funciones admin: solo service_role
+do $$
+declare f record; n int := 0;
+begin
+  for f in select p.oid, p.proname from pg_proc p join pg_namespace s on s.oid = p.pronamespace
+            where s.nspname = 'public' and (p.proname like 'db_public_requirements_srv_admin_%' or p.proname = 'db_public_requirements_srv_registrar_eventos')
+  loop
+    n := n + 1;
+    if has_function_privilege('anon', f.oid, 'execute') or has_function_privilege('authenticated', f.oid, 'execute')
+       or has_function_privilege('public', f.oid, 'execute') then raise exception '% es ejecutable por anon/authenticated/public', f.proname; end if;
+    if not has_function_privilege('service_role', f.oid, 'execute') then raise exception '% no es ejecutable por service_role', f.proname; end if;
+  end loop;
+  if n < 17 then raise exception 'esperaba al menos 17 funciones admin y hay %', n; end if;
+end $$;
+
+-- (como superusuario: aquí se leen tablas directamente; los permisos de las funciones ya se comprobaron arriba)
+do $$
+declare r jsonb; a jsonb; id1 bigint; id2 bigint; id3 bigint; s1 bigint; s2 bigint; n int; sal constant text := 'sal-ensayo';
+        req jsonb; part text; nuevo_a jsonb; t1 jsonb; ap1 bigint; ap2 bigint; ap3 bigint; sub1 constant text := 'user_secreto_uno';
+begin
+  -- ── contadores de actividad: suman por día, ignoran claves raras y tienen tope
+  perform public.db_public_requirements_srv_registrar_eventos('{"read": 3, "search": 2, "NO VALE": 5, "x": 1, "copy": -4, "list": "texto"}');
+  perform public.db_public_requirements_srv_registrar_eventos('{"read": 4}');
+  perform public.db_public_requirements_srv_registrar_eventos(null);
+  perform public.db_public_requirements_srv_registrar_eventos('[1,2]');
+  select d.n into n from db_public_requirements.actividad_diaria d where d.dia = current_date and d.metrica = 'read';
+  if n <> 7 then raise exception 'read debería sumar 7, es %', n; end if;
+  if exists (select 1 from db_public_requirements.actividad_diaria where metrica in ('NO VALE', 'x', 'copy', 'list')) then
+    raise exception 'ha guardado métricas inválidas'; end if;
+  perform public.db_public_requirements_srv_registrar_eventos('{"big": 99999999999}');
+  select d.n into n from db_public_requirements.actividad_diaria d where d.metrica = 'big';
+  if n <> 1000000 then raise exception 'sin tope por evento: %', n; end if;
+
+  -- ── serie de actividad: un elemento por día, con lo derivado de las tablas
+  r := public.db_public_requirements_srv_admin_actividad(30);
+  if jsonb_array_length(r) <> 30 then raise exception 'la serie de 30 días tiene % elementos', jsonb_array_length(r); end if;
+  if jsonb_array_length(public.db_public_requirements_srv_admin_actividad(90)) <> 90 then raise exception 'la serie de 90 días falla'; end if;
+  if jsonb_array_length(public.db_public_requirements_srv_admin_actividad(9999)) <> 365 then raise exception 'el tope de 365 días falla'; end if;
+  if (r->29->>'day')::date <> current_date then raise exception 'el último día no es hoy'; end if;
+  if (r->29->'counters'->>'read')::int <> 7 then raise exception 'contador read no sale en la serie: %', r->29; end if;
+
+  -- ── aportes: línea de tiempo con filtros, hash de autor, paginación
+  ap1 := public.db_public_requirements_srv_registrar_aporte(sub1, 'Users can pin messages to the top of a chat.', '{messaging}');
+  ap2 := public.db_public_requirements_srv_registrar_aporte(sub1, 'Segundo aporte de ensayo con texto suficiente.', '{}');
+  ap3 := public.db_public_requirements_srv_registrar_aporte('user_secreto_dos', 'Tercer aporte de ensayo con texto suficiente.', '{}');
+  perform public.db_public_requirements_srv_resolver_aporte(ap1, 'needs_human',
+    '{"items":[{"action":"needs_human","reason":"low confidence","item":{"title":"Pin messages","statement":"Users can pin messages to the top of a conversation.","criteria":["A pinned message stays on top"],"kind":"functional","categories":[{"slug":"messaging","priority":3}]}}]}');
+  perform public.db_public_requirements_srv_resolver_aporte(ap2, 'rejected', '{"items":[],"reason":"spam"}');
+  perform public.db_public_requirements_srv_resolver_aporte(ap3, 'needs_human', '{"items":[{"action":"needs_human","reason":"sin item"}]}');
+
+  r := public.db_public_requirements_srv_admin_aportes(null, null, null, sal, 50, null);
+  if jsonb_array_length(r->'items') < 3 then raise exception 'faltan aportes en la línea de tiempo'; end if;
+  if (r->'items'->0->>'id')::bigint <> ap3 then raise exception 'orden: el más reciente primero'; end if;
+  if r::text like '%' || sub1 || '%' or r::text like '%user_secreto_dos%' then raise exception 'la línea de tiempo filtra un sub en claro'; end if;
+  if (r->'items'->1->>'who') <> db_public_requirements.hash_corto(sub1, sal) then raise exception 'hash de autor inesperado'; end if;
+  if length(r->'items'->1->>'who') <> 10 then raise exception 'el hash debe ser corto'; end if;
+  if jsonb_array_length(public.db_public_requirements_srv_admin_aportes('needs_human', null, null, sal, 50, null)->'items') <> 2 then
+    raise exception 'filtro por estado falla'; end if;
+  if jsonb_array_length(public.db_public_requirements_srv_admin_aportes(null, null, db_public_requirements.hash_corto(sub1, sal), sal, 50, null)->'items') <> 2 then
+    raise exception 'filtro por persona (hash) falla'; end if;
+  r := public.db_public_requirements_srv_admin_aportes(null, null, null, sal, 2, null);
+  if jsonb_array_length(r->'items') <> 2 or (r->>'next') is null then raise exception 'paginación: %', r; end if;
+  if jsonb_array_length(public.db_public_requirements_srv_admin_aportes(null, null, null, sal, 2, (r->>'next')::bigint)->'items') < 1 then
+    raise exception 'la segunda página está vacía'; end if;
+  if jsonb_array_length(public.db_public_requirements_srv_admin_aportes(null, 'no-existe-este-slug', null, sal, 50, null)->'items') <> 0 then
+    raise exception 'filtro por requisito falla'; end if;
+
+  -- reclamar: solo un aporte en needs_human, y solo una vez
+  r := public.db_public_requirements_srv_admin_aporte_reclamar(ap1);
+  if r is null or r->>'author' <> sub1 or r->'verdict'->'items'->0->'item'->>'title' <> 'Pin messages' then raise exception 'reclamar no devuelve el aporte: %', r; end if;
+  if public.db_public_requirements_srv_admin_aporte_reclamar(ap1) is not null then raise exception 'se ha podido reclamar dos veces'; end if;
+  if public.db_public_requirements_srv_admin_aporte_reclamar(ap2) is not null then raise exception 'se ha reclamado un aporte rechazado'; end if;
+  -- el aporte aprobado se resuelve con las funciones de siempre: crear_requisito con p_aporte_id lo enlaza
+  nuevo_a := public.db_public_requirements_srv_crear_requisito('Pin messages', 'Users can pin messages to the top of a conversation.', '["A pinned message stays on top"]',
+    'functional', '[{"slug":"messaging","priority":3}]', pg_temp.v(40), sub1, ap1);
+  perform public.db_public_requirements_srv_resolver_aporte(ap1, 'created', r->'verdict', (nuevo_a->>'id')::bigint);
+  r := public.db_public_requirements_srv_admin_aportes('created', nuevo_a->>'slug', null, sal, 50, null);
+  if jsonb_array_length(r->'items') <> 1 or r->'items'->0->>'requirement' <> nuevo_a->>'slug' then raise exception 'filtro por requisito creado: %', r; end if;
+
+  -- ── sugerencias: cola y cambio de estado con auditoría
+  s1 := public.db_public_requirements_srv_sugerir('user_sug_uno', 'improvement', 'requirement', nuevo_a->>'slug', 'Please add a criterion about unpinning messages.');
+  s2 := public.db_public_requirements_srv_sugerir('user_sug_dos', 'report', 'general', null, 'Something is odd in the filters on mobile.');
+  r := public.db_public_requirements_srv_admin_sugerencias('new', sal, 50, null);
+  if jsonb_array_length(r) <> 2 or r::text like '%user_sug_uno%' then raise exception 'cola de sugerencias: %', r; end if;
+  if not public.db_public_requirements_srv_admin_sugerencia_estado(s1, 'accepted', 'abcdef1234') then raise exception 'no cambió la sugerencia'; end if;
+  if public.db_public_requirements_srv_admin_sugerencia_estado(999999, 'accepted', 'abcdef1234') then raise exception 'sugerencia inexistente'; end if;
+  begin perform public.db_public_requirements_srv_admin_sugerencia_estado(s1, 'borrada', 'abcdef1234'); raise exception 'ha aceptado un estado inválido';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+  if jsonb_array_length(public.db_public_requirements_srv_admin_sugerencias('new', sal, 50, null)) <> 1 then raise exception 'la sugerencia aceptada sigue en nuevas'; end if;
+  if jsonb_array_length(public.db_public_requirements_srv_admin_sugerencias('accepted', sal, 50, null)) <> 1 then raise exception 'falta en aceptadas'; end if;
+
+  -- ── historial de versiones
+  perform public.db_public_requirements_srv_fusionar((nuevo_a->>'id')::bigint, 'Pin messages in a chat', 'Users can pin messages to the top of a chat and unpin them.',
+    '["A pinned message stays on top","Unpinning removes it"]', '[]', pg_temp.v(40), null);
+  r := public.db_public_requirements_srv_admin_versiones(nuevo_a->>'slug');
+  if r->'current'->>'title' <> 'Pin messages in a chat' or (r->'current'->>'version')::int <> 2
+     or jsonb_array_length(r->'versions') <> 1 or r->'versions'->0->>'title' <> 'Pin messages' then raise exception 'historial: %', r; end if;
+  if public.db_public_requirements_srv_admin_versiones('no-existe') is not null then raise exception 'historial de un requisito inexistente'; end if;
+
+  -- ── candidatos a partir + propuesta de división
+  req := public.db_public_requirements_srv_crear_requisito('Manage projects and teams end to end',
+    'Users can create, edit, archive and delete projects, invite teammates, assign roles, export reports and receive notifications when anything changes in the workspace.',
+    '["Create a project","Edit a project","Archive a project","Delete a project","Invite a teammate","Assign a role","Export a report"]', 'functional',
+    '[{"slug":"messaging","priority":2},{"slug":"security","priority":1}]', pg_temp.v(41), 'user_autor_largo');
+  t1 := public.db_public_requirements_srv_crear_test('Projects can be created and archived', 'Create a project, archive it and check it disappears from the list.', 'e2e', 2,
+    array[req->>'slug'], pg_temp.v(42));
+  perform public.db_public_requirements_srv_crear_acelerador('Team Kit', 'Open source toolkit for teams, roles and invitations in apps.', 'open_source', 'free',
+    'https://example.com/team-kit', '{javascript}', jsonb_build_array(jsonb_build_object('slug', req->>'slug', 'coverage', 'partial')), pg_temp.v(43));
+  r := public.db_public_requirements_srv_admin_candidatos(300);
+  select x into a from jsonb_array_elements(r) x where x->>'slug' = req->>'slug';
+  if a is null or (a->>'criteria_count')::int <> 7 or (a->>'categories_count')::int <> 2 or (a->>'tests_count')::int <> 1
+     or (a->>'accelerators_count')::int <> 1 or a->>'statement' is null then raise exception 'métricas del candidato: %', a; end if;
+  if r->0->>'slug' <> req->>'slug' then raise exception 'el más voluminoso debería ir primero, va %', r->0->>'slug'; end if;
+
+  id1 := public.db_public_requirements_srv_admin_propuesta_crear(req->>'slug',
+    '[{"title":"Create and edit projects","statement":"Users can create and edit projects.","criteria":["Create a project","Edit a project"]},
+      {"title":"Archive and delete projects","statement":"Users can archive and delete projects.","criteria":["Archive a project","Delete a project"]},
+      {"title":"Invite teammates","statement":"Users can invite teammates and assign them roles.","criteria":["Invite a teammate","Assign a role"]}]',
+    'Three independent behaviours', 77, 'modelo-de-ensayo', 'abcdef1234');
+  -- una segunda propuesta del mismo requisito sustituye a la pendiente
+  id2 := public.db_public_requirements_srv_admin_propuesta_crear(req->>'slug',
+    '[{"title":"Create and edit projects","statement":"Users can create and edit projects.","criteria":["Create a project"]},
+      {"title":"Everything else about projects","statement":"Users can archive, delete and share projects.","criteria":["Archive a project"]}]',
+    'Two parts', 70, 'modelo-de-ensayo', 'abcdef1234');
+  if id2 = id1 then raise exception 'el id de la propuesta debería cambiar'; end if;
+  if jsonb_array_length(public.db_public_requirements_srv_admin_propuestas('pending', 50)) <> 1 then raise exception 'debe haber UNA propuesta pendiente por requisito'; end if;
+  if (select x->>'proposal' from jsonb_array_elements(public.db_public_requirements_srv_admin_candidatos(300)) x where x->>'slug' = req->>'slug') <> id2::text then
+    raise exception 'el candidato no marca su propuesta pendiente'; end if;
+  -- la propuesta NO ha tocado el requisito
+  if (select estado from db_public_requirements.requisito where slug = req->>'slug') <> 'published' then raise exception 'proponer no debe archivar'; end if;
+  begin perform public.db_public_requirements_srv_admin_propuesta_crear(req->>'slug', '[{"title":"solo una","statement":"Una sola parte no vale","criteria":[]}]', '', 1, 'm', 'abcdef1234');
+        raise exception 'ha aceptado una sola parte';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+  begin perform public.db_public_requirements_srv_admin_propuesta_crear('no-existe-este-slug', '[{},{}]', '', 1, 'm', 'abcdef1234'); raise exception 'ha aceptado un requisito inexistente';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+
+  -- descartar y volver a proponer
+  if not public.db_public_requirements_srv_admin_propuesta_descartar(id2, 'abcdef1234') then raise exception 'no descartó'; end if;
+  if public.db_public_requirements_srv_admin_propuesta_descartar(id2, 'abcdef1234') then raise exception 'descartó dos veces'; end if;
+  id3 := public.db_public_requirements_srv_admin_propuesta_crear(req->>'slug',
+    '[{"title":"Create and edit projects","statement":"Users can create and edit projects.","criteria":["Create a project","Edit a project"]},
+      {"title":"Archive and delete projects","statement":"Users can archive and delete projects.","criteria":["Archive a project","Delete a project"]}]',
+    'Two behaviours', 72, 'modelo-de-ensayo', 'abcdef1234');
+
+  -- aceptar: crea las partes con las MISMAS prioridades, enlaza tests y aceleradores, archiva el original
+  r := public.db_public_requirements_srv_admin_propuesta_aceptar(id3, jsonb_build_array(pg_temp.v(44), null), 'abcdef1234');
+  if jsonb_array_length(r->'created') <> 2 or r->>'archived' <> req->>'slug' then raise exception 'aceptar devuelve %', r; end if;
+  if (select estado from db_public_requirements.requisito where slug = req->>'slug') <> 'archived' then raise exception 'el original no quedó archivado'; end if;
+  if public.db_public_requirements_srv_requisito(req->>'slug') is not null then raise exception 'el original archivado sigue público'; end if;
+  for part in select jsonb_array_elements_text(r->'created') loop
+    a := public.db_public_requirements_srv_requisito(part);
+    if a is null or a->>'kind' <> 'functional' then raise exception 'parte mal creada: %', a; end if;
+    if (select array_agg((c->>'slug') || ':' || (c->>'priority') order by c->>'slug') from jsonb_array_elements(a->'categories') c)
+         <> array['messaging:2', 'security:1'] then raise exception 'las prioridades no se conservaron: %', a->'categories'; end if;
+  end loop;
+  select count(*) into n from db_public_requirements.test_requisito tr join db_public_requirements.requisito r2 on r2.id = tr.requisito_id
+   where r2.slug = any (array(select jsonb_array_elements_text(r->'created')));
+  if n <> 2 then raise exception 'el test debería estar enlazado a las 2 partes, está en %', n; end if;
+  select count(*) into n from db_public_requirements.acelerador_requisito ar join db_public_requirements.requisito r2 on r2.id = ar.requisito_id
+   where r2.slug = any (array(select jsonb_array_elements_text(r->'created')));
+  if n <> 2 then raise exception 'el acelerador debería estar enlazado a las 2 partes, está en %', n; end if;
+  if (select resultado->>'archived' from db_public_requirements.propuesta_division where id = id3) <> req->>'slug'
+     or (select estado from db_public_requirements.propuesta_division where id = id3) <> 'accepted' then raise exception 'la propuesta no quedó aceptada'; end if;
+  begin perform public.db_public_requirements_srv_admin_propuesta_aceptar(id3, '[]', 'abcdef1234'); raise exception 'aceptó dos veces';
+  exception when raise_exception then if sqlerrm like 'aceptó%' then raise; end if; end;
+  if jsonb_array_length(public.db_public_requirements_srv_admin_propuestas('accepted', 50)) <> 1 then raise exception 'falta la propuesta aceptada'; end if;
+
+  -- ── paneles y resumen
+  update db_public_requirements.requisito set copias = 99 where slug = nuevo_a->>'slug';
+  r := public.db_public_requirements_srv_admin_paneles();
+  if r->'top_copied'->0->>'slug' <> nuevo_a->>'slug' then raise exception 'top copiados: %', r->'top_copied'; end if;
+  if (r->'without_tests'->>'count')::int < 1 or jsonb_typeof(r->'without_tests'->'items') <> 'array' then raise exception 'sin tests: %', r->'without_tests'; end if;
+  if not exists (select 1 from jsonb_array_elements(r->'without_tests'->'items') x where x->>'slug' = nuevo_a->>'slug') then raise exception 'sin tests no incluye uno sin tests'; end if;
+  if exists (select 1 from jsonb_array_elements(r->'without_tests'->'items') x where x->>'slug' = req->>'slug') then raise exception 'sin tests incluye un archivado'; end if;
+  if jsonb_typeof(r->'without_accelerators'->'items') <> 'array' or jsonb_typeof(r->'empty_categories'->'items') <> 'array' then raise exception 'paneles: %', r; end if;
+  perform public.db_public_requirements_srv_upsert_categoria('empty-cat-ensayo', 'cross_cutting', 'Empty category', '', 99);
+  if not exists (select 1 from jsonb_array_elements(public.db_public_requirements_srv_admin_paneles()->'empty_categories'->'items') x where x->>'slug' = 'empty-cat-ensayo') then
+    raise exception 'categorías sin contenido no incluye la vacía'; end if;
+
+  r := public.db_public_requirements_srv_admin_resumen();
+  if (r->'requirements'->>'published')::int < 5 or (r->'requirements'->>'archived')::int <> 1 or (r->>'database_bytes')::bigint <= 0
+     or jsonb_array_length(r->'tables') < 15 or (r->'contributions'->>'needs_human')::int <> 1 or (r->>'copies_total')::int < 99 then raise exception 'resumen: %', r; end if;
+  if not exists (select 1 from jsonb_array_elements(r->'tables') x where x->>'name' = 'requisito' and (x->>'rows')::int >= 5 and (x->>'bytes')::bigint > 0) then
+    raise exception 'resumen: tabla requisito mal contada'; end if;
+
+  -- ── auditoría: quedó constancia de lo que cambió datos y nunca hay un sub en claro
+  r := public.db_public_requirements_srv_admin_auditoria(50);
+  if (select count(*) from jsonb_array_elements(r) x where x->>'action' = 'split_accepted') <> 1
+     or (select count(*) from jsonb_array_elements(r) x where x->>'action' = 'split_proposed') <> 3
+     or (select count(*) from jsonb_array_elements(r) x where x->>'action' = 'split_dismissed') <> 1
+     or (select count(*) from jsonb_array_elements(r) x where x->>'action' = 'suggestion_status') <> 1 then raise exception 'auditoría incompleta: %', r; end if;
+  if r::text like '%user_%' then raise exception 'la auditoría lleva un sub en claro'; end if;
+  perform public.db_public_requirements_srv_admin_auditar('abcdef1234', 'contribution_approved', 'contribution:1', '{"applied":1}');
+  if public.db_public_requirements_srv_admin_auditoria(1)->0->>'action' <> 'contribution_approved' then raise exception 'auditar no escribe'; end if;
+end $$;

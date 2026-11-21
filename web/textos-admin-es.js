@@ -1,0 +1,75 @@
+// Textos del cuadro de control (zona admin), en español. Mismas claves que textos-admin-en.js.
+export default {
+  'meta.title': 'Admin · airedb',
+  'chrome.admin': 'admin',
+  'nav.aria': 'Secciones de administración',
+  'nav.overview': 'Resumen', 'nav.contributions': 'Aportes', 'nav.suggestions': 'Sugerencias', 'nav.split': 'Requisitos largos',
+  'nav.panels': 'Listas', 'nav.history': 'Historial', 'nav.audit': 'Auditoría',
+  'me.id': 'Sesión de admin {id}',
+
+  'gate.checking': 'Comprobando tu acceso…',
+  'gate.403.title': '403 · Solo administradores',
+  'gate.403.text': 'Esta zona es solo para quienes gestionan airedb. Si deberías tener acceso, inicia sesión con tu cuenta de administrador.',
+  'gate.signin': 'Iniciar sesión', 'gate.signout': 'Cerrar sesión', 'gate.back': 'Volver a airedb',
+  'gate.429.title': 'Demasiados intentos', 'gate.error.title': 'No se pudo abrir la zona admin', 'gate.error': 'No se pudo comprobar tu acceso: {msg}',
+  'err.429': 'Demasiadas peticiones. Espera un minuto e inténtalo de nuevo.', 'err.403': 'No permitido: solo administradores.',
+
+  'common.loading': 'Cargando…', 'common.empty': 'No hay nada que mostrar.', 'common.more': 'Cargar más', 'common.retry': 'Reintentar',
+  'common.apply': 'Aplicar', 'common.reset': 'Restablecer', 'common.refresh': 'Actualizar', 'common.all': 'Todos',
+  'common.approve': 'Aprobar', 'common.reject': 'Rechazar', 'common.accept': 'Aceptar', 'common.dismiss': 'Descartar',
+  'common.version': 'versión {n}',
+
+  'sec.activity': 'Actividad', 'sec.database': 'Base de datos', 'sec.contributions': 'Línea de tiempo de aportes y cola de revisión',
+  'sec.suggestions': 'Sugerencias', 'sec.split': 'Requisitos demasiado largos', 'sec.proposals': 'Propuestas de división',
+  'sec.panels': 'Listas útiles', 'sec.history': 'Historial de versiones', 'sec.audit': 'Registro de auditoría',
+
+  'kpi.published': 'Requisitos publicados', 'kpi.archived': 'Requisitos archivados', 'kpi.tests': 'Tests', 'kpi.accelerators': 'Aceleradores',
+  'kpi.categories': 'Categorías', 'kpi.copies': 'Copias en total', 'kpi.needs_human': 'Esperando a una persona', 'kpi.suggestions_new': 'Sugerencias nuevas',
+  'kpi.proposals': 'Divisiones por decidir', 'kpi.keys': 'API keys activas', 'kpi.projects': 'Proyectos', 'kpi.db_size': 'Tamaño de la base',
+
+  'range.aria': 'Periodo', 'range.days': 'Últimos {n} días',
+  'activity.note': 'Lecturas, búsquedas, copias y errores los cuenta la API por lotes, así que son aproximados. Aportes, sugerencias, claves, proyectos y requisitos salen directamente de las tablas. Los contadores diarios se guardan un año.',
+  'graf.resumen': '{titulo}: {total} en total, como máximo {max} en un día (el {dia}).',
+  'graf.contributions': 'Aportes por resultado',
+  'm.read': 'Lecturas de requisitos', 'm.search': 'Búsquedas', 'm.list': 'Listados sin búsqueda', 'm.copy': 'Copias', 'm.export': 'Exportaciones (vista previa)',
+  'm.api_total': 'Peticiones a la API', 'm.error_5xx': 'Errores del servidor (5xx)', 'm.rate_limited': 'Cortadas por cupo (429)',
+  'm.suggestions': 'Sugerencias', 'm.keys_created': 'API keys creadas', 'm.projects_created': 'Proyectos creados', 'm.requirements_created': 'Requisitos creados',
+  'db.note': 'Tamaño total {size}. Las filas son recuentos exactos; el tamaño incluye los índices.',
+
+  'ap.created': 'Creado', 'ap.merged': 'Fusionado', 'ap.rejected': 'Rechazado', 'ap.needs_human': 'Necesita a una persona', 'ap.pending': 'Pendiente',
+  'act.created': 'creado', 'act.merged': 'fusionado', 'act.rejected': 'rechazado', 'act.needs_human': 'necesita a una persona',
+  'c.note': 'La persona se ve como un hash corto (nunca la cuenta). Aprobar un aporte «necesita a una persona» aplica el requisito guardado: lo crea o lo fusiona con el existente sin cambiar las prioridades que ya hay.',
+  'c.status': 'Estado', 'c.requirement': 'Requisito', 'c.who': 'Persona (hash)', 'c.filter.who': 'Ver solo a esta persona',
+  'c.resolved': 'resuelto {d}', 'c.admin': 'Decisión del admin: {d}. {reason}', 'c.admin.approved': 'aprobado', 'c.admin.rejected': 'rechazado',
+  'c.approve.confirm': '¿Aplicar este aporte (crear o fusionar el requisito)?', 'c.reject.prompt': 'Motivo del rechazo (opcional):',
+  'c.approved': 'Aporte #{id} aprobado.', 'c.rejected': 'Aporte #{id} rechazado.',
+
+  'sug.new': 'Nueva', 'sug.accepted': 'Aceptada', 'sug.dismissed': 'Descartada',
+  's.set.new': 'Reabrir', 's.set.accepted': 'Aceptar', 's.set.dismissed': 'Descartar', 's.changed': 'La sugerencia #{id} ahora está {s}.',
+  'kind.new_item': 'Elemento nuevo', 'kind.improvement': 'Mejora', 'kind.report': 'Aviso',
+  'target.requirement': 'requisito', 'target.test': 'test', 'target.accelerator': 'acelerador', 'target.general': 'general',
+
+  'd.note': 'Puntuación de 0 a 100 según la longitud del enunciado, los criterios, los verbos de acción distintos, las categorías y los tests. Desde 40 es candidato a partir. «Proponer división» le pide a la IA de 2 a 4 requisitos más pequeños y solo guarda una propuesta: no cambia nada hasta que la aceptes.',
+  'd.min': 'Puntuación mínima', 'd.none': 'No hay candidatos con esa puntuación.', 'd.propose': 'Proponer división', 'd.repropose': 'Proponer de nuevo', 'd.proposing': 'Consultando a la IA…',
+  'd.proposed': 'Propuesta guardada para {slug}.', 'd.has_proposal': 'tiene propuesta', 'd.score.title': 'Puntuación de candidato a partir (0-100)',
+  'd.m.chars': '{n} caracteres · ', 'd.m.criteria': '{n} criterios · ', 'd.m.categories': '{n} categorías · ', 'd.m.tests': '{n} tests · ',
+  'd.m.verbs': '{n} verbos · ', 'd.m.copies': '{n} copias',
+  'level.high': 'alta', 'level.medium': 'media', 'level.low': 'baja',
+  'why.long_statement': 'enunciado largo', 'why.many_criteria': 'muchos criterios', 'why.many_verbs': 'varios verbos de acción', 'why.many_categories': 'muchas categorías', 'why.many_tests': 'muchos tests',
+  'd.proposals.note': 'Aceptar crea los requisitos nuevos con las mismas categorías y prioridades, enlaza a cada uno los tests y aceleradores del original y archiva el original.',
+  'd.status.pending': 'Pendiente', 'd.status.accepted': 'Aceptada', 'd.status.dismissed': 'Descartada',
+  'd.accept.confirm': '¿Crear los requisitos nuevos y archivar {slug}?', 'd.accepted': 'Hecho: {n} requisitos creados y el original archivado.', 'd.dismissed': 'Propuesta descartada.',
+  'd.reason': 'Motivo: {r}', 'd.score': 'puntuación {n}', 'd.result': 'Creados: {slugs}',
+
+  'p.top': 'Más copiados', 'p.top.note': 'Los requisitos que más se copian.',
+  'p.notests': 'Sin tests', 'p.notests.note': 'Requisitos publicados que ningún test comprueba (primero los más copiados).',
+  'p.noacc': 'Sin aceleradores', 'p.noacc.note': 'Requisitos publicados sin ninguna librería o servicio enlazado.',
+  'p.emptycat': 'Categorías sin contenido', 'p.emptycat.note': 'Categorías que aún no tienen ningún requisito publicado.',
+
+  'h.slug': 'Slug del requisito', 'h.show': 'Ver historial', 'h.note': 'Escribe el slug de un requisito, o pulsa uno en cualquier parte de esta zona.', 'h.notfound': 'No hay ningún requisito con ese slug.',
+  'h.current': 'Actual', 'h.old': 'Anterior', 'h.status.published': 'publicado', 'h.status.archived': 'archivado',
+
+  'a.note': 'Toda acción que cambia datos queda aquí con un hash corto del admin. Se guarda un año.',
+  'aud.contribution_approved': 'aporte aprobado', 'aud.contribution_rejected': 'aporte rechazado', 'aud.suggestion_status': 'estado de sugerencia',
+  'aud.split_proposed': 'división propuesta', 'aud.split_accepted': 'división aceptada', 'aud.split_dismissed': 'división descartada',
+};

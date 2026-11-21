@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin · airedb</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./estilo.css">
+<link rel="stylesheet" href="./admin.css">
+<script type="module" src="./admin.js"></script>
+</head>
+<body>
+<header class="barra">
+  <div class="barra-in">
+    <a class="logo" href="./"><span class="cuadro"></span><span id="logoTxt">airedb</span></a>
+    <span class="etiqueta-admin mono" id="etiquetaAdmin">admin</span>
+    <span class="mono tenue yo" id="yo"></span>
+    <div class="der">
+      <button type="button" class="boton" id="refrescar">Refresh</button>
+      <div class="idiomas" role="group" aria-label="Language / Idioma">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="es" aria-pressed="false">ES</button>
+      </div>
+    </div>
+  </div>
+</header>
+<main class="adm">
+  <div id="aviso" class="aviso-adm" role="status" aria-live="polite" hidden></div>
+  <section id="puerta" class="puerta" aria-live="polite"></section>
+  <div id="panel" hidden>
+    <nav id="pestanas" class="pestanas" role="tablist" aria-label="Admin sections"></nav>
+    <section id="vista" class="vista" role="tabpanel" tabindex="-1"></section>
+  </div>
+  <noscript><p>This area needs JavaScript.</p></noscript>
+</main>
+</body>
+</html>
