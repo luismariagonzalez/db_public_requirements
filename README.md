@@ -38,6 +38,12 @@ curl "https://joderestatodocogido.com/proyectos/requirements-db/app/api/v1/requi
 - With an account or API key: `/api/v1/projects` (and `PUT /:id/items` so the agent marks what is done, in progress or planned), `/api/v1/suggestions`.
 - With a session (Clerk: Google, GitHub or email with a code): `POST /api/contribute` (an AI reviews it: is it already there? merge or create), `/api/me/keys`, `/api/me/contributions`, `DELETE /api/me`.
 
+## Requirements by country (regulation)
+
+A requirement exists once and is tied to the jurisdictions where it applies (ISO country codes, `EU`, regions), each with its own short note and official source. Add `country=ES` (comma separated) to `GET /api/v1/requirements`, `GET /api/v1/requirements/:slug` or `POST /api/v1/export` (`country` in the body), or `--country ES` in the CLI: you get only what applies there, with that country's note and source and no other country's. Generic requirements stay unless you add `country_only=1`. `GET /api/v1/jurisdictions` lists the available ones (today: `ES` and `EU`; regulated online gambling in Spain is the first set).
+
+> **Informational guidance, not legal advice. Always verify the current text of each cited norm in the official source.**
+
 ## Run your own copy
 
 Needs a Postgres with `pgvector` (Supabase), a Gemini API key (embeddings and review), and Clerk for sign-in. See [AGENTS.md](AGENTS.md) for the variables, quotas and house rules.

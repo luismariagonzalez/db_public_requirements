@@ -17,6 +17,7 @@ semilla/requisitos/
 semilla/tests/
 semilla/aceleradores/
 semilla/antes_de_recalibrar/
+semilla/regulacion-*/
 
 # Taxonomía de software importada de Capterra (se regenera con scripts/importar_capterra.mjs)
 semilla/capterra_bruto.json

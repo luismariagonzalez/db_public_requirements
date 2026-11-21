@@ -1,7 +1,7 @@
 // La página. Todo el texto de la base se pinta con textContent, nunca con
 // innerHTML: los requisitos los escribe la comunidad y son datos no confiables.
 import { rutaBusqueda, hayFiltro, urlSegura, CLASES, ORDENES, ESTADOS, categoriasEfectivas, visibles, dominiosDisponibles, MAX_SOFTWARE,
-  chipsActivos, quitarFiltro, limpiarFiltros, contarFiltros, flujosPorFamilia } from './consulta.js';
+  chipsActivos, quitarFiltro, limpiarFiltros, contarFiltros, flujosPorFamilia, paisesElegibles } from './consulta.js';
 import { entrar, salir, token, usuario, cargarClerk, huboSesion, marcarSesion } from './clerk.js';
 import { iniciar, idioma, t as T, tn as TN, fecha as FECHA } from './i18n.js';
 import { piezasMetricas } from './metricas.js';
@@ -15,7 +15,8 @@ iniciar(() => renderTodo());
 // API ('/api/v1/…') se cuelgan de ahí, así que todo es relativo y funciona en los dos sitios.
 const BASE = new URL('./', location.href).pathname.replace(/\/$/, '');
 const estado = { q: '', prio: 5, cats: [], audiencias: [], dominios: [], filtroCat: '', items: [], sel: new Set(), categorias: [],
-  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false, kinds: [], orden: null, recordar: true, tab: 'md', pestana: 'tipos' };
+  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false, kinds: [], orden: null, recordar: true, tab: 'md', pestana: 'tipos',
+  paises: [], soloPais: false, jurisdicciones: [] };
 let sesion = false;
 let proyectos = [];
 
@@ -146,7 +147,19 @@ function pintarResumenes() {
   $('#chipsActivos').replaceChildren(...chips.map((c) => el('button', { type: 'button', class: 'chip-act', 'aria-label': T('chip.quitar', { texto: c.texto }),
     onclick: () => { quitarFiltro(estado, c); if (c.tipo === 'q') $('#q').value = ''; pintarFiltros(); buscar(); } }, c.texto, el('i', { 'aria-hidden': 'true' }, '×'))));
 }
-function pintarFiltros() { pintarConstruyes(); pintarAdemas(); pintarKinds(); pintarOrden(); pintarResumenes(); }
+// País (jurisdicción): pastillas con lo que tiene requisitos. Elegir uno deja solo lo que aplica allí y,
+// en cada requisito, el matiz de ese país. «Solo lo específico» quita los requisitos genéricos.
+function pintarPaises() {
+  const lista = paisesElegibles(estado.jurisdicciones);
+  $('#grupoPais').hidden = lista.length === 0;
+  $('#paises').replaceChildren(...lista.map((j) => pildora(`${j.code} · ${j.name}`, estado.paises.includes(j.code),
+    () => { const i = estado.paises.indexOf(j.code); if (i >= 0) estado.paises.splice(i, 1); else estado.paises.push(j.code);
+      if (!estado.paises.length) estado.soloPais = false; pintarFiltros(); buscar(); }, T('pais.titulo', { n: j.requirements }))));
+  const b = $('#soloPais');
+  b.hidden = estado.paises.length === 0; b.setAttribute('aria-checked', String(estado.soloPais));
+}
+$('#soloPais').addEventListener('click', () => { estado.soloPais = !estado.soloPais; pintarPaises(); buscar(); });
+function pintarFiltros() { pintarConstruyes(); pintarAdemas(); pintarKinds(); pintarOrden(); pintarPaises(); pintarResumenes(); }
 
 $('#borrarFiltros').addEventListener('click', () => { limpiarFiltros(estado); $('#q').value = ''; $('#filtroCat').value = ''; pintarPrio(); pintarFiltros(); buscar(); });
 for (const b of document.querySelectorAll('[data-pestana]')) b.addEventListener('click', () => { estado.pestana = b.dataset.pestana; pintarConstruyes(); });
@@ -225,6 +238,18 @@ const insignia = (st) => (st ? el('span', { class: `est est-${st}` }, T(`est.${s
 function detalleDe(it) {
   const partes = [el('p', {}, it.statement)];
   if (it.criteria?.length) partes.push(el('ul', {}, ...it.criteria.map((c) => el('li', {}, c))));
+  // país: con uno elegido, el matiz de ese país y su fuente; sin país, solo dónde aplica
+  const conMatiz = (it.jurisdictions ?? []).filter((j) => j.note || j.source);
+  if (conMatiz.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, T('det.pais')),
+    ...conMatiz.map((j) => {
+      const href = urlSegura(j.source?.url);
+      return el('p', { class: 'matiz' }, el('b', {}, `${j.code} (${j.name}): `), j.note ?? T('det.pais.igual'),
+        j.status === 'upcoming' ? ` ${T('det.pais.futuro', { fecha: j.source?.in_force_from ?? '' })}` : '',
+        j.source?.norm ? el('small', {}, ' ', T('det.pais.fuente'), ' ', j.source.norm, j.source.date ? ` (${j.source.date})` : '', ' ') : null,
+        href ? el('a', { href, rel: 'noopener noreferrer', target: '_blank' }, T('det.pais.oficial')) : null);
+    })));
+  else if (it.jurisdictions?.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, T('det.pais')),
+    el('p', {}, T('det.pais.aplica', { c: it.jurisdictions.map((j) => j.code).join(', ') }))));
   if (it.tests?.length) partes.push(el('div', { class: 'sec-det' }, el('div', { class: 'etq-lat' }, T('det.tests')),
     ...it.tests.map((t) => el('div', { class: 'test' }, el('span', { class: 'pb', 'data-p': String(t.priority) }, `P${t.priority}`),
       el('span', {}, el('b', {}, t.title), ` · ${t.type} — ${t.scenario} `, insignia(t.project_status))))));
@@ -274,6 +299,8 @@ function pintarLista() {
   if (estado.items.length) $('#estado').textContent = '';
   else if (hayFiltro(estado)) $('#estado').textContent = T('estado.vacio');
   for (const it of estado.items) ul.append(filaReq(it));
+  // aviso legal: siempre que lo que se ve toque normativa de algún país
+  $('#avisoLegal').hidden = !(estado.paises.length || estado.items.some((it) => it.jurisdictions?.length));
   actualizarCuenta();
 }
 function actualizarCuenta() {
@@ -313,7 +340,8 @@ async function cargarSalida() {
   } else {
     const cuerpo = { slugs, format: estado.tab === 'json' ? 'json' : 'md', tests_max_priority: estado.prio,
       include: [estado.incluirTests && 'tests', estado.incluirAceleradores && 'accelerators'].filter(Boolean),
-      project: estado.proyecto ?? undefined, hide: estado.proyecto && estado.ocultarHecho ? 'done' : undefined };
+      project: estado.proyecto ?? undefined, hide: estado.proyecto && estado.ocultarHecho ? 'done' : undefined,
+      country: estado.paises.length ? estado.paises.join(',') : undefined, country_only: estado.soloPais || undefined };
     try {
       const r = await api('POST', '/api/v1/export', cuerpo);
       texto = estado.tab === 'json' ? JSON.stringify(r, null, 2) : r;
@@ -620,6 +648,7 @@ function renderTodo() {
     // Enlaces desde el mapa (mapa.html): ?q=<texto> lanza esa búsqueda.
     const qUrl = new URLSearchParams(location.search).get('q')?.trim().slice(0, 200);
     if (qUrl) { estado.q = qUrl; $('#q').value = qUrl; pintarResumenes(); }
+    estado.jurisdicciones = (await api('GET', '/api/v1/jurisdictions').catch(() => ({ jurisdictions: [] }))).jurisdictions;
     pintarFiltros();
   } catch (e) { $('#estado').textContent = msgError(e); }
   await buscar();
