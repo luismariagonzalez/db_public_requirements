@@ -73,7 +73,7 @@ prioridad 1-5, y se copian como Markdown o JSON para pasárselos al agente.
 - Embeddings: `gemini-embedding-001` a 768 dimensiones, `vector(768)` + HNSW coseno. Cambiar
   de modelo o de dimensión obliga a re-embeber todo y a una migración nueva.
 - **Texto del embedding y reembebido (migración 0006):** el vector de un requisito se calcula SIEMPRE con `textoParaEmbedding` (`lib/texto_embedding.mjs`: título + enunciado + criterios + clase + todas sus categorías con nombre, más dominios y audiencias deducidos). Lo usan `sembrar.mjs`, `revisar.mjs` (al fusionar con categorías nuevas se recalcula) y `anadir_borradores.mjs`; cambiar la composición obliga a subir `VERSION_TEXTO` y la columna `embedding_v`. **Tras desplegar la 0006 hay que ejecutar UNA vez** `node scripts/reembeber.mjs` (`--dry` para ver; por lotes, reanudable; usa `srv_requisitos_para_embeber` / `srv_guardar_embedding`) y después `node scripts/mapa_calcular.mjs`.
-- **Páginas de la web (`web/`):** `index.html` es solo la portada (hero, las cinco cajas y cajas hacia cada página, que coinciden con el menú), `buscador.html` el buscador con la zona de cuenta (colaborar, proyectos, aportar, sugerencias), `mapa.html`, `api.html` (referencia de la API, claves de API y CLI juntos; `cli.html` sigue siendo la documentación completa del CLI para agentes) y `terms.html`/`legal.html`. `app.js` sirve a `buscador.html` y `api.html` y se guía por `<body data-pagina="buscador|api">`: lo que falta en la página actual lo sustituye por un elemento suelto (`# db_public_requirements
+- **Páginas de la web (`web/`):** `index.html` es solo la portada (hero, las cinco cajas y cajas hacia cada página, que coinciden con el menú), `buscador.html` el buscador y los proyectos, `colaborar.html` (herramientas para el agente, aportes y sugerencias), `mapa.html`, `api.html` (referencia de la API, claves de API y, debajo, la documentación completa del CLI; `cli.html` solo redirige ahí) y `terms.html`/`legal.html`. `app.js` sirve a `buscador.html`, `colaborar.html` y `api.html` y se guía por `<body data-pagina="buscador|colaborar|api">`: lo que falta en la página actual lo sustituye por un elemento suelto (`# db_public_requirements
 
 Base pública de **requisitos de software** para quien hace vibe coding: se buscan o se
 filtran (tipo de app, tipo de pantalla, transversales como seguridad), cada uno con una
@@ -165,7 +165,7 @@ prioridad 1-5, y se copian como Markdown o JSON para pasárselos al agente.
 
 ## El CLI
 
-`cli/reqdb.mjs` (un fichero, sin dependencias, sin MCP a propósito) se publica como `/reqdb.mjs` y se documenta en `web/cli.html` (EN/ES). Usa solo la API pública: si cambias un contrato de la API, cambia el CLI y `tests/cli.test.mjs`. Códigos de salida: 0 ok, 1 pendiente/rechazado, 2 uso, 3 clave, 4 cupo, 5 red.
+`cli/reqdb.mjs` (un fichero, sin dependencias, sin MCP a propósito) se publica como `/reqdb.mjs` y se documenta en `web/api.html#cli` (EN/ES; `cli.html` es solo una redirección). Usa solo la API pública: si cambias un contrato de la API, cambia el CLI y `tests/cli.test.mjs`. Códigos de salida: 0 ok, 1 pendiente/rechazado, 2 uso, 3 clave, 4 cupo, 5 red.
 
 ## Cómo se trabaja
 

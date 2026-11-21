@@ -22,12 +22,15 @@ test('hay una etiqueta por cada categoría de herramienta de la base', () => {
   for (const c of CATEGORIAS_HERRAMIENTA) assert.ok(`col.cat.${c}` in colEn, c);
 });
 
-test('el botón de la cabecera, la caja y sus claves existen en el HTML', () => {
-  const html = readFileSync(new URL('../web/buscador.html', import.meta.url), 'utf8');
-  for (const id of ['btnColaborar', 'colaborar', 'colLista', 'colBuscar', 'colCopiar', 'colPrompt', 'colEstado', 'colClaves'])
+test('el botón de la cabecera del buscador, la caja de la página Colaborar y sus claves existen en el HTML', () => {
+  const buscador = readFileSync(new URL('../web/buscador.html', import.meta.url), 'utf8');
+  assert.ok(buscador.includes('id="btnColaborar"'));
+  assert.ok(buscador.includes('id="btnColaborar" href="./colaborar.html"'));
+  const html = readFileSync(new URL('../web/colaborar.html', import.meta.url), 'utf8');
+  for (const id of ['colaborar', 'colLista', 'colBuscar', 'colCopiar', 'colPrompt', 'colEstado', 'colClaves', 'aportar', 'sugerencias'])
     assert.ok(html.includes(`id="${id}"`), id);
-  assert.match(html, /href="#colaborar"/);
-  assert.match(html, /colaborar\.css/);
+  assert.match(html, /data-pagina="colaborar"/);
+  assert.ok(html.includes('colaborar.css'));
   assert.doesNotMatch(html, /sugObjetivo/);       // «Sugerir» ya no apunta a requisitos, tests ni aceleradores
 });
 

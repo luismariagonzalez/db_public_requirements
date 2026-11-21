@@ -1,16 +1,15 @@
 // El mapa 2D de requisitos: un lienzo con zoom y arrastre, puntos coloreados por una dimensión,
 // buscador que resalta y tarjeta con el detalle. Todo el texto de la base se pinta con textContent
 // (los requisitos los escribe la comunidad: datos no confiables). La lógica pura está en mapa_logica.js.
-import { iniciar, t as T, tn as TN, fecha as FECHA } from './i18n.js';
+import { iniciar, t as T, tn as TN } from './i18n.js';
 import { DIMENSIONES, leyenda, colorDe, claveDe, frecuenciaTemas, aPantalla, encuadrar, zoomEn, desplazar, radio, palabras,
-  coincide, ordenDeDibujo, notables, urlAbrir, legible, hayMapa, GRIS } from './mapa_logica.js';
+  coincide, ordenDeDibujo, urlAbrir, legible, hayMapa, GRIS } from './mapa_logica.js';
 
 const $ = (s) => document.querySelector(s);
 const BASE = new URL('./', location.href).pathname.replace(/\/$/, '');   // la app puede colgar de otra ruta
-const MAX_LISTA = 30;
 
 const est = {
-  puntos: [], nombres: new Map(), generado: null,
+  puntos: [], nombres: new Map(),
   dim: 'archetype', q: '', ws: [],
   ley: [], colorDe: () => GRIS, aislado: null,           // aislado: un color de la leyenda, o null
   frec: new Map(), claves: [], colores: [], activos: [], orden: [],
@@ -51,7 +50,6 @@ async function cargar() {
   if (mapa.status === 'rejected') return mostrarEstado('error', mapa.reason?.message ?? '');
   if (cats.status === 'fulfilled') est.nombres = new Map((cats.value.categories ?? []).map((c) => [c.slug, c.name]));
   est.puntos = (mapa.value.points ?? []).filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
-  est.generado = mapa.value.generated_at ?? null;
   if (!hayMapa(est.puntos)) return mostrarEstado('vacio');
 
   est.frec = frecuenciaTemas(est.puntos);
@@ -114,14 +112,6 @@ function pintarCuenta() {
   if (sin) $('#mapaSinCoincidencias').textContent = T('mapa.sin.coincidencias', { q: est.q.trim() || '…' });
 }
 
-function pintarLista() {
-  const lista = hayFiltro() ? notables(coinciden(), MAX_LISTA) : notables(est.puntos, MAX_LISTA);
-  $('#mapaListaT').textContent = T(hayFiltro() ? 'mapa.lista.coinciden' : 'mapa.lista.notables');
-  $('#mapaLista').replaceChildren(...lista.map((p) => el('li', {},
-    el('button', { type: 'button', class: 'mapa-item', onclick: () => seleccionar(est.puntos.indexOf(p), true) },
-      el('span', {}, p.title), el('span', { class: 'mono tenue' }, T('mapa.prio', { n: p.priority ?? '?' }))))));
-}
-
 function pintarTarjeta() {
   const caja = $('#mapaCard');
   const p = est.puntos[est.sel];
@@ -141,7 +131,6 @@ function pintarTarjeta() {
 }
 
 function pintarPie() {
-  $('#mapaGenerado').textContent = est.generado ? T('mapa.generado', { fecha: FECHA(est.generado) }) : '';
   $('#mapaCanvas').setAttribute('aria-label', T('mapa.canvas.aria', { n: est.puntos.length }));
 }
 
@@ -150,7 +139,7 @@ function renderTodo() {
   document.querySelector('meta[name="description"]')?.setAttribute('content', T('mapa.meta.description'));
   if ($('#mapaEstado').dataset.tipo && !$('#mapaEstado').hidden) return mostrarEstado($('#mapaEstado').dataset.tipo, $('#mapaEstado').dataset.detalle);
   if (!est.listo) return;
-  pintarLeyenda(); pintarCuenta(); pintarLista(); pintarTarjeta(); pintarPie();
+  pintarLeyenda(); pintarCuenta(); pintarTarjeta(); pintarPie();
   est.sucio = true;
 }
 

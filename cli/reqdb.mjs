@@ -177,7 +177,7 @@ Global options
 
 Config precedence: flags > env (REQDB_URL, REQDB_KEY, REQDB_PROJECT) > .reqdb.json > ~/.config/reqdb/config.json.
 Exit codes: 0 ok · 1 pending work / refused · 2 usage · 3 key missing or invalid · 4 rate limited · 5 network or server.
-Docs: ${URL_DEFECTO}/cli.html`;
+Docs: ${URL_DEFECTO}/api.html#cli`;
 
 const COMANDOS = {
   async help({ io }) { io.out(AYUDA); },

@@ -54,13 +54,6 @@ main#mapa a.boton.acento-b { color: var(--bg); }
 .mapa-datos dt { color: var(--faint); font: 11.5px var(--mono); text-transform: uppercase; letter-spacing: .06em; padding-top: 2px; }
 .mapa-datos dd { margin: 0; color: var(--txt); overflow-wrap: anywhere; }
 
-/* lista accesible (alternativa al lienzo) */
-.mapa-lista-caja h2 { margin: 24px 0 10px; font-size: 15px; font-weight: 500; color: var(--txt); }
-.mapa-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px; }
-.mapa-item { display: flex; width: 100%; justify-content: space-between; align-items: baseline; gap: 10px; min-height: 44px; padding: 8px 12px; text-align: left;
-  border: 1px solid var(--l1); border-radius: 8px; background: var(--bg); color: var(--txt); font-size: 13px; }
-.mapa-item:hover { border-color: var(--l3); background: var(--hover); }
-.mapa-pag .nota { margin-top: 16px; }
 
 @media (max-width: 640px) {
   body > main#mapa.mapa-pag { padding: 18px 14px 32px; }
@@ -68,5 +61,4 @@ main#mapa a.boton.acento-b { color: var(--bg); }
   .mapa-barra .campo[type=search] { max-width: none; flex-basis: 100%; }
   .mapa-card { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 58%; }
   .mapa-zoom { left: 8px; bottom: auto; top: 8px; flex-direction: row; }
-  .mapa-lista { grid-template-columns: 1fr; }
 }

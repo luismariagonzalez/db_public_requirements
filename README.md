@@ -7,7 +7,7 @@ A public database of **software requirements, tests and accelerators** for peopl
 AI agents write code well, but they rarely get detailed requirements or the best libraries to start from. Pick what your app must do (by type of app, audience, domain or cross-cutting concern such as security), each item with a **priority from 1 to 5**, and hand it to your agent as Markdown or JSON. Search is hybrid: by meaning (embeddings) and by keywords.
 
 - **Live app:** <https://joderestatodocogido.com/proyectos/requirements-db/app/> (English and Spanish interface)
-- **CLI docs for agents:** <https://joderestatodocogido.com/proyectos/requirements-db/app/cli.html>
+- **CLI docs for agents:** <https://joderestatodocogido.com/proyectos/requirements-db/app/api.html#cli>
 - Requirements say **what** an app must do, never **where** (screens, buttons, layout): that is the agent's decision.
 
 ## Use it from the terminal (`reqdb`)

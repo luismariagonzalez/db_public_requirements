@@ -11,6 +11,7 @@ import { iniciarColaborar } from './colaborar.js';
 // devuelve un elemento suelto, así el resto del código no tiene que comprobar cada caso.
 const PAGINA = document.body.dataset.pagina ?? '';
 const BUSCADOR = PAGINA === 'buscador';
+const COLABORAR = PAGINA === 'colaborar';
 const $ = (s) => document.querySelector(s) ?? document.createElement('div');
 // Idioma: se fija ya (EN/ES) y, al cambiarlo, se vuelve a pintar todo lo dinámico (renderTodo).
 iniciar(() => renderTodo());
@@ -426,9 +427,11 @@ function pintarSesion(user) {
   if (!user) { estado.proyecto = null; proyectos = []; }
   if (user) recargarCuenta();
 }
-// Lo de la cuenta que muestra cada página: el buscador, aportes, proyectos y sugerencias; la API, las claves.
+// Lo de la cuenta que muestra cada página: el buscador, los proyectos; colaborar, aportes y sugerencias; la API, las claves.
 function recargarCuenta() {
-  if (BUSCADOR) { cargarAportes(); cargarProyectos(); cargarSugerencias(); } else cargarClaves();
+  if (BUSCADOR) cargarProyectos();
+  else if (COLABORAR) { cargarAportes(); cargarSugerencias(); }
+  else cargarClaves();
 }
 // «Project» (cabecera) lleva a entrar si no hay sesión.
 for (const id of ['#proyEntrar'])
@@ -643,14 +646,14 @@ $('#ejemploCli').textContent =
   `curl -fsSL ${location.origin}${BASE}/reqdb.mjs -o reqdb.mjs\nnode reqdb.mjs pull --category messaging --max-priority 2`;
 pintarPrio(); pintarKinds(); pintarOrden(); pintarTitulo();
 // «¿Quieres colaborar?»: catálogo de herramientas y prompt para el agente (web/colaborar.js)
-const colaborar = BUSCADOR ? iniciarColaborar({ $, el, api, copiar, base: `${location.origin}${BASE}` }) : { repintar() {} };
+const colaborar = COLABORAR ? iniciarColaborar({ $, el, api, copiar, base: `${location.origin}${BASE}` }) : { repintar() {} };
 
 // Al cambiar de idioma se vuelve a pintar todo lo que genera este script (lo estático lo hace i18n.js).
 function renderTodo() {
-  if (!BUSCADOR) { pintarLeyenda(); $('#btnCuenta').textContent = T(sesion ? 'cuenta.salir' : 'cuenta.entrar'); if (sesion) cargarClaves(); return; }
+  if (!BUSCADOR) { pintarLeyenda(); colaborar.repintar(); $('#btnCuenta').textContent = T(sesion ? 'cuenta.salir' : 'cuenta.entrar'); if (sesion) recargarCuenta(); return; }
   pintarPrio(); pintarLeyenda(); pintarTitulo(); pintarFiltros(); pintarEstadosProyecto(); pintarLista(); colaborar.repintar();
   $('#btnCuenta').textContent = T(sesion ? 'cuenta.salir' : 'cuenta.entrar');
-  if (sesion) { cargarProyectos(); cargarAportes(); cargarClaves(); cargarSugerencias(); }
+  if (sesion) recargarCuenta();
 }
 (async () => {
   if (!BUSCADOR) { pintarLeyenda(); iniciarSesion(); return; }

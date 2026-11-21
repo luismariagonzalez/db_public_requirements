@@ -49,7 +49,7 @@ test('terms.html sale de LICENSE-DATA.md, escapado y con la restricción visible
 
 test('legal y CLI llevan un bloque por idioma, el conmutador y el script de idioma', () => {
   construir();
-  for (const f of ['legal.html', 'cli.html', 'terms.html']) {
+  for (const f of ['legal.html', 'terms.html']) {
     const html = readFileSync(new URL(`publico/${f}`, raiz), 'utf8');
     assert.match(html, /<div class="en">/, f);
     assert.match(html, /<div class="es">/, f);

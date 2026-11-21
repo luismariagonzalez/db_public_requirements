@@ -7,7 +7,7 @@ Una base de datos pública de **requisitos de software, tests y aceleradores** p
 Los agentes de IA programan bien, pero casi nunca reciben requisitos detallados ni las mejores librerías de partida. Elige lo que tu app debe cumplir (por tipo de app, audiencia, dominio o aspecto transversal como la seguridad), cada elemento con una **prioridad de 1 a 5**, y pásaselo a tu agente en Markdown o JSON. La búsqueda es híbrida: por significado (embeddings) y por palabras.
 
 - **App en vivo:** <https://joderestatodocogido.com/proyectos/requirements-db/app/> (interfaz en inglés y español)
-- **Documentación del CLI para agentes:** <https://joderestatodocogido.com/proyectos/requirements-db/app/cli.html>
+- **Documentación del CLI para agentes:** <https://joderestatodocogido.com/proyectos/requirements-db/app/api.html#cli>
 - Los requisitos dicen **qué** debe hacer una app, nunca **dónde** (pantallas, botones, diseño): eso lo decide el agente.
 
 ## Úsalo desde la terminal (`reqdb`)
