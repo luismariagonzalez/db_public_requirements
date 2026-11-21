@@ -3,7 +3,8 @@
 import { rutaBusqueda, hayFiltro, urlSegura, CLASES, ORDENES, ESTADOS, categoriasEfectivas, visibles, dominiosDisponibles, MAX_SOFTWARE,
   chipsActivos, quitarFiltro, limpiarFiltros, contarFiltros, flujosPorFamilia } from './consulta.js';
 import { entrar, salir, token, usuario, cargarClerk, huboSesion, marcarSesion } from './clerk.js';
-import { iniciar, t as T, tn as TN, fecha as FECHA } from './i18n.js';
+import { iniciar, idioma, t as T, tn as TN, fecha as FECHA } from './i18n.js';
+import { piezasMetricas } from './metricas.js';
 
 const $ = (s) => document.querySelector(s);
 // Idioma: se fija ya (EN/ES) y, al cambiarlo, se vuelve a pintar todo lo dinámico (renderTodo).
@@ -231,7 +232,10 @@ function detalleDe(it) {
     el('div', { class: 'chips' }, ...it.accelerators.map((a) => {
       const href = urlSegura(a.url);
       const txt = [a.name, el('small', {}, `${a.model.replace('_', ' ')} · ${a.cost} · ${a.coverage}`)];
-      return href ? el('a', { class: 'chip', href, rel: 'noopener noreferrer', target: '_blank' }, ...txt) : el('span', { class: 'chip' }, ...txt);
+      const met = piezasMetricas(a, { t: T, fecha: FECHA, locale: idioma() === 'es' ? 'es-ES' : 'en-GB' });
+      if (met) txt.push(...met.partes.map((p) => el('small', { class: 'met', title: p.titulo }, p.texto)));
+      const atr = met ? { title: met.titulo } : {};
+      return href ? el('a', { class: 'chip', href, rel: 'noopener noreferrer', target: '_blank', ...atr }, ...txt) : el('span', { class: 'chip', ...atr }, ...txt);
     }))));
   partes.push(el('div', { class: 'chips' }, ...it.categories.slice(0, 8).map((c) => el('span', { class: 'tag' }, `${c.slug} · P${c.priority}`)),
     enlaceSugerir('requirement', it.slug)));

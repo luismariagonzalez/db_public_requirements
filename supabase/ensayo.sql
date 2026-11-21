@@ -1133,3 +1133,149 @@ begin
   perform public.db_public_requirements_srv_admin_auditar('abcdef1234', 'contribution_approved', 'contribution:1', '{"applied":1}');
   if public.db_public_requirements_srv_admin_auditoria(1)->0->>'action' <> 'contribution_approved' then raise exception 'auditar no escribe'; end if;
 end $$;
+
+
+-- ═══ 0009: métricas de los aceleradores (estrellas, descargas, proceso de refresco)
+set local role service_role;
+do $$
+declare
+  r jsonb; v0 timestamptz; v1 timestamptz; v_ahora timestamptz := now() + interval '1 minute';
+begin
+  -- sin origen no hay nada que refrescar
+  r := public.db_public_requirements_srv_metricas_pendientes(10, v_ahora);
+  if jsonb_array_length(r) <> 0 then raise exception 'sin origen no debería haber pendientes: %', r; end if;
+
+  -- fijar el origen: valida formatos
+  perform public.db_public_requirements_srv_fijar_origen('lucia-auth', 'https://github.com/lucia-auth/lucia', 'npm', '@scope/lucia');
+  perform public.db_public_requirements_srv_fijar_origen('realtime-cloud', null, 'pypi', 'realtime-cloud');
+  begin
+    perform public.db_public_requirements_srv_fijar_origen('lucia-auth', 'http://github.com/x/y', null, null);
+    raise exception 'ha aceptado un repo_url http';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+  begin
+    perform public.db_public_requirements_srv_fijar_origen('lucia-auth', null, 'npm', 'Bad Name With Spaces');
+    raise exception 'ha aceptado un nombre de paquete inválido';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+  begin
+    perform public.db_public_requirements_srv_fijar_origen('lucia-auth', null, 'npm', null);
+    raise exception 'ha aceptado registro sin paquete';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+  begin
+    perform public.db_public_requirements_srv_fijar_origen('lucia-auth', null, 'cobol', 'x');
+    raise exception 'ha aceptado un registro desconocido';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+  begin
+    perform public.db_public_requirements_srv_fijar_origen('no-existe', null, null, null);
+    raise exception 'ha aceptado un acelerador inexistente';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+  -- la restricción de la tabla también vale (no solo la función)
+  reset role;
+  begin
+    update db_public_requirements.acelerador set paquete = 'solo-paquete', registro = null where slug = 'lucia-auth';
+    raise exception 'ha aceptado paquete sin registro';
+  exception when check_violation then null; end;
+  set local role service_role;
+
+  -- pendientes: los dos, el nunca intentado primero (ambos nulos: por id)
+  r := public.db_public_requirements_srv_metricas_pendientes(10, v_ahora);
+  if jsonb_array_length(r) <> 2 or r->0->>'slug' <> 'lucia-auth' or r->0->>'registry' <> 'npm' then
+    raise exception 'pendientes mal: %', r;
+  end if;
+
+  -- guardar métricas: no mueve la fecha de contenido
+  reset role;
+  update db_public_requirements.acelerador set actualizado_en = now() - interval '10 days' where slug = 'lucia-auth';
+  select actualizado_en into v0 from db_public_requirements.acelerador where slug = 'lucia-auth';
+  perform set_config('reqdb.sin_fechas', '', true);
+  set local role service_role;
+  perform public.db_public_requirements_srv_guardar_metricas('lucia-auth',
+    '{"stars": 12345, "forks": 321, "archived": false, "last_commit": "2026-11-01T10:00:00Z", "downloads_month": 987654, "source": "github+npm"}');
+  reset role;
+  select actualizado_en into v1 from db_public_requirements.acelerador where slug = 'lucia-auth';
+  set local role service_role;
+  if v1 <> v0 then raise exception 'refrescar métricas movió actualizado_en'; end if;
+
+  r := public.db_public_requirements_srv_acelerador('lucia-auth');
+  if (r->>'stars')::int <> 12345 or (r->>'downloads_month')::int <> 987654 or r->>'registry' <> 'npm'
+     or r->>'metrics_source' <> 'github+npm' or r->'metrics_updated_at' = 'null'::jsonb or (r->>'archived')::boolean then
+    raise exception 'ficha sin métricas: %', r;
+  end if;
+
+  -- un intento con error conserva los datos y anota el error; el siguiente OK lo borra
+  perform public.db_public_requirements_srv_guardar_metricas('lucia-auth', '{"error": "npm: not found"}');
+  r := public.db_public_requirements_srv_acelerador('lucia-auth');
+  if (r->>'stars')::int <> 12345 then raise exception 'un error borró las estrellas: %', r; end if;
+  reset role;
+  if (select metricas_error from db_public_requirements.acelerador where slug = 'lucia-auth') <> 'npm: not found' then
+    raise exception 'error sin anotar';
+  end if;
+  set local role service_role;
+  perform public.db_public_requirements_srv_guardar_metricas('lucia-auth', '{"stars": 12400}');
+  reset role;
+  if (select metricas_error from db_public_requirements.acelerador where slug = 'lucia-auth') is not null then
+    raise exception 'el error no se borró tras un refresco bueno';
+  end if;
+  set local role service_role;
+  begin
+    perform public.db_public_requirements_srv_guardar_metricas('lucia-auth', '{"stars": -3}');
+    raise exception 'ha aceptado estrellas negativas';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+  begin
+    perform public.db_public_requirements_srv_guardar_metricas('lucia-auth', '{"stars": 1.5}');
+    raise exception 'ha aceptado estrellas fraccionarias';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+
+  -- reanudable: lo intentado ya no está pendiente con umbral «hace 14 días»; el otro sí
+  r := public.db_public_requirements_srv_metricas_pendientes(10, now() - interval '14 days');
+  if jsonb_array_length(r) <> 1 or r->0->>'slug' <> 'realtime-cloud' then raise exception 'reanudación mal: %', r; end if;
+  -- y con umbral futuro vuelven los dos, el más atrasado (nunca intentado) primero
+  r := public.db_public_requirements_srv_metricas_pendientes(10, v_ahora);
+  if jsonb_array_length(r) <> 2 or r->0->>'slug' <> 'realtime-cloud' then raise exception 'orden por antigüedad mal: %', r; end if;
+  r := public.db_public_requirements_srv_metricas_resumen(now() - interval '14 days');
+  if (r->>'with_source')::int <> 2 or (r->>'pending')::int <> 1 then raise exception 'resumen mal: %', r; end if;
+
+  -- orden por popularidad (el que tiene datos va primero aunque cubra menos requisitos) y ordenes inválidos
+  r := public.db_public_requirements_srv_buscar_aceleradores(null, null, null, null, null, 50, 'popularity');
+  if r->0->>'slug' <> 'lucia-auth' then raise exception 'orden por popularidad mal: %', r; end if;
+  r := public.db_public_requirements_srv_buscar_aceleradores(null, null, null, null, null, 50);
+  if r->0->>'slug' <> 'realtime-cloud' then raise exception 'sin orden debería seguir la cobertura: %', r; end if;
+  begin
+    perform public.db_public_requirements_srv_buscar_aceleradores(null, null, null, null, null, 50, 'stars');
+    raise exception 'ha aceptado un orden inválido';
+  exception when raise_exception then if sqlerrm like 'ha aceptado%' then raise; end if; end;
+
+  -- relacionados trae la popularidad
+  r := public.db_public_requirements_srv_relacionados('{password-reset-by-email-link}', false, 5, true);
+  if not exists (select 1 from jsonb_array_elements(r->'password-reset-by-email-link'->'accelerators') x
+                  where x->>'slug' = 'lucia-auth' and (x->>'stars')::int = 12400 and x->>'registry' = 'npm') then
+    raise exception 'relacionados sin métricas: %', r;
+  end if;
+
+  -- un acelerador archivado no se refresca
+  reset role;
+  update db_public_requirements.acelerador set estado = 'archived' where slug = 'realtime-cloud';
+  set local role service_role;
+  r := public.db_public_requirements_srv_metricas_pendientes(10, v_ahora);
+  if jsonb_array_length(r) <> 1 then raise exception 'un archivado no debe refrescarse: %', r; end if;
+
+  -- aceleradores_origen pagina por id
+  r := public.db_public_requirements_srv_aceleradores_origen(0, 1);
+  if jsonb_array_length(r) <> 1 then raise exception 'paginación del origen mal: %', r; end if;
+end $$;
+reset role;
+
+-- anon y authenticated siguen sin poder llamar a las funciones nuevas
+set local role anon;
+do $$ begin
+  perform public.db_public_requirements_srv_metricas_pendientes(1, now());
+  raise exception 'anon ha podido llamar a srv_metricas_pendientes';
+exception when insufficient_privilege then null;
+end $$;
+reset role;
+set local role authenticated;
+do $$ begin
+  perform public.db_public_requirements_srv_guardar_metricas('lucia-auth', '{"stars": 1}');
+  raise exception 'authenticated ha podido guardar métricas';
+exception when insufficient_privilege then null;
+end $$;
+reset role;

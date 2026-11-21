@@ -56,7 +56,7 @@ reqdb check --max-priority 1              # exit 1 while any P1 is pending</pre>
       <tr><td>search [text]</td><td>Hybrid (semantic + keyword) search of requirements. Options: <code>--category a,b</code>, <code>--max-priority N</code>, <code>--kind functional|technical</code>, <code>--sort priority|copies|relevance</code> (most copied by people and agents), <code>--tests</code>, <code>--accelerators</code>, <code>--limit N</code>.</td></tr>
       <tr><td>show &lt;slug&gt;</td><td>One requirement with its tests and accelerators.</td></tr>
       <tr><td>tests [text]</td><td>Search tests. Same <code>--category</code> and <code>--max-priority</code> filters.</td></tr>
-      <tr><td>accelerators [text]</td><td>Libraries and services that speed up a requirement. Also <code>--model open_source|proprietary|saas</code> and <code>--platform p</code>.</td></tr>
+      <tr><td>accelerators [text]</td><td>Libraries and services that speed up a requirement. Also <code>--model open_source|proprietary|saas</code>, <code>--platform p</code> and <code>--sort relevance|popularity</code> (GitHub stars and monthly downloads from the official registry, shown next to each result).</td></tr>
       <tr><td>login --key rq_…</td><td>Store your API key. <code>logout</code> removes it.</td></tr>
       <tr><td>init --name N</td><td>Create a project and write <code>.reqdb.json</code>. Options: <code>--category</code>, <code>--max-priority</code>.</td></tr>
       <tr><td>projects, use &lt;id&gt;</td><td>List your projects; select one for this folder.</td></tr>
@@ -139,7 +139,7 @@ reqdb check --max-priority 1              # sale con 1 mientras haya algún P1 p
       <tr><td>search [texto]</td><td>Búsqueda híbrida (semántica + palabras) de requisitos. Opciones: <code>--category a,b</code>, <code>--max-priority N</code>, <code>--kind functional|technical</code>, <code>--sort priority|copies|relevance</code> (más copiados por personas y agentes), <code>--tests</code>, <code>--accelerators</code>, <code>--limit N</code>.</td></tr>
       <tr><td>show &lt;slug&gt;</td><td>Un requisito con sus tests y aceleradores.</td></tr>
       <tr><td>tests [texto]</td><td>Busca tests. Mismos filtros <code>--category</code> y <code>--max-priority</code>.</td></tr>
-      <tr><td>accelerators [texto]</td><td>Librerías y servicios que aceleran un requisito. También <code>--model open_source|proprietary|saas</code> y <code>--platform p</code>.</td></tr>
+      <tr><td>accelerators [texto]</td><td>Librerías y servicios que aceleran un requisito. También <code>--model open_source|proprietary|saas</code>, <code>--platform p</code> y <code>--sort relevance|popularity</code> (estrellas de GitHub y descargas mensuales del registro oficial, junto a cada resultado).</td></tr>
       <tr><td>login --key rq_…</td><td>Guarda tu clave de API. <code>logout</code> la borra.</td></tr>
       <tr><td>init --name N</td><td>Crea un proyecto y escribe <code>.reqdb.json</code>. Opciones: <code>--category</code>, <code>--max-priority</code>.</td></tr>
       <tr><td>projects, use &lt;id&gt;</td><td>Lista tus proyectos; elige uno para esta carpeta.</td></tr>

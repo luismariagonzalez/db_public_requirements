@@ -117,6 +117,18 @@ const proyectoOError = (ctx) => {
   return ctx.project;
 };
 
+// Popularidad de un acelerador, compacta: «12.3k stars, 1.2M downloads/mo» (vacío si no hay datos).
+export function popularidad(a) {
+  const k = (n) => { let v = n, u = 0; while (v >= 1000 && u < 3) { v /= 1000; u++; } return (u ? String(Math.round(v * 10) / 10) : String(v)) + ['', 'k', 'M', 'G'][u]; };
+  const p = [];
+  if (Number.isFinite(a.stars)) p.push(`${k(a.stars)} stars`);
+  const palabra = a.registry === 'homebrew' ? 'installs' : 'downloads';
+  if (Number.isFinite(a.downloads_month)) p.push(`${k(a.downloads_month)} ${palabra}/mo`);
+  else if (Number.isFinite(a.downloads_total)) p.push(`${k(a.downloads_total)} ${palabra} total`);
+  return p.join(', ');
+}
+const conPop = (a) => { const p = popularidad(a); return p ? `, ${p}` : ''; };
+
 // ── salida ─────────────────────────────────────────────────────────────────
 const recorta = (s, n = 110) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 const lineaReq = (it) => `P${it.priority}  ${it.slug}${it.project_status ? `  [${it.project_status}]` : ''}  ${recorta(it.title)}`;
@@ -141,6 +153,7 @@ Discover
   show <slug>                           one requirement with its tests and accelerators
   tests [text] [--category a,b] [--max-priority N]
   accelerators [text] [--category a,b] [--model open_source|proprietary|saas] [--platform p]
+         [--sort relevance|popularity]  (popularity: GitHub stars and monthly downloads)
 
 Work on a project (needs an API key)
   login --key rq_…                      store your key (or set REQDB_KEY)
@@ -198,7 +211,7 @@ const COMANDOS = {
       project: ctx.project, hide: f['hide-done'] ? 'done' : f.hide } });
     imprimir(io, f, r, () => [...r.requirements.map((it) => [lineaReq(it),
       ...(it.tests ?? []).map((t) => `      test P${t.priority}  ${t.slug}  ${recorta(t.title, 90)}`),
-      ...(it.accelerators ?? []).map((a) => `      accelerator  ${a.slug}  ${a.name} (${a.model}, ${a.cost})`)].join('\n')),
+      ...(it.accelerators ?? []).map((a) => `      accelerator  ${a.slug}  ${a.name} (${a.model}, ${a.cost}${conPop(a)})`)].join('\n')),
       `${r.count} requirement(s). Details: reqdb show <slug>`].join('\n'));
   },
 
@@ -208,7 +221,7 @@ const COMANDOS = {
     imprimir(io, f, r, () => [`P${r.priority}  ${r.title}  (${r.slug})`, `kind: ${r.kind} · categories: ${r.categories.map((c) => `${c.slug} P${c.priority}`).join(', ')}`,
       '', r.statement, '', ...(r.criteria ?? []).map((c) => `  - ${c}`),
       ...(r.tests?.length ? ['', 'Tests:', ...r.tests.map((t) => `  P${t.priority} ${t.slug} [${t.type}] ${t.scenario}`)] : []),
-      ...(r.accelerators?.length ? ['', 'Accelerators:', ...r.accelerators.map((a) => `  ${a.slug}: ${a.name} (${a.model}, ${a.cost}, ${a.coverage}) ${a.url}`)] : [])].join('\n'));
+      ...(r.accelerators?.length ? ['', 'Accelerators:', ...r.accelerators.map((a) => `  ${a.slug}: ${a.name} (${a.model}, ${a.cost}, ${a.coverage}${conPop(a)}) ${a.url}`)] : [])].join('\n'));
   },
 
   async tests({ ctx, f, pos, io }) {
@@ -216,8 +229,8 @@ const COMANDOS = {
     imprimir(io, f, r, () => [...r.tests.map((t) => `P${t.priority}  ${t.slug}  [${t.type}]${t.project_status ? `  [${t.project_status}]` : ''}  ${recorta(t.title, 90)}`), `${r.count} test(s).`].join('\n'));
   },
   async accelerators({ ctx, f, pos, io }) {
-    const r = await llamar(ctx, io, 'GET', '/api/v1/accelerators', { query: { category: lista(f.category), model: lista(f.model), platform: lista(f.platform), q: pos.join(' '), limit: f.limit, project: ctx.project } });
-    imprimir(io, f, r, () => [...r.accelerators.map((a) => `${a.slug}  ${a.name}  (${a.model}, ${a.cost})  ${a.url}`), `${r.count} accelerator(s).`].join('\n'));
+    const r = await llamar(ctx, io, 'GET', '/api/v1/accelerators', { query: { category: lista(f.category), model: lista(f.model), platform: lista(f.platform), sort: f.sort, q: pos.join(' '), limit: f.limit, project: ctx.project } });
+    imprimir(io, f, r, () => [...r.accelerators.map((a) => `${a.slug}  ${a.name}  (${a.model}, ${a.cost}${conPop(a)})  ${a.url}`), `${r.count} accelerator(s).`].join('\n'));
   },
 
   async init({ ctx, f, io, cwd }) {
