@@ -99,6 +99,11 @@ export default {
   'datos.borrar': 'Delete my data', 'datos.confirmar': 'This deletes your API keys, contributions, projects and suggestions, and anonymises content you authored. Continue?',
   'datos.borrados': 'Your data was deleted.', 'nada.todavia': 'Nothing yet.',
 
+  'bar.pais': 'Country', 'pais.solo': 'Only country-specific', 'pais.solo.t': 'Hide the generic requirements and keep only those tied to the chosen country',
+  'pais.titulo': '{n} requirements tied to this jurisdiction (generic requirements stay unless you choose “Only country-specific”)',
+  'det.pais': 'Country notes', 'det.pais.igual': 'Applies as stated above.', 'det.pais.futuro': 'Not yet in force: applies from {fecha}.',
+  'det.pais.fuente': 'Source:', 'det.pais.oficial': 'official text', 'det.pais.aplica': 'Tied to: {c}. Choose a country to see its specific note and source.',
+  'aviso.legal': 'Informational guidance, not legal advice: always verify the current text of each cited norm in the official source.',
   'pie.texto': 'airedb · community-curated · code MIT', 'pie.legal': 'Legal & privacy', 'pie.terminos': 'Content terms', 'pie.cli': 'CLI',
   'idioma.aria': 'Language',
   'nav.projects': 'Projects', 'nav.keys': 'API keys',

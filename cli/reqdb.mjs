@@ -127,6 +127,9 @@ const flagsBusqueda = (ctx, f, conProyecto = false) => ({
   category: lista(f.category ?? (conProyecto ? ctx.proy.categories : undefined)),
   max_priority: f['max-priority'] ?? (conProyecto ? ctx.proy.maxPriority : undefined),
   kind: f.kind, sort: f.sort, limit: f.limit,
+  // país: solo el matiz de ese país; `--country-only` deja fuera los requisitos genéricos
+  country: f.country ?? (conProyecto ? ctx.proy.country : undefined),
+  country_only: f['country-only'] ? 1 : undefined,
 });
 
 // ── comandos ───────────────────────────────────────────────────────────────
@@ -136,7 +139,7 @@ Usage: reqdb <command> [options]
 
 Discover
   categories [--type T] [--q text]      audiences, domains, software categories, app types, flows, topics
-  search [text] [--category a,b] [--max-priority N] [--kind functional|technical]
+  search [text] [--category a,b] [--max-priority N] [--kind functional|technical] [--country ES] [--country-only]
          [--sort priority|copies|relevance] [--tests] [--accelerators] [--limit N]
   show <slug>                           one requirement with its tests and accelerators
   tests [text] [--category a,b] [--max-priority N]
@@ -144,7 +147,7 @@ Discover
 
 Work on a project (needs an API key)
   login --key rq_…                      store your key (or set REQDB_KEY)
-  init --name "My app" [--category a,b] [--max-priority N]   create a project, write .reqdb.json
+  init --name "My app" [--category a,b] [--max-priority N] [--country ES]   create a project, write .reqdb.json
   projects | use <id>                   list your projects / select one for this repo
   pull [-o REQUIREMENTS.md] [--hide-done] [--no-tests] [--no-accelerators]
                                         write the Markdown brief for your agent
@@ -204,9 +207,10 @@ const COMANDOS = {
 
   async show({ ctx, f, pos, io }) {
     if (!pos[0]) throw new Fallo('Usage: reqdb show <slug>', 2);
-    const r = await llamar(ctx, io, 'GET', `/api/v1/requirements/${encodeURIComponent(pos[0])}`);
+    const r = await llamar(ctx, io, 'GET', `/api/v1/requirements/${encodeURIComponent(pos[0])}`, { query: { country: f.country } });
     imprimir(io, f, r, () => [`P${r.priority}  ${r.title}  (${r.slug})`, `kind: ${r.kind} · categories: ${r.categories.map((c) => `${c.slug} P${c.priority}`).join(', ')}`,
       '', r.statement, '', ...(r.criteria ?? []).map((c) => `  - ${c}`),
+      ...(r.jurisdictions?.length ? ['', ...r.jurisdictions.map((j) => `${j.code}${j.name ? ` (${j.name})` : ''}: ${j.note ?? '(applies as stated)'}${j.source?.norm ? `  [${j.source.norm}${j.source.url ? ' ' + j.source.url : ''}]` : ''}`)] : []),
       ...(r.tests?.length ? ['', 'Tests:', ...r.tests.map((t) => `  P${t.priority} ${t.slug} [${t.type}] ${t.scenario}`)] : []),
       ...(r.accelerators?.length ? ['', 'Accelerators:', ...r.accelerators.map((a) => `  ${a.slug}: ${a.name} (${a.model}, ${a.cost}, ${a.coverage}) ${a.url}`)] : [])].join('\n'));
   },
@@ -227,7 +231,8 @@ const COMANDOS = {
     const categorias = lista(f.category);
     const r = await llamar(ctx, io, 'POST', '/api/v1/projects', { cuerpo: { name: nombre, categories: categorias }, clave: true });
     const datos = { ...(ctx.url !== URL_DEFECTO ? { url: ctx.url } : {}), project: r.id, name: nombre, categories: categorias,
-      maxPriority: Number(f['max-priority'] ?? 2), tests: true, accelerators: true };
+      maxPriority: Number(f['max-priority'] ?? 2), tests: true, accelerators: true,
+      ...(f.country ? { country: String(f.country).toUpperCase() } : {}) };
     const ruta = join(resolve(cwd), '.reqdb.json');
     writeFileSync(ruta, JSON.stringify(datos, null, 2) + '\n');
     imprimir(io, f, { ...datos, file: ruta }, () => `Created project ${r.id} “${nombre}” → ${ruta}\nNext: reqdb pull   (writes REQUIREMENTS.md for your agent)`);
@@ -286,7 +291,8 @@ const COMANDOS = {
   async check({ ctx, f, io }) {
     const id = proyectoOError(ctx);
     const max = Number(f['max-priority'] ?? ctx.proy.maxPriority ?? 2);
-    const r = await llamar(ctx, io, 'GET', '/api/v1/requirements', { clave: true, query: { category: lista(f.category ?? ctx.proy.categories), max_priority: max, project: id, hide: 'done,skipped', limit: 200 } });
+    const r = await llamar(ctx, io, 'GET', '/api/v1/requirements', { clave: true, query: { category: lista(f.category ?? ctx.proy.categories), max_priority: max, project: id, hide: 'done,skipped', limit: 200,
+      country: f.country ?? ctx.proy.country, country_only: f['country-only'] ? 1 : undefined } });
     const faltan = r.requirements;
     imprimir(io, f, { max_priority: max, pending: faltan.length, requirements: faltan }, () => faltan.length
       ? [`${faltan.length} requirement(s) up to P${max} are not done or skipped:`, ...faltan.map(lineaReq)].join('\n')

@@ -136,7 +136,7 @@ await prueba('parámetros inválidos → 400; ruta desconocida → 404; método 
 await prueba('audiencias y dominios se expanden a sus categorías', async () => {
   const t = await pedir('GET', '/api/v1/categories?type=audience,domain');
   assert.equal(t.estado, 200);
-  assert.deepEqual(t.json.categories.map((c) => c.slug).sort(), ['b2b', 'b2c', 'consumer-apps', 'finance-accounting']);
+  assert.deepEqual(t.json.categories.map((c) => c.slug).sort(), ['b2b', 'b2c', 'consumer-apps', 'finance-accounting', 'regulated-gambling']);
   const m = (await pedir('GET', '/api/v1/categories?q=accounting-soft')).json.categories;
   assert.deepEqual(m.map((c) => c.slug), ['accounting-software']);
   assert.equal(m[0].domain, 'finance-accounting'); assert.deepEqual(m[0].audiences, ['b2b']);
@@ -409,6 +409,87 @@ await prueba('CLI: login guarda la clave y los comandos con clave funcionan sin 
   assert.equal(p.code, 0, p.err);
   assert.equal((await cli(['logout'], { clave: false })).code, 0);
   assert.equal((await cli(['projects'], { clave: false })).code, 3);
+});
+
+// ── país (jurisdicción): un requisito existe una vez, con matiz y fuente por país
+await cat('gambling-t', 'app_type', 'Gambling (ensayo)', 40);
+(await import('../lib/categorias.mjs')).olvidarCategorias(); (await import('../lib/paises.mjs')).olvidarJurisdicciones();   // las cachés no conocen lo nuevo
+for (const [slug, titulo, enun] of [
+  ['pais-generico', 'Generic audit log requirement', 'The system must log every sign-in attempt for later audit.'],
+  ['pais-es-ue', 'Identity check requirement', 'The operator must verify the player identity before activating the account.'],
+  ['pais-solo-es', 'Deposit cap requirement', 'The operator must cap deposits at the regulated maximum amounts.']])
+  await rpc('crear_requisito', { p_titulo: titulo, p_enunciado: enun, p_criterios: ['One check.', 'Another check.'], p_clase: 'functional',
+    p_categorias: [{ slug: 'gambling-t', priority: slug === 'pais-generico' ? 2 : 1 }], p_vec: null, p_autor: null, p_aporte_id: null, p_slug: slug });
+await rpc('asociar_jurisdiccion', { p_slug: 'pais-es-ue', p_jurisdiccion: 'EU', p_matiz: 'EU baseline rule.', p_fuente_norma: 'GDPR', p_fuente_url: 'https://eur-lex.europa.eu/eli/reg/2016/679/oj', p_fuente_fecha: '2016-04-27' });
+await rpc('asociar_jurisdiccion', { p_slug: 'pais-es-ue', p_jurisdiccion: 'ES', p_matiz: 'Spanish identity detail.', p_fuente_norma: 'Ley X art. 1', p_fuente_url: 'https://www.boe.es/x', p_fuente_fecha: '2026-01-01' });
+await rpc('asociar_jurisdiccion', { p_slug: 'pais-solo-es', p_jurisdiccion: 'ES', p_matiz: 'EUR 600 per day.', p_fuente_norma: 'RD 1614/2011 anexo II', p_fuente_url: 'https://www.boe.es/y', p_fuente_fecha: '2026-06-25' });
+await rpc('upsert_jurisdiccion', { p_codigo: 'DE', p_tipo: 'country', p_nombre: 'Germany', p_padre: 'EU', p_orden: 40 });
+await rpc('asociar_jurisdiccion', { p_slug: 'pais-solo-es', p_jurisdiccion: 'EU', p_matiz: null, p_fuente_norma: null, p_fuente_url: null });
+await rpc('asociar_jurisdiccion', { p_slug: 'pais-solo-es', p_jurisdiccion: 'ES', p_matiz: 'EUR 600 per day.', p_fuente_norma: 'RD 1614/2011 anexo II', p_fuente_url: 'https://www.boe.es/y', p_fuente_fecha: '2026-06-25' });
+
+await prueba('GET /api/v1/jurisdictions: lista con recuentos', async () => {
+  const r = await pedir('GET', '/api/v1/jurisdictions');
+  assert.equal(r.estado, 200);
+  assert.equal(r.json.jurisdictions.find((j) => j.code === 'ES').parent, 'EU');
+  assert.ok(r.json.jurisdictions.find((j) => j.code === 'ES').requirements >= 2, JSON.stringify(r.json));
+});
+
+await prueba('country=ES: lo que aplica en España y en la UE, con el matiz de España y sin duplicados', async () => {
+  const r = await pedir('GET', '/api/v1/requirements?category=gambling-t&country=es');
+  assert.equal(r.estado, 200);
+  assert.deepEqual(r.json.requirements.map((x) => x.slug).sort(), ['pais-es-ue', 'pais-generico', 'pais-solo-es']);
+  const eu = r.json.requirements.find((x) => x.slug === 'pais-es-ue');
+  assert.deepEqual(eu.jurisdictions.map((j) => j.code).sort(), ['ES', 'EU']);
+  assert.equal(eu.jurisdictions.find((j) => j.code === 'ES').note, 'Spanish identity detail.');
+  assert.equal(eu.jurisdictions.find((j) => j.code === 'ES').source.url, 'https://www.boe.es/x');
+  assert.equal(r.json.requirements.find((x) => x.slug === 'pais-generico').jurisdictions, undefined);
+  assert.deepEqual(r.json.country, ['ES']);
+});
+
+await prueba('country=DE: sin el matiz de España; country_only deja fuera los genéricos', async () => {
+  const r = await pedir('GET', '/api/v1/requirements?category=gambling-t&country=DE');
+  assert.deepEqual(r.json.requirements.map((x) => x.slug).sort(), ['pais-es-ue', 'pais-generico', 'pais-solo-es']);
+  const solo = r.json.requirements.find((x) => x.slug === 'pais-solo-es');
+  assert.ok(!JSON.stringify(r.json).includes('Spanish identity detail'), 'no debe aparecer el matiz de España');
+  assert.ok(!JSON.stringify(r.json).includes('EUR 600'), 'ni el de otro requisito');
+  assert.deepEqual(solo.jurisdictions.map((j) => j.code), ['EU']);   // asociado a la UE (sin matiz) y por tanto aplica en Alemania
+  const so = await pedir('GET', '/api/v1/requirements?category=gambling-t&country=DE&country_only=1');
+  assert.deepEqual(so.json.requirements.map((x) => x.slug).sort(), ['pais-es-ue', 'pais-solo-es']);
+  const us = await pedir('GET', '/api/v1/requirements?category=gambling-t&country=ES&country_only=1');
+  assert.ok(!us.json.requirements.some((x) => x.slug === 'pais-generico'));
+});
+
+await prueba('sin country: igual que antes, códigos sin matices', async () => {
+  const r = await pedir('GET', '/api/v1/requirements?category=gambling-t');
+  assert.equal(r.json.requirements.length, 3);
+  assert.ok(!JSON.stringify(r.json).includes('Spanish identity detail'));
+  assert.deepEqual(r.json.requirements.find((x) => x.slug === 'pais-solo-es').jurisdictions.map((j) => j.code).sort(), ['ES', 'EU']);
+  assert.equal(r.json.country, undefined);
+});
+
+await prueba('country desconocido o mal formado es un 400', async () => {
+  assert.equal((await pedir('GET', '/api/v1/requirements?category=gambling-t&country=ZZ')).estado, 400);
+  assert.equal((await pedir('GET', '/api/v1/requirements?country=spain')).estado, 400);
+});
+
+await prueba('Markdown con country: matiz de ese país, fuente y aviso legal; ficha y export', async () => {
+  const r = await pedir('GET', '/api/v1/requirements?category=gambling-t&country=ES&format=md');
+  assert.match(r.texto, /\*\*ES \(Spain\):\*\* Spanish identity detail\. _Source: Ley X art\. 1; https:\/\/www\.boe\.es\/x; text as of 2026-01-01\._/);
+  assert.match(r.texto, /not legal advice/);
+  assert.equal((r.texto.match(/Identity check requirement/g) ?? []).length, 1);
+  const f = await pedir('GET', '/api/v1/requirements/pais-es-ue?country=ES');
+  assert.equal(f.json.applies_to_country, true);
+  assert.equal(f.json.jurisdictions.find((j) => j.code === 'ES').note, 'Spanish identity detail.');
+  const e = await pedir('POST', '/api/v1/export', { cuerpo: { slugs: ['pais-es-ue', 'pais-generico'], format: 'md', country: 'ES', country_only: true } });
+  assert.match(e.texto, /Identity check requirement/); assert.doesNotMatch(e.texto, /Generic audit log/);
+});
+
+await prueba('CLI: --country filtra y show lleva el matiz', async () => {
+  const s = await cli(['search', '--category', 'gambling-t', '--country', 'ES', '--json']);
+  assert.equal(s.code, 0, s.err);
+  assert.equal(JSON.parse(s.out).requirements.length, 3);
+  const w = await cli(['show', 'pais-es-ue', '--country', 'ES']);
+  assert.match(w.out, /ES \(Spain\): Spanish identity detail\./);
 });
 
 api.close(); await falso.cerrar();

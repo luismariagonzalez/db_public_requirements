@@ -2,9 +2,12 @@
 // a partir de los filtros elegidos. Se prueba en tests/consulta.test.mjs.
 
 export function paramsDe({ q = '', prio = 5, cats = [], formato = 'json', limite = 50,
-  incluirTests = false, incluirAceleradores = false, proyecto = null, ocultarHecho = false, kinds = [], orden = null } = {}) {
+  incluirTests = false, incluirAceleradores = false, proyecto = null, ocultarHecho = false, kinds = [], orden = null,
+  paises = [], soloPais = false } = {}) {
   const p = new URLSearchParams();
   if (cats.length) p.set('category', cats.join(','));
+  // país: solo lo que aplica allí, con el matiz de ese país (los genéricos siguen salvo soloPais)
+  if (paises.length) { p.set('country', paises.join(',')); if (soloPais) p.set('country_only', '1'); }
   if (prio < 5) p.set('max_priority', String(prio));
   if (kinds.length) p.set('kind', kinds.join(','));
   if (orden) p.set('sort', orden);
@@ -28,8 +31,8 @@ export function rutaBusqueda(estado) {
 }
 
 // ¿Hay algo que buscar? Sin texto ni categorías no se lanza nada.
-export const hayFiltro = ({ q = '', cats = [], audiencias = [], dominios = [] }) =>
-  q.trim().length > 0 || cats.length > 0 || audiencias.length > 0 || dominios.length > 0;
+export const hayFiltro = ({ q = '', cats = [], audiencias = [], dominios = [], paises = [] }) =>
+  q.trim().length > 0 || cats.length > 0 || audiencias.length > 0 || dominios.length > 0 || paises.length > 0;
 
 // Solo se pintan enlaces https: la base ya lo exige, pero la página no se fía.
 export const urlSegura = (u) => (/^https:\/\/[^\s]+$/.test(String(u ?? '')) ? u : null);
@@ -80,6 +83,7 @@ export function chipsActivos(e, categorias = []) {
   for (const d of e.dominios ?? []) chips.push({ tipo: 'dominio', valor: d, texto: nombre(d) });
   for (const c of e.cats ?? []) chips.push({ tipo: 'cat', valor: c, texto: nombre(c) });
   for (const k of e.kinds ?? []) chips.push({ tipo: 'clase', valor: k, texto: k });
+  for (const c of e.paises ?? []) chips.push({ tipo: 'pais', valor: c, texto: c });
   if ((e.prio ?? 5) < 5) chips.push({ tipo: 'prio', valor: e.prio, texto: `P1–P${e.prio}` });
   if ((e.q ?? '').trim()) chips.push({ tipo: 'q', valor: e.q.trim(), texto: `“${e.q.trim().slice(0, 30)}”` });
   if (e.orden) chips.push({ tipo: 'orden', valor: e.orden, texto: e.orden });
@@ -93,6 +97,7 @@ export function quitarFiltro(e, chip) {
   else if (chip.tipo === 'dominio') e.dominios = sin(e.dominios, chip.valor);
   else if (chip.tipo === 'cat') e.cats = sin(e.cats, chip.valor);
   else if (chip.tipo === 'clase') e.kinds = sin(e.kinds, chip.valor);
+  else if (chip.tipo === 'pais') { e.paises = sin(e.paises, chip.valor); if (!e.paises.length) e.soloPais = false; }
   else if (chip.tipo === 'prio') e.prio = 5;
   else if (chip.tipo === 'q') e.q = '';
   else if (chip.tipo === 'orden') e.orden = null;
@@ -102,11 +107,14 @@ export function quitarFiltro(e, chip) {
 // «Borrar filtros»: quita lo que se busca y filtra. Se conservan las opciones de lo que viene
 // con cada requisito (tests, aceleradores) y todo lo del proyecto.
 export function limpiarFiltros(e) {
-  Object.assign(e, { q: '', prio: 5, cats: [], audiencias: [], dominios: [], kinds: [], orden: null, filtroCat: '' });
+  Object.assign(e, { q: '', prio: 5, cats: [], audiencias: [], dominios: [], kinds: [], orden: null, filtroCat: '', paises: [], soloPais: false });
   return e;
 }
 
 export const contarFiltros = (e, categorias = []) => chipsActivos(e, categorias).length;
+
+// Jurisdicciones que se pueden elegir: las que tienen requisitos (la UE se ofrece aparte de los países).
+export const paisesElegibles = (jurisdicciones = []) => jurisdicciones.filter((j) => j.requirements > 0);
 
 export const GRUPOS = [
   ['app_type', 'App type'],

@@ -99,6 +99,11 @@ export default {
   'datos.borrar': 'Borrar mis datos', 'datos.confirmar': 'Esto borra tus claves de API, aportaciones, proyectos y sugerencias, y anonimiza el contenido del que eres autor. ¿Continuar?',
   'datos.borrados': 'Tus datos se han borrado.', 'nada.todavia': 'Todavía nada.',
 
+  'bar.pais': 'País', 'pais.solo': 'Solo lo específico del país', 'pais.solo.t': 'Oculta los requisitos genéricos y deja solo los asociados al país elegido',
+  'pais.titulo': '{n} requisitos asociados a esta jurisdicción (los genéricos se mantienen salvo que elijas «Solo lo específico del país»)',
+  'det.pais': 'Notas por país', 'det.pais.igual': 'Se aplica tal como se indica arriba.', 'det.pais.futuro': 'Aún no en vigor: se aplica desde {fecha}.',
+  'det.pais.fuente': 'Fuente:', 'det.pais.oficial': 'texto oficial', 'det.pais.aplica': 'Asociado a: {c}. Elige un país para ver su nota y su fuente.',
+  'aviso.legal': 'Información orientativa, no asesoramiento jurídico: verifica siempre la norma vigente en la fuente oficial.',
   'pie.texto': 'airedb · curado por la comunidad · código MIT', 'pie.legal': 'Aviso legal y privacidad', 'pie.terminos': 'Términos del contenido', 'pie.cli': 'CLI',
   'idioma.aria': 'Idioma',
   'nav.projects': 'Proyectos', 'nav.keys': 'Claves de API',

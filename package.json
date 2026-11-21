@@ -39,6 +39,7 @@
     "db:migrar:aplicar": "node scripts/migrar.mjs --aplicar",
     "semilla:generar": "node scripts/generar_semilla.mjs",
     "semilla:cargar": "node scripts/sembrar.mjs",
+    "semilla:regulacion": "node scripts/sembrar_regulacion.mjs",
     "api:ensayar": "node scripts/ensayar_api.mjs",
     "semilla:generar-extras": "node scripts/generar_tests_aceleradores.mjs",
     "gemini:ensayar": "node scripts/ensayar_gemini.mjs",

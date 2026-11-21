@@ -699,3 +699,67 @@ begin
   select actualizado_en into v1 from db_public_requirements.requisito where id = id1;
   if v1 <= v0 then raise exception 'cambiar una prioridad debería mover actualizado_en del requisito'; end if;
 end $$;
+
+-- ═══ 0011: jurisdicciones (país), matiz y fuente por país ═══
+set role service_role;
+select public.db_public_requirements_srv_upsert_categoria('gambling-x', 'app_type', 'Gambling test', '', 90);
+select public.db_public_requirements_srv_upsert_jurisdiccion('ES-CT', 'region', 'Catalonia', 'ES', 30);
+select public.db_public_requirements_srv_crear_requisito('Generic requirement for any country', 'The system must log every sign-in attempt for later audit.', '["Attempts are logged.", "Logs are kept."]'::jsonb, 'technical', '[{"slug":"gambling-x","priority":2}]'::jsonb, null, null, null, 'pais-generico');
+select public.db_public_requirements_srv_crear_requisito('Spain and EU requirement', 'The operator must verify the player identity before activating the account.', '["Identity verified.", "Unverified cannot play."]'::jsonb, 'functional', '[{"slug":"gambling-x","priority":1}]'::jsonb, null, null, null, 'pais-es-ue');
+select public.db_public_requirements_srv_crear_requisito('Spain only requirement', 'The operator must cap deposits at the regulated maximum amounts.', '["Cap enforced.", "Cap is configurable."]'::jsonb, 'functional', '[{"slug":"gambling-x","priority":1}]'::jsonb, null, null, null, 'pais-solo-es');
+select public.db_public_requirements_srv_asociar_jurisdiccion('pais-es-ue', 'EU', 'EU baseline.', 'GDPR', 'https://eur-lex.europa.eu/eli/reg/2016/679/oj', '2016-04-27');
+select public.db_public_requirements_srv_asociar_jurisdiccion('pais-es-ue', 'ES', 'Spanish detail A.', 'Ley X art. 1', 'https://www.boe.es/x', '2026-01-01');
+select public.db_public_requirements_srv_asociar_jurisdiccion('pais-solo-es', 'ES', 'EUR 600 per day.', 'RD 1614/2011', 'https://www.boe.es/y', '2026-06-25', current_date + 30);
+do $$
+declare r jsonb; j jsonb;
+begin
+  -- sin país: igual que antes, salen los tres
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50);
+  if jsonb_array_length(r) <> 3 then raise exception 'sin país deben salir 3, salen %', jsonb_array_length(r); end if;
+  -- ES (ya expandido a ES y EU): los tres (el genérico sigue)
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['ES','EU'], false);
+  if jsonb_array_length(r) <> 3 then raise exception 'ES: deben salir 3'; end if;
+  -- solo lo específico de ES: quita el genérico
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['ES','EU'], true);
+  if jsonb_array_length(r) <> 2 then raise exception 'ES solo: deben salir 2'; end if;
+  -- otro país sin datos: solo el genérico; con solo país, ninguno
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['US'], false);
+  if jsonb_array_length(r) <> 1 or r->0->>'slug' <> 'pais-generico' then raise exception 'US: solo el genérico'; end if;
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['US'], true);
+  if jsonb_array_length(r) <> 0 then raise exception 'US solo: ninguno'; end if;
+  -- solo UE: el requisito de ES y UE aparece, el solo-ES no
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['EU'], true);
+  if jsonb_array_length(r) <> 1 or r->0->>'slug' <> 'pais-es-ue' then raise exception 'EU solo: solo es-ue'; end if;
+
+  -- matices: solo los de lo pedido
+  j := public.db_public_requirements_srv_jurisdicciones_de(array['pais-es-ue','pais-solo-es','pais-generico'], array['ES']);
+  if jsonb_array_length(j->'pais-es-ue'->'matches') <> 1 or j->'pais-es-ue'->'matches'->0->>'note' <> 'Spanish detail A.' then raise exception 'matiz mal: %', j; end if;
+  if jsonb_array_length(j->'pais-generico'->'all') <> 0 then raise exception 'el genérico no lleva jurisdicciones'; end if;
+  if j->'pais-solo-es'->'matches'->0->>'status' <> 'upcoming' then raise exception 'en vigor futuro debe ser upcoming'; end if;
+  -- sin país: ningún matiz, pero sí los códigos
+  j := public.db_public_requirements_srv_jurisdicciones_de(array['pais-es-ue'], null);
+  if jsonb_array_length(j->'pais-es-ue'->'matches') <> 0 or jsonb_array_length(j->'pais-es-ue'->'all') <> 2 then raise exception 'sin país mal: %', j; end if;
+
+  -- idempotente: repetir actualiza el matiz sin duplicar
+  perform public.db_public_requirements_srv_asociar_jurisdiccion('pais-es-ue', 'ES', 'Spanish detail B.', 'Ley X art. 1', 'https://www.boe.es/x', '2026-01-01');
+  j := public.db_public_requirements_srv_jurisdicciones_de(array['pais-es-ue'], array['ES']);
+  if j->'pais-es-ue'->'matches'->0->>'note' <> 'Spanish detail B.' or jsonb_array_length(j->'pais-es-ue'->'all') <> 2 then raise exception 'reasociar mal'; end if;
+
+  -- lista con recuentos y jerarquía
+  j := public.db_public_requirements_srv_jurisdicciones();
+  if not exists (select 1 from jsonb_array_elements(j) x where x->>'code' = 'ES' and (x->>'requirements')::int = 2 and x->>'parent' = 'EU') then raise exception 'lista de jurisdicciones mal: %', j; end if;
+  if not exists (select 1 from jsonb_array_elements(j) x where x->>'code' = 'ES-CT' and x->>'parent' = 'ES') then raise exception 'falta la región'; end if;
+
+  -- errores: jurisdicción o requisito inexistente; URL no https
+  begin perform public.db_public_requirements_srv_asociar_jurisdiccion('pais-es-ue', 'ZZ', 'x note here'); raise exception 'debía fallar'; exception when others then if sqlerrm = 'debía fallar' then raise; end if; end;
+  begin perform public.db_public_requirements_srv_asociar_jurisdiccion('no-existe-slug', 'ES', 'x note here'); raise exception 'debía fallar'; exception when others then if sqlerrm = 'debía fallar' then raise; end if; end;
+  begin perform public.db_public_requirements_srv_asociar_jurisdiccion('pais-es-ue', 'ES', 'x note here', 'n', 'http://x.es/a'); raise exception 'debía fallar'; exception when others then if sqlerrm = 'debía fallar' then raise; end if; end;
+end $$;
+
+-- anon no puede llamar a las funciones nuevas
+set role anon;
+do $$ begin
+  begin perform public.db_public_requirements_srv_jurisdicciones(); raise exception 'anon no debía poder'; exception when insufficient_privilege then null; end;
+  begin perform public.db_public_requirements_srv_jurisdicciones_de(array['x'], null); raise exception 'anon no debía poder'; exception when insufficient_privilege then null; end;
+end $$;
+reset role;

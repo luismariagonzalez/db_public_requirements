@@ -125,6 +125,13 @@
       <div class="etq-lat" data-i18n="bar.orden">Sort</div>
       <select id="orden" class="campo" aria-label="Sort" data-i18n-attr="aria-label:bar.orden"></select>
     </div>
+    <div class="fb-grupo" id="grupoPais" hidden>
+      <div class="etq-lat" data-i18n="bar.pais">Country</div>
+      <div class="pildoras">
+        <span id="paises" class="pildoras" role="group" aria-label="Country" data-i18n-attr="aria-label:bar.pais"></span>
+        <button id="soloPais" type="button" class="pildora" role="switch" aria-checked="false" hidden data-i18n="pais.solo" data-i18n-attr="title:pais.solo.t">Only country-specific</button>
+      </div>
+    </div>
     <div class="fb-grupo">
       <div class="etq-lat" data-i18n="bar.extras">Include with each requirement</div>
       <div class="pildoras">
@@ -154,6 +161,7 @@
         <button id="selNada" type="button" class="mini" data-i18n="sel.ninguno">none</button>
       </div>
     </div>
+    <p id="avisoLegal" class="nota aviso-legal" role="note" hidden data-i18n="aviso.legal">Informational guidance, not legal advice: always verify the current text of each cited norm in the official source.</p>
     <div id="franjaProyecto" class="barra-proy" hidden>
       <span id="resumenProyecto" class="nota"></span>
       <button id="ocultarHecho" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="proy.ocultar">Hide what I did</button>

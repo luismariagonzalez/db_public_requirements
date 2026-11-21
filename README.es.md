@@ -38,6 +38,12 @@ curl "https://joderestatodocogido.com/proyectos/requirements-db/app/api/v1/requi
 - Con cuenta o clave de API: `/api/v1/projects` (y `PUT /:id/items` para que el agente marque lo hecho, lo que está en curso y lo planeado), `/api/v1/suggestions`.
 - Con sesión (Clerk: Google, GitHub o correo con código): `POST /api/contribute` (la revisa una IA: ¿ya está? ¿fusionar o crear?), `/api/me/keys`, `/api/me/contributions`, `DELETE /api/me`.
 
+## Requisitos por país (regulación)
+
+Un requisito existe una sola vez y se asocia a las jurisdicciones donde aplica (códigos ISO de país, `EU`, regiones), cada una con su propio matiz corto y su fuente oficial. Añade `country=ES` (separados por comas) a `GET /api/v1/requirements`, `GET /api/v1/requirements/:slug` o `POST /api/v1/export` (`country` en el cuerpo), o `--country ES` en el CLI: recibes solo lo que aplica allí, con el matiz y la fuente de ese país y de ningún otro. Los requisitos genéricos se mantienen salvo que añadas `country_only=1`. `GET /api/v1/jurisdictions` lista las disponibles (hoy `ES` y `EU`; el juego online regulado en España es el primer conjunto).
+
+> **Información orientativa, no asesoramiento jurídico. Verifica siempre la norma vigente en la fuente oficial.**
+
 ## Monta tu propia copia
 
 Necesitas un Postgres con `pgvector` (Supabase), una clave de la API Gemini (embeddings y revisión) y Clerk para el inicio de sesión. Las variables, los cupos y las reglas están en [AGENTS.md](AGENTS.md).
