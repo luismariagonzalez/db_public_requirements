@@ -1,0 +1,412 @@
+[
+  {
+    "slug": "safer-gambling-responsible-officer",
+    "veredicto": "IMPRECISO",
+    "problema": "La obligacion existe y esta en vigor (RD 176/2023 art. 6, apartados 1-3). La nota cita RD 1614/2011 art. 63, pero ese articulo solo define el objeto del Registro de Personas Vinculadas (incluye a la persona responsable de juego seguro); la obligacion de comunicar el nombramiento a la DGOJ esta en el propio art. 6.1 RD 176/2023 (y los avisos de cambios en el art. 66.2 RD 1614/2011, no leido por completo). El enunciado agrupa nombramiento, supervision, recursos e independencia de marketing (un solo sujeto, mezcla leve).",
+    "correccion": "Citar RD 176/2023 art. 6.1 (comunicacion a la DGOJ para inscripcion en el Registro de Personas Vinculadas), 6.2 (supervisa politicas, elabora plan y memoria anual, no dependiente de publicidad/marketing) y 6.3 (recursos; alta direccion o influencia suficiente). Sustituir la referencia al art. 63 RD 1614/2011 por 'art. 63 (objeto del registro) y art. 66 (comunicacion de cambios)' o quitarla.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 razonable: obligacion legal de todo operador.",
+    "mezcla_o_interfaz": "Mezcla leve: nombramiento + recursos + independencia de marketing en un enunciado. Sin interfaz.",
+    "documento_origen": "Real Decreto 176/2023, de 14 de marzo (BOE-A-2023-6735), texto consolidado act. 25/06/2026",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 6, apartados 1, 2 y 3",
+    "fragmento": "Parafrasis art. 6.1: el nombramiento se comunica a la DGOJ para su inscripcion en el Registro de Personas Vinculadas.",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-responsible-officer-test-1", "veredicto": "CORRECTO", "comentario": "Valida la existencia del nombramiento registrado; el escenario habla de una checklist interna (no es mandato legal) pero ejercita la obligacion del art. 6.1. Podria ampliarse con la comunicacion a la DGOJ."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-active-measures-plan",
+    "veredicto": "CORRECTO",
+    "problema": "Art. 7 RD 176/2023: plan de medidas activas integrado en el plan operativo, actualizado y a disposicion de la autoridad. Ley 13/2011 art. 8.1 ('deberan elaborar un plan de medidas') y art. 10.2 (plan operativo con principios de juego responsable) verificados en BOE-A-2011-9280. El criterio 'se revisa cuando cambia una medida o norma' es derivacion razonable de 'mantenido actualizado'. El criterio 'describe como se implementa cada medida legal' es buena practica, no literal.",
+    "correccion": null,
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 aceptable (obligacion legal de licencia general).",
+    "mezcla_o_interfaz": null,
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735) y Ley 13/2011 (BOE-A-2011-9280)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "RD 176/2023 art. 7; Ley 13/2011 art. 8.1 y art. 10.2 (https://www.boe.es/buscar/act.php?id=BOE-A-2011-9280)",
+    "fragmento": "Ley 13/2011 art. 8.1: «deberán elaborar un plan de medidas»; art. 10.2: «un plan operativo que tenga en cuenta los principios del juego responsable».",
+    "fecha_consulta": "2026-11-21",
+    "tests": []
+  },
+  {
+    "slug": "safer-gambling-staff-training",
+    "veredicto": "CORRECTO",
+    "problema": "Art. 8 RD 176/2023: formacion general a todo el personal y formacion especifica anual para quien trata con participantes o informa al responsable. La nota sobre DA 4.2 (canal fisico, loteria de ambito estatal) es correcta pero no aplica al juego online. Criterio 1 (registros por empleado) es buena practica, no esta en el texto.",
+    "correccion": null,
+    "prioridad_ok": null,
+    "prioridad_comentario": "P2 discutible: es obligacion expresa y sancionable igual que otras marcadas P1; criterio de prioridad no homogeneo en el fichero.",
+    "mezcla_o_interfaz": "Mezcla leve: formacion general + formacion anual especifica.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 8 (formacion general y formacion especifica anual); DA 4.2",
+    "fragmento": "Parafrasis art. 8: el personal que trata con jugadores recibe formacion especifica anual sobre deteccion de comportamientos de riesgo.",
+    "fecha_consulta": "2026-11-21",
+    "tests": []
+  },
+  {
+    "slug": "safer-gambling-information-access",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 9 RD 176/2023 verificado: 9.1 enlace 'Juego mas seguro' visible en la pagina de inicio + enlaces a portales de la DGOJ; 9.2 contenido minimo a)-l) (riesgos, prohibicion menores, autoprohibicion, limites de deposito, autoexclusion, entidades, SNS, control parental, estudios, test de autoevaluacion, deteccion de riesgo, linea de ayuda); informacion descargable y con enlaces directos; 9.3 'Juego autorizado' separado + enlace a la web oficial de la DGOJ; 9.4 prohibicion de menores y autoprohibicion visibles (enlaces directos). Problemas: (1) el criterio 1 omite el contenido l) linea de ayuda; (2) la nota y criterio 3 describen ubicacion (home, visible) = interfaz; (3) el enunciado mezcla contenido, descarga y enlaces (varias obligaciones); (4) 'permanent' no figura en el texto. La modificacion del 9.2.d por RD 520/2026 entra en vigor el 25/03/2027 (confirmado en BOE-A-2026-13762).",
+    "correccion": "Reformular sin ubicacion: 'The operator must make available to players safer-gambling information covering the minimum contents of art. 9.2 (a-l), downloadable and with direct links to the sources'. Anadir l) linea de ayuda a los criterios y partir en otro requisito el 'Juego autorizado' (9.3) y la visibilidad de menores/autoprohibicion (9.4). Cita correcta: art. 9.1-9.5.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 aceptable.",
+    "mezcla_o_interfaz": "Mezcla: contenido minimo + descargable + 'Juego autorizado' + menores/autoprohibicion. Interfaz: 'clearly visible on the home of the web or app' y 'visible in the operator channels'.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735); RD 520/2026 (BOE-A-2026-13762) para 9.2.d",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 9.1, 9.2 (letras a-l), 9.3, 9.4; art. segundo RD 520/2026 (https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-13762)",
+    "fragmento": "Art. 9.1: enlace directo «Juego más seguro» visible en la pagina de inicio.",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-information-access-test-1", "veredicto": "CORRECTO", "comentario": "Auditar contra la lista legal 9.2 a-l valida el requisito; debe incluir la letra l)."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-helpline-service",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 10 RD 176/2023 verificado: servicio telefonico, al menos en castellano, sin coste adicional; cubre riesgos, test de autoevaluacion, autoprohibicion/autoexclusion y servicios publicos de prevencion/tratamiento del SNS; operable por el operador (solo o conjuntamente) o terceros con convenio comunicado a la DGOJ en un mes (10.2); numero visible al menos en la seccion de juego seguro de la pagina principal (10.3); personal con formacion especifica (10.4). El enunciado dice 'not charged at premium rates' pero el texto dice 'sin coste adicional' (mas estricto). Hay mezcla de obligaciones (servicio, formacion, convenios).",
+    "correccion": "Enunciado: 'must provide a telephone service ... available at least in Spanish, with no additional charge to the caller'. Cita: art. 10.1-10.4.",
+    "prioridad_ok": null,
+    "prioridad_comentario": "P2 discutible: obligacion expresa del art. 10 y su contenido es parte exigida del art. 9.2.l.",
+    "mezcla_o_interfaz": "Mezcla leve (servicio + formacion + convenios). El numero 'visible' en la nota es ubicacion.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 10, apartados 1, 2, 3 y 4",
+    "fragmento": "Art. 10.1: disponible «al menos en castellano».",
+    "fecha_consulta": "2026-11-21",
+    "tests": []
+  },
+  {
+    "slug": "safer-gambling-welcome-message",
+    "veredicto": "CORRECTO",
+    "problema": "Art. 12 (un solo parrafo): mensaje a las 24 h del registro sobre juegos, riesgos y politicas de juego seguro; art. 22: refuerzo para jovenes (25 anos o menos, art. 3.j) con riesgo de trastorno por empezar pronto. Ambos en vigor desde 15/09/2023. Criterio 3 (registro de hora y contenido) no esta en el texto: buena practica de trazabilidad. Mezcla leve de dos articulos (12 y 22).",
+    "correccion": null,
+    "prioridad_ok": null,
+    "prioridad_comentario": "P2 discutible: obligacion expresa con plazo; no es 'menor' respecto a otras P1 del fichero.",
+    "mezcla_o_interfaz": "Mezcla leve: mensaje general + refuerzo jovenes.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 12 y art. 22; definicion art. 3.j",
+    "fragmento": "Parafrasis art. 12: en 24 horas desde el registro el usuario recibe mensaje sobre juegos, riesgos y politica de juego seguro.",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-welcome-message-test-1", "veredicto": "CORRECTO", "comentario": "Valida el plazo de 24 h; el 'logged' es criterio de buena practica, no legal."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-session-limits-before-play",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 13 RD 176/2023 verificado (en vigor 15/03/2024, DF sexta): aplica a todos los juegos de la licencia general 'Otros juegos'; excluidos torneos de poker (13.2); limite de tiempo y de CANTIDAD A GASTAR (no 'maxima perdida') fijados antes de cada sesion, sin valores por defecto ni arrastre (13.3); no modificables en sesion (13.4); fin automatico al terminar manos/rondas en curso y aviso previo (13.5). Imprecisiones: 'maximum loss' vs 'cantidad maxima a gastar'; las categorias omiten maquinas de azar/otros juegos de la misma licencia; la nota sobre sesiones registradas apunta a Resolucion 6/10/2014 apartado 2.1.14, comprobado en el texto consolidado (22/06/2024; modif. Resolucion 6/06/2024 BOE-A-2024-12639 efectiva 22/03/2025): rubrica 'Registro de la configuracion de la sesion de juego bajo la licencia general de Otros juegos' (cita art. 13 RD 176/2023).",
+    "correccion": "Enunciado: 'must make the player set a maximum time and a maximum amount to spend before every session...'. Citar art. 13.1-13.5 y, para el registro, Resolucion DGOJ 6/10/2014 (BOE-A-2014-10302) Anexo I 2.1.14.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 correcto: obligacion legal con sancion.",
+    "mezcla_o_interfaz": "Mezcla: fijar limites + fin automatico + aviso previo (flujo unico, aceptable). Criterio 1 'cannot be prefilled' roza interfaz pero es literal de la norma.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735); Resolucion DGOJ 6/10/2014 (BOE-A-2014-10302)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 13, apartados 1-5; DF sexta (entrada en vigor a los doce meses); Resolucion 6/10/2014 Anexo I 2.1.14 (https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302)",
+    "fragmento": "Art. 13.3: antes de cada sesion el jugador fija tiempo maximo y cantidad maxima a gastar, sin defecto ni arrastre (parafrasis).",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-session-limits-before-play-test-1", "veredicto": "CORRECTO", "comentario": "Valida 13.3 (sin valores por defecto). El escenario describe 'limit setup presented' (flujo de UI) pero valida la obligacion."},
+      {"slug": "safer-gambling-session-limits-before-play-test-2", "veredicto": "CORRECTO", "comentario": "Valida 13.5: la ronda en curso termina y no empieza otra."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-return-after-session-message",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 13.7 verificado: si una nueva sesion empieza dentro de 60 minutos del fin de la anterior, mensaje previo con tiempo desde la ultima sesion, ventaja del juego mas seguro y riesgos del juego frecuente, con enlace a la seccion del art. 9.1. Falta el elemento 'ventaja del juego mas seguro' en los criterios. 'Differs from the periodic message' solo esta expreso para loterias (art. 15.6), no en 13.7. Art. 15.6 confirmado.",
+    "correccion": "Criterio 1: anadir 'advantages of safer play'. Criterio 3 marcarlo como inferencia del art. 15.6 o eliminarlo. Cita: art. 13.7 (y 15.6 para loterias).",
+    "prioridad_ok": null,
+    "prioridad_comentario": "P2 discutible: obligacion expresa en el mismo articulo que las P1 de sesiones.",
+    "mezcla_o_interfaz": null,
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 13.7 (y art. 15.6)",
+    "fragmento": "Parafrasis art. 13.7: nueva sesion en menos de 60 minutos exige mensaje especifico previo.",
+    "fecha_consulta": "2026-11-21",
+    "tests": []
+  },
+  {
+    "slug": "safer-gambling-periodic-self-assessment-messages",
+    "veredicto": "CORRECTO",
+    "problema": "Art. 16 verificado: al menos cada 60 minutos durante una sesion, mensaje informativo que debe leerse antes de continuar, con datos objetivos (tiempo jugado, importes apostados, perdidas netas) sin valoracion del operador. En vigor 15/03/2024. Aplicacion a sesiones: las sesiones del art. 13 (Otros juegos) y loterias art. 15; el requisito esta en categoria generica online-gambling aunque solo aplica a juegos con sesion (apuestas deportivas no tienen sesion).",
+    "correccion": "Acotar categorias a los juegos con sesion (Otros juegos / loterias) en lugar de online-gambling general.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 correcto.",
+    "mezcla_o_interfaz": "Criterio 2 ('cannot keep playing without acknowledging') es literal de la norma; no describe pantalla.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 16",
+    "fragmento": "Parafrasis art. 16: al menos cada 60 minutos, mensaje informativo con datos objetivos que debe leerse antes de seguir.",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-periodic-self-assessment-messages-test-1", "veredicto": "CORRECTO", "comentario": "Valida art. 16."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-no-near-miss-messages",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 17 verificado: 17.1 resultados presentados con claridad y veracidad; 17.2 prohibidos mensajes como «Casi acertaste» o «Estuviste cerca» en resultados perdedores. DA sexta: un ano desde la entrada en vigor del RD (general 15/09/2023, es decir hasta 15/09/2024 segun calculo; el texto no da fecha). El criterio 3 'adapted within transition period' esta obsoleto (plazo vencido a la fecha de consulta 2026-11-21). El enunciado mezcla 17.1 y 17.2.",
+    "correccion": "Eliminar criterio 3 (transitorio vencido) o reformularlo como 'no near-miss messaging remains'. Cita: art. 17.1-17.2; DA sexta solo como contexto historico.",
+    "prioridad_ok": null,
+    "prioridad_comentario": "P2 discutible: prohibicion expresa; sancionable.",
+    "mezcla_o_interfaz": "Mezcla leve: veracidad de resultados (17.1) + prohibicion de near-miss (17.2).",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 17.1 y 17.2; DA sexta",
+    "fragmento": "Art. 17.2: prohibidos mensajes como «Casi acertaste» o «Estuviste cerca».",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-no-near-miss-messages-test-1", "veredicto": "CORRECTO", "comentario": "Escanear el catalogo de mensajes valida 17.2; no cubre efectos no textuales mencionados en el criterio 2."}
+    ]
+  },
+  {
+    "slug": "betting-live-bet-budget-cap",
+    "veredicto": "CORRECTO",
+    "problema": "Art. 14 verificado: apuestas en directo no pueden superar el saldo al inicio del evento mas premios de apuestas en directo del mismo evento (14.1); combinadas sobre eventos simultaneos: saldo al inicio del primero (14.2); registro posterior al inicio: saldo disponible cero (14.3). En vigor 15/03/2024. Orden EHA/3080/2011 Anexo art. 12.2 (redaccion Orden HAP/1369/2014, vigente desde 31/10/2014; consolidado 30/07/2014 segun BOE) confirmado: 'no podra exceder del importe del saldo que el participante tenga en su cuenta de juego'.",
+    "correccion": null,
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 correcto.",
+    "mezcla_o_interfaz": null,
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735); Orden EHA/3080/2011 (BOE-A-2011-17964)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 14.1, 14.2 y 14.3; Orden EHA/3080/2011 art. 12.2 (https://www.boe.es/buscar/act.php?id=BOE-A-2011-17964)",
+    "fragmento": "Orden EHA/3080/2011 art. 12.2: «no podrá exceder del importe del saldo que el participante tenga en su cuenta de juego».",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "betting-live-bet-budget-cap-test-1", "veredicto": "CORRECTO", "comentario": "Valida 14.1 (depositos durante el evento no amplian el limite)."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-monthly-activity-summary",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 18 verificado: derecho a resumen mensual (accesos, depositos y medios de pago, movimientos, historial de saldo gastado, cambios de limites de deposito) (18.1); recordatorio al menos cada tres meses (18.2); formato fijable por la DGOJ al amparo del art. 23 Ley 13/2011 (18.3). La nota sobre jugadores intensivos (email en los primeros cinco dias del mes siguiente) es del art. 20, no del 18, y solapa con el requisito de deteccion de intensivos.",
+    "correccion": "Citar art. 18.1-18.3; quitar de la nota la referencia al envio por email a intensivos o citar expresamente art. 20.",
+    "prioridad_ok": null,
+    "prioridad_comentario": "P2 discutible: obligacion expresa y sancionable.",
+    "mezcla_o_interfaz": "Mezcla leve: acceso al resumen + recordatorio trimestral.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 18, apartados 1, 2 y 3 (y art. 20 para intensivos)",
+    "fragmento": "Parafrasis art. 18.2: recordatorio de la disponibilidad del resumen al menos cada tres meses.",
+    "fecha_consulta": "2026-11-21",
+    "tests": []
+  },
+  {
+    "slug": "safer-gambling-intensive-play-detection",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 3.h verificado: perdidas netas semanales >=600 EUR tres semanas consecutivas (>=200 EUR para jovenes <=25), semana lunes 00:00 a domingo 24:00, fin del estatus tras seis semanas sin superar umbrales; perdida neta = saldo inicial + depositos - retiradas - saldo final, solo dinero real. Art. 19: mensaje con plazo limite a las 24 h del dia siguiente al dia en que se adquiere la condicion, por correo u otro medio trazable, comprensible para el consumidor medio (depositos medios, tiempo de conexion, perdidas acumuladas). Art. 20: resumen mensual por medio trazable en los primeros cinco dias del mes siguiente. Hay mezcla (deteccion + mensaje + resumen mensual) y falta el matiz del art. 25.4 (si el jugador pasa a riesgo, se suspenden las medidas 19-21).",
+    "correccion": "Partir en deteccion (3.h) y notificacion (19, +20). Anadir que si el participante es catalogado en riesgo (art. 25) las medidas de los arts. 19-21 se suspenden.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 aceptable.",
+    "mezcla_o_interfaz": "Mezcla: deteccion + notificacion + resumen mensual (arts. 19 y 20).",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 3.h; art. 19; art. 20; art. 25.4",
+    "fragmento": "Art. 19: «como plazo límite a las 24 horas del día siguiente» a la adquisicion de la condicion.",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-intensive-play-detection-test-1", "veredicto": "CORRECTO", "comentario": "600 EUR exactos cumple 'al menos 600'. Valida 3.h."},
+      {"slug": "safer-gambling-intensive-play-detection-test-2", "veredicto": "CORRECTO", "comentario": "Umbral de 200 EUR para <=25 anos correcto."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-credit-card-deposit-ban",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 21 verificado: intensivos no pueden depositar con tarjeta de credito; activacion dentro de las primeras 72 horas de la semana siguiente a adquirir el estatus. Art. 30: jugadores en riesgo, mismas restricciones (el apartado de tarjetas de credito aparece como ultimo apartado del art. 30; el numero exacto '30.2' no se pudo confirmar). Art. 25.2: medidas activas como limite a las 24 h del dia siguiente. DA septima confirmada. Mezcla dos obligaciones de dos articulos y se solapa con el requisito safer-gambling-risk-player-payment-restrictions (criterio 3).",
+    "correccion": "Partir en intensivos (art. 21) y riesgo (art. 30, con 25.2); eliminar duplicidad con el requisito de pagos de riesgo. Citar 'art. 30 (apartado sobre tarjetas)' mientras no se confirme el numero.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 correcto (en vigor desde 15/03/2024).",
+    "mezcla_o_interfaz": "Mezcla de dos poblaciones (intensivos y riesgo).",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 21; art. 30 (tarjetas de credito); art. 25.2; DA septima; DF sexta",
+    "fragmento": "Art. 21: activacion «dentro de las primeras 72 horas correspondientes a la semana siguiente».",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-credit-card-deposit-ban-test-1", "veredicto": "CORRECTO", "comentario": "Valida art. 21 (intensivo + tarjeta de credito rechazada tras el plazo de activacion)."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-young-players-protection",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 23 verificado (en vigor 15/03/2024): jovenes (<=25, art. 3.j) no pueden recibir promociones ajenas al juego del propio operador. Art. 11.3: jovenes no pueden recibir servicios especializados de clientes privilegiados. DA decima: retirada de jovenes de servicios existentes en tres dias habiles desde la entrada en vigor (transitoria, ya agotada). Mezcla dos obligaciones (promociones art. 23 + VIP art. 11.3). La nota sobre DA decima es historica.",
+    "correccion": "Partir en art. 23 (promociones) y art. 11.3 (VIP), o aceptarlo como 'proteccion de jovenes' citando ambos. Marcar DA decima como transitoria vencida.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 aceptable.",
+    "mezcla_o_interfaz": "Mezcla: promociones ajenas + servicio privilegiado.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 23; art. 11.3; DA decima; art. 3.j",
+    "fragmento": "DA decima: retirada en «tres días hábiles» desde la entrada en vigor.",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-young-players-protection-test-1", "veredicto": "CORRECTO", "comentario": "Valida art. 23 (exclusion de promocion no relacionada con juego)."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-vip-risk-assessment",
+    "veredicto": "CORRECTO",
+    "problema": "Art. 11.1-11.2 verificado: la persona responsable vela por la compatibilidad de las medidas VIP con la politica; antes de incluir a un usuario en un servicio especializado se evalua individualmente el riesgo y, si hay indicios, no se presta. La definicion de 'clientes privilegiados' (nota) no pudo comprobarse en el art. 3: NO VERIFICABLE esa frase concreta. Registro de la evaluacion (criterio 1) es buena practica.",
+    "correccion": "Verificar la definicion en art. 3 antes de mantener la nota.",
+    "prioridad_ok": null,
+    "prioridad_comentario": "P2 discutible: obligacion expresa previa a un servicio de alto riesgo.",
+    "mezcla_o_interfaz": null,
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 11, apartados 1 y 2",
+    "fragmento": "Parafrasis art. 11.2: evaluacion individual previa y exclusion si hay indicios de comportamiento de riesgo.",
+    "fecha_consulta": "2026-11-21",
+    "tests": []
+  },
+  {
+    "slug": "safer-gambling-risk-behaviour-detection",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 24 verificado: mecanismos y protocolos con indicadores objetivos (volumen, frecuencia, variabilidad de jugadas o depositos); datos solo para deteccion y medidas; comunicacion anual antes del 31 de enero (descripcion de mecanismos, protocolo, numero de personas detectadas el ano anterior, actuaciones); la DGOJ puede fijarlos por resolucion. DF tercera: mecanismo comun en dos anos desde la entrada en vigor (el texto no dice 'must develop' con ese tono; dice que se pondra a disposicion y sera utilizado por todos los operadores). Mezcla deteccion + informe anual. El art. 4 remite a RGPD/LOPDGDD (correcto).",
+    "correccion": "Partir en 'detect' y 'report annually before 31 January'. Citar art. 24.1-24.4 y art. 4; DF tercera es mandato a la DGOJ, no al operador.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 aceptable.",
+    "mezcla_o_interfaz": "Mezcla: deteccion + comunicacion anual.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 24 (apartados 1-4); art. 4; DF tercera",
+    "fragmento": "Parafrasis art. 24: indicadores objetivos de volumen, frecuencia y variabilidad; informe anual antes del 31 de enero.",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-risk-behaviour-detection-test-1", "veredicto": "CORRECTO", "comentario": "Valida la deteccion por indicadores; 'risk review starts' va mas alla del texto (la norma exige aplicar las medidas de los arts. 25-30)."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-risk-player-interaction",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 25-26 verificados: medidas activas como limite a las 24 h del dia siguiente a la catalogacion (25.2); comunicar al jugador por correo u otro medio trazable la catalogacion, actividad y gasto recientes, herramientas (26); reclamacion segun art. 15 Ley 13/2011 (derecho a reclamar ante la autoridad); solo cuenta la respuesta activa del jugador, no acuses automaticos; sin interaccion en 72 h desde el envio se suspende 'el juego' del jugador hasta que haya interaccion; continuar la interaccion con frecuencia razonable. El enunciado/test hablan de suspender 'play'/'account'; la nota habla de 'player relationship': el texto consultado (parafrasis) refiere suspension del juego, no de toda la cuenta: literal NO VERIFICADO. Mezcla varias obligaciones (contacto, respuesta, suspension, continuidad, reclamacion).",
+    "correccion": "Alinear con el literal del art. 26 (comprobar si es 'suspender la relacion de juego'/'el juego') y partir en contacto inicial, suspension a 72 h y seguimiento.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 correcto.",
+    "mezcla_o_interfaz": "Mezcla de 4-5 obligaciones.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735); Ley 13/2011 art. 15 (BOE-A-2011-9280)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 25.1 y 25.2; art. 26 (apartados sobre comunicacion, respuesta activa, 72 horas y frecuencia)",
+    "fragmento": "Art. 26: «en un plazo máximo de setenta y dos horas desde que el operador haya remitido la comunicación».",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-risk-player-interaction-test-1", "veredicto": "CORRECTO", "comentario": "Valida el plazo de 72 h (art. 26); conviene ajustar 'account suspended' a 'gambling suspended' segun literal."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-risk-player-restrictions",
+    "veredicto": "CORRECTO",
+    "problema": "Arts. 27, 28 y 29 verificados: sin promociones (27), sin servicios VIP (28), sin comunicaciones comerciales por email o equivalentes (29). Plazo de activacion: art. 25.2. Mezcla tres obligaciones; el art. 29 se solapa con el requisito safer-gambling-excluded-players-marketing-ban.",
+    "correccion": null,
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 aceptable.",
+    "mezcla_o_interfaz": "Mezcla de tres prohibiciones (arts. 27, 28, 29) y duplicidad parcial con el requisito de marketing a excluidos.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Arts. 27, 28 y 29",
+    "fragmento": "Parafrasis art. 28: prohibido ofrecer servicios especializados de clientes privilegiados a personas en riesgo.",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-risk-player-restrictions-test-1", "veredicto": "CORRECTO", "comentario": "Valida art. 29 (email) y la exclusion de campanas; no cubre promociones ni VIP."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-risk-player-payment-restrictions",
+    "veredicto": "CORRECTO",
+    "problema": "Art. 30 verificado: solo medios de pago a su nombre y de su titularidad; si no se acredita en el plazo del art. 25, el operador contacta y el jugador dispone de 72 h tras ese plazo, tras lo cual el medio queda bloqueado hasta acreditarlo; sin tarjetas de credito para depositar. Duplica criterio de tarjetas con safer-gambling-credit-card-deposit-ban.",
+    "correccion": null,
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 aceptable (en vigor 15/03/2024).",
+    "mezcla_o_interfaz": "Duplicidad con el requisito de tarjetas de credito (criterio 3).",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 30 (apartado 1 sobre titularidad y 72 horas; apartado sobre tarjetas)",
+    "fragmento": "Parafrasis art. 30: solo medios de pago a su nombre; 72 horas tras el plazo para acreditar titularidad.",
+    "fecha_consulta": "2026-11-21",
+    "tests": []
+  },
+  {
+    "slug": "safer-gambling-rgiaj-account-suspension",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 31 verificado: al conocer la inscripcion en el RGIAJ, suspension de la cuenta y comunicacion de consecuencias; sin depositos ni apuestas; el interesado puede pedir gratuitamente y por cualquier medio disponible la transferencia de su saldo (incluidos premios anteriores) y premios de apuestas previas; la suspension se levanta tras la cancelacion de la inscripcion, a peticion y tras el mensaje del art. 34. La nota cita RD 1614/2011 art. 60 con 'indefinite period / cancelacion tras seis meses': correcto solo para inscripciones voluntarias (art. 60: indefinida, cancelacion a peticion pasados seis meses; a instancia de tercero o judiciales, segun la resolucion).",
+    "correccion": "Precisar en la nota: 'voluntary registrations are indefinite; the person may request cancellation after six months (RD 1614/2011 art. 60); third-party/court entries last as the ruling says'. Cita art. 31.1-31.4.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 correcto.",
+    "mezcla_o_interfaz": "Mezcla leve: suspension + retirada de fondos + reactivacion.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735); Real Decreto 1614/2011 (BOE-A-2011-17836)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "RD 176/2023 art. 31 (apartados 1-4); RD 1614/2011 art. 60 (https://www.boe.es/eli/es/rd/2011/11/14/1614/con)",
+    "fragmento": "Parafrasis art. 31.1: al saber que el titular esta en el RGIAJ, el operador suspende la cuenta y explica las consecuencias.",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-rgiaj-account-suspension-test-1", "veredicto": "CORRECTO", "comentario": "Valida suspension + posibilidad de retirar el saldo."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-self-exclusion",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 32 verificado: autoexclusion suspende la cuenta sin depositos ni apuestas; efectiva como maximo en 48 h desde la solicitud completa; irrevocable durante el periodo elegido; accesible en la pagina de inicio de la web del operador, distinta de las opciones de juego; sin exigir motivos ni contacto con atencion al cliente; pocos pasos; si el periodo supera seis meses, revocable 'transcurrido ese periodo' (el texto consultado es ambiguo: no queda claro si son los seis meses o el periodo elegido); durante la autoexclusion solo retirar saldo y premios. Problemas: criterio 1 y nota describen ubicacion e interfaz (inicio de la web, pocos pasos) aunque son literales de la norma; la clausula de revocacion queda NO VERIFICABLE en su literal.",
+    "correccion": "Enunciado sin ubicacion; mover 'home page' a la nota legal. Verificar literal del art. 32 sobre la revocacion (seis meses). Cita: art. 32.1-32.3.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 correcto.",
+    "mezcla_o_interfaz": "Interfaz: 'easy to find and separate from game options', 'few steps', home del operador (derivado literal del art. 32.2). Mezcla: oferta + plazo + irrevocabilidad + efectos.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 32.1, 32.2 (letras a-c y plazo de 48 horas), 32.3",
+    "fragmento": "Art. 32.2.a: «en la página de inicio de la web del operador de juego».",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-self-exclusion-test-1", "veredicto": "CORRECTO", "comentario": "Valida el maximo de 48 h; debe afirmar bloqueo 'at or before' 48 h."},
+      {"slug": "safer-gambling-self-exclusion-test-2", "veredicto": "CORRECTO", "comentario": "Valida 32.2: sin motivo ni contacto con soporte."}
+    ]
+  },
+  {
+    "slug": "safer-gambling-return-from-exclusion-message",
+    "veredicto": "CORRECTO",
+    "problema": "Art. 34 verificado: al reactivar una cuenta antigua tras salir del RGIAJ (pasado el periodo minimo), mensaje especifico sobre la inscripcion anterior, riesgos y politicas, con datos previos (perdidas acumuladas, tiempos de sesion, reclamaciones) y clasificaciones de intensivo/riesgo si las hubo. 'Enviado antes de reactivar' se deduce del art. 31.4 (reactivacion tras el mensaje del art. 34).",
+    "correccion": null,
+    "prioridad_ok": null,
+    "prioridad_comentario": "P2 discutible: condicion legal previa a la reactivacion de la cuenta.",
+    "mezcla_o_interfaz": null,
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 34; art. 31 (levantamiento tras el mensaje del art. 34)",
+    "fragmento": "Parafrasis art. 34: mensaje especifico al reactivar una cuenta anterior tras salir del RGIAJ.",
+    "fecha_consulta": "2026-11-21",
+    "tests": []
+  },
+  {
+    "slug": "safer-gambling-excluded-impersonation-detection",
+    "veredicto": "CORRECTO",
+    "problema": "Art. 35 verificado: procedimientos internos de deteccion de inscritos en el RGIAJ que intenten jugar suplantando la identidad de otra persona; controles y cruces periodicos; coincidencia con jugador activo suspende la cuenta hasta verificar identidad documentalmente. DA primera: adhesion a los sistemas de prevencion de suplantacion de la autoridad: confirmado.",
+    "correccion": null,
+    "prioridad_ok": null,
+    "prioridad_comentario": "P2 discutible: obligacion expresa (art. 35) con efecto directo en la proteccion de excluidos.",
+    "mezcla_o_interfaz": "Mezcla leve: deteccion + suspension + sistemas DGOJ (DA primera).",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "Art. 35 y DA primera",
+    "fragmento": "Parafrasis art. 35: cruces periodicos; si hay coincidencia se suspende la cuenta hasta verificacion documental.",
+    "fecha_consulta": "2026-11-21",
+    "tests": []
+  },
+  {
+    "slug": "safer-gambling-excluded-players-marketing-ban",
+    "veredicto": "IMPRECISO",
+    "problema": "Art. 33 RD 176/2023 verificado (dos parrafos): prohibidas comunicaciones comerciales por email o medios equivalentes, incluidas promociones y su disfrute, a autoprohibidos y autoexcluidos; cesa el dia siguiente a dejar de estar inscrito o autoexcluido. Art. 29: lo mismo para personas en riesgo. RD 958/2020 art. 24.2 (BOE-A-2020-13495, consolidado 08/06/2024) verificado: prohibiciones a partir de las 00:00 del segundo dia posterior a la inscripcion, autoexclusion o deteccion; cesan al dia siguiente. Problema: el art. 24.2.c RD 958/2020 remite a un art. 34 del propio RD 958/2020 (sistemas de deteccion de comportamientos de riesgo), que esta en el Titulo II derogado (arts. 29-35 marcados como derogados), por lo que esa remision queda sin objeto. El enunciado mezcla excluidos y en riesgo (dos obligaciones) y duplica el requisito safer-gambling-risk-player-restrictions.",
+    "correccion": "Separar autoprohibidos/autoexcluidos (RD 176/2023 art. 33 + RD 958/2020 art. 24.2.a-b) de en riesgo (art. 29). Anadir que la remision del 24.2.c RD 958/2020 al art. 34 esta derogada y debe leerse con RD 176/2023 art. 24-29.",
+    "prioridad_ok": true,
+    "prioridad_comentario": "P1 aceptable.",
+    "mezcla_o_interfaz": "Mezcla de excluidos y en riesgo; duplicidad con el requisito de restricciones a jugadores en riesgo.",
+    "documento_origen": "Real Decreto 176/2023 (BOE-A-2023-6735) y Real Decreto 958/2020 (BOE-A-2020-13495)",
+    "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-6735",
+    "parrafo_origen": "RD 176/2023 art. 33 (parrafos 1 y 2) y art. 29; RD 958/2020 art. 24.2 (https://www.boe.es/eli/es/rd/2020/11/03/958/con)",
+    "fragmento": "RD 958/2020 art. 24.2: «se instrumentarán a partir de las 00:00 horas del segundo día».",
+    "fecha_consulta": "2026-11-21",
+    "tests": [
+      {"slug": "safer-gambling-excluded-players-marketing-ban-test-1", "veredicto": "CORRECTO", "comentario": "Valida la prohibicion desde las 00:00 del segundo dia (RD 958/2020 art. 24.2); el art. 33 RD 176/2023 no fija el inicio expreso."}
+    ]
+  }
+]

@@ -1,0 +1,290 @@
+[
+ {
+  "slug": "gambling-central-game-unit-and-replica",
+  "veredicto": "CORRECTO",
+  "problema": "Cita y contenido correctos. Ley 13/2011 art. 18 (apdos. 1, 2, 3 y 4) y RD 1613/2011 arts. 4 y 14 dicen lo afirmado (registro y reconstruccion, replica, copias de seguridad, monitorizacion desde territorio espanol, unidades secundarias en Espana). Ley 13/2011 consolidada: ultima actualizacion 31/12/2022 (fecha de la semilla correcta).",
+  "correccion": null,
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcto: obligacion legal expresa (art. 18 Ley 13/2011) sin la cual no se obtiene homologacion.",
+  "mezcla_o_interfaz": "Agrupa tres obligaciones (UCJ que registra/reconstruye; replica; acceso del regulador) y copias/planes de contingencia; aceptable por ser un mismo articulo, pero podria dividirse. No describe interfaz.",
+  "documento_origen": "Ley 13/2011, de 27 de mayo, art. 18.1-18.4; RD 1613/2011, art. 4.1-4.3 y art. 14.1-14.3",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-9280",
+  "parrafo_origen": "Ley art. 18.3 (replica) y 18.4 (conexiones seguras, monitorizacion desde Espana); RD art. 4.1.c (reconstruir) y art. 4.3 (acceso con independencia de la ubicacion)",
+  "fragmento": "«réplica de su Unidad Central de Juegos» (art. 18.3); «reconstruir de manera fiable todas las actuaciones» (art. 18.1.c)",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "gambling-central-game-unit-and-replica-test-1",
+    "veredicto": "CORRECTO",
+    "comentario": "Valida art. 18.3 Ley / art. 4.2 RD (replica permite el normal desarrollo si la principal esta fuera de servicio) y art. 25.3 RD (no perdida de datos)."
+   }
+  ]
+ },
+ {
+  "slug": "gambling-internal-control-system-capture",
+  "veredicto": "IMPRECISO",
+  "problema": "Criterio 4 ('si el sistema no esta disponible, se suspende la oferta hasta que vuelva') es demasiado absoluto: RD art. 25.5 lo dice, pero Res. 2014 apdo. 5.1.8 (texto vigente) matiza: ante indisponibilidad del almacen inferior a 24 h puede continuarse si el capturador sigue registrando; se suspende si >24 h o si cae el capturador/SCI. Ademas la nota remite a 'Resolucion de 6/10/2014, apartado 5.1.2' (correcto: SFTP permanente y SSH solo-lectura) pero la 'norm' principal omite que la Res. de 6/10/2014 de modelo de datos fue DEROGADA por la Res. de 6/06/2024 (Quinto), en vigor 22/03/2025 (fecha de la semilla correcta; 9 meses tras 22/06/2024).",
+  "correccion": "Criterio 4: 'If the internal control system (capturer) is unavailable, game offering is suspended; if only the store is unavailable, suspended after 24 hours unless the capturer keeps recording'. Citar ademas Res. 6/10/2014 anexo I apdos. 5.1.2 y 5.1.8 (consolidada).",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcto (RD arts. 13, 24, 25.5 obligatorios). Prioridad 2 en reliability aceptable.",
+  "mezcla_o_interfaz": "Mezcla captura/registro, esquema de datos del regulador, acceso permanente SFTP/SSH y suspension de la oferta: cuatro obligaciones. No describe interfaz.",
+  "documento_origen": "RD 1613/2011, art. 13.2-13.3 y 24.3-24.5, art. 25.5; Res. DGOJ 6/10/2014 anexo I apdos. 5.1.2, 5.1.3, 5.1.8; Res. DGOJ 6/06/2024 resuelve Primero y Segundo (modelo de datos y XSD)",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17835 ; https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302 ; https://www.boe.es/buscar/act.php?id=BOE-A-2024-12639",
+  "parrafo_origen": "RD art. 13.2 (SCI captura toda operacion de participantes en Espana); art. 24.4 (captura en tiempo real); art. 25.5 (suspender oferta si SCI fuera de servicio); Res. 2014 apdo. 5.1.2",
+  "fragmento": "«deberá suspender la oferta de juego hasta que el sistema de control interno vuelva a estar activo» (art. 25.5)",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "gambling-internal-control-system-capture-test-1",
+    "veredicto": "CORRECTO",
+    "comentario": "Valida RD art. 25.5 / Res. 5.1.8 en el caso de SCI caido por completo; conviene precisar en el escenario 'capturador no disponible' para no contradecir la tolerancia de 24 h del almacen."
+   }
+  ]
+ },
+ {
+  "slug": "gambling-control-store-eu-location-retention",
+  "veredicto": "IMPRECISO",
+  "problema": "(1) Conflicto de plazos no resuelto en el criterio: Res. 2014 apdos. 5.1.13 y 6.1 (texto de la Res. 6/06/2024, en vigor 22/03/2025) fijan MINIMO 4 anos (antes 6 anos, texto original), pero RD 1613/2011 art. 24.6 (no modificado, consolidado 15/11/2011) sigue diciendo 'periodo minimo de seis anos' para la base de datos segura y los registros del operador. El RD art. 24.2 remite la 'conservacion' del SCI a resolucion de la DGOJ, lo que apoya los 4 anos para el almacen, pero una resolucion no puede contradecir un RD; la Res. 2024 afirma 'homogeneizar plazos' sin derogar el art. 24.6. El enunciado dice 'minimum legal period' y el criterio fija 'at least four years' mientras la nota dice 'keep the longer': incoherente. (2) La URL doc.php cita el texto ORIGINAL 2014 (6 anos y almacen en ESPANA), no el vigente: La URL doc.php?id=BOE-A-2014-10302 sirve el TEXTO ORIGINAL de 10/10/2014 (sin las modificaciones de 2018 y 2024), no el consolidado; usar act.php (consolidado, actualizado 22/06/2024, en vigor 22/03/2025). (3) Agrupa 4 obligaciones: ubicacion UE (5.1.14), conservacion (5.1.13), acceso online 12 meses (5.1.13/6.1) e inmutabilidad de logs (6.1). (4) La nota sobre comunicaciones de atencion al jugador 2 anos corresponde al apdo. 2.1.15, no a los apartados citados.",
+  "correccion": "Criterio 2: 'Data are kept at least four years (Resolution 6/10/2014 annex I 5.1.13 and 6.1) and, for the secure database and operator records, at least six years under Real Decreto 1613/2011 art. 24.6; until the DGOJ clarifies, keep six years'. Citar act.php consolidado y art. 24.6 RD. Dividir en: ubicacion UE, conservacion, acceso online 12 meses, inmutabilidad de logs.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1/P2 razonables: obligaciones legales expresas; la ubicacion UE y la conservacion podrian ser P1.",
+  "mezcla_o_interfaz": "Mezcla 4 obligaciones (ubicacion, plazo, acceso online, inmutabilidad). No describe interfaz.",
+  "documento_origen": "Res. DGOJ 6/10/2014 anexo I apdo. 5.1.13 (parrafos 1-3), 5.1.14 y 6.1 (texto dado por Res. 6/06/2024 apdos. 3.9 a 3.11); RD 1613/2011 art. 24.6",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302 ; https://www.boe.es/buscar/act.php?id=BOE-A-2011-17835",
+  "parrafo_origen": "5.1.13: 'conservar sus datos por un periodo mínimo de cuatro años'; 5.1.14: almacén y copias 'ubicados en la Unión Europea'; RD art. 24.6: 'período mínimo de seis años'",
+  "fragmento": "«periodo mínimo de cuatro años» (5.1.13); «mínimo de seis años» (RD 24.6)",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "gambling-control-store-eu-location-retention-test-1",
+    "veredicto": "IMPRECISO",
+    "comentario": "Escenario 'datos de mas de cuatro anos' no es concluyente: si aplica el art. 24.6 RD (6 anos) un purgado a los 4 anos borraria datos aun dentro del plazo. Reformular con el plazo mas largo (6 anos) o separar por tipo de dato."
+   }
+  ]
+ },
+ {
+  "slug": "gambling-game-logic-server-side",
+  "veredicto": "CORRECTO",
+  "problema": "Contenido correcto: apdo. 3.6.1 (logica critica generada por la UCJ independientemente del terminal) y 3.6.3 (procedimiento documentado, pista de auditoria, control de tiempo de comercializacion). La URL doc.php sirve el texto original; los apdos. 3.6 no fueron modificados (notas de consolidacion), asi que el contenido coincide; La URL doc.php?id=BOE-A-2014-10302 sirve el TEXTO ORIGINAL de 10/10/2014 (sin las modificaciones de 2018 y 2024), no el consolidado; usar act.php (consolidado, actualizado 22/06/2024, en vigor 22/03/2025).",
+  "correccion": "Sustituir URL por act.php consolidado.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcto: requisito de certificacion obligatorio (Res. 3.6.1).",
+  "mezcla_o_interfaz": "Agrupa resultado en servidor, pista de auditoria y control de cierre de apuestas (3.6.1 y 3.6.3); aceptable. Sin interfaz.",
+  "documento_origen": "Res. DGOJ 6/10/2014 anexo I apdos. 3.6.1 y 3.6.3",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302",
+  "parrafo_origen": "3.6.1: funciones y logica criticas 'generadas por la unidad central de juegos, de manera independiente al terminal'; 3.6.3 vinetas sobre tiempo de comercializacion y pista de auditoria",
+  "fragmento": "«de manera independiente al terminal de usuario» (3.6.1)",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "gambling-game-logic-server-side-test-1",
+    "veredicto": "CORRECTO",
+    "comentario": "Valida apdo. 3.6.1."
+   }
+  ]
+ },
+ {
+  "slug": "gambling-random-number-generator-requirements",
+  "veredicto": "IMPRECISO",
+  "problema": "(1) La URL doc.php devuelve el texto ORIGINAL 2014, que NO contiene 'criptograficamente fuerte' (comprobado: 0 apariciones); ese requisito lo anade la Res. 31/10/2018 (BOE-A-2018-15298) al apdo. 3.5.1, en vigor 30/03/2019. (2) La nota 'cambios para hacer el generador criptograficamente fuerte son cambio sustancial que requiere autorizacion previa' procede de la Disposicion transitoria segunda de la Res. 31/10/2018 (plazo de 9 meses, ya agotado): es historica, no obligacion actual; la regla general de cambio sustancial es RD art. 8.4. (3) El titulo dice 'certified' pero el enunciado no recoge la certificacion (RD art. 8.3.c). (4) Agrupa propiedades del GNA y monitorizacion/deshabilitacion (3.5.4).",
+  "correccion": "Citar https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302 apdos. 3.5.1-3.5.5 y RD 1613/2011 art. 5; eliminar o reformular la nota sobre DT 2.a (Res. 31/10/2018, https://www.boe.es/buscar/act.php?id=BOE-A-2018-15298).",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcto (RD art. 5 y Res. 3.5 obligatorios).",
+  "mezcla_o_interfaz": "Mezcla propiedades del GNA con monitorizacion y deshabilitacion; limite. Sin interfaz.",
+  "documento_origen": "Res. DGOJ 6/10/2014 anexo I apdo. 3.5.1 (lista de requisitos, incl. 'criptográficamente fuerte' desde Res. 31/10/2018), 3.5.2, 3.5.4, 3.5.5; RD 1613/2011 art. 5",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302 ; https://www.boe.es/buscar/act.php?id=BOE-A-2011-17835",
+  "parrafo_origen": "3.5.4: monitorizacion del GNA y mecanismos 'que deshabiliten el juego cuando se produzca un fallo'",
+  "fragmento": "«El generador de números aleatorios será criptográficamente fuerte.» (3.5.1)",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "gambling-random-number-generator-requirements-test-1",
+    "veredicto": "CORRECTO",
+    "comentario": "Valida apdo. 3.5.4."
+   }
+  ]
+ },
+ {
+  "slug": "gambling-return-to-player-monitoring",
+  "veredicto": "CORRECTO",
+  "problema": "Apdo. 3.3 (valor o rango esperado por juego/modalidad/variante, verificacion al menos mensual, desactivar ante desviaciones graves, notificar a la DGOJ el funcionamiento anormal confirmado con causa, periodo, jugadores e importes, registro de cambios de parametros) y 3.4 (tablas de premios publicas) coinciden. Usa URL doc.php (original); los apdos. 3.3-3.4 no fueron modificados.",
+  "correccion": "Sustituir URL por act.php consolidado. Sin tests: anadir (p. ej. desviacion grave desactiva el juego y se notifica).",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable (obligacion expresa de control periodico); defendible P1 por afectar a la equidad del juego.",
+  "mezcla_o_interfaz": "La nota sobre tablas de premios publicas (3.4) es otra obligacion distinta del control de RTP (3.3). Sin interfaz.",
+  "documento_origen": "Res. DGOJ 6/10/2014 anexo I apdo. 3.3 (parrafos 1-4) y 3.4",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302",
+  "parrafo_origen": "3.3: verificar 'con periodicidad mínima mensual' el porcentaje de retorno frente al esperado",
+  "fragmento": "«con periodicidad mínima mensual» (3.3)",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "gambling-game-fairness-controls",
+  "veredicto": "IMPRECISO",
+  "problema": "Mezcla tres obligaciones independientes (3.12 juego incompleto, 3.13 juego automatico, 3.14 repeticion) bajo un unico slug 'fairness-controls' cuyo titulo no refleja el contenido. Contenido verificado: 3.12 (mostrar el juego incompleto al reconectar; registro de interrupciones con inicio, duracion y servicios), 3.13 (el participante controla importe maximo y numero de apuestas automaticas, desactiva en cualquier momento, se muestra numero de jugadas automaticas), 3.14 (reconstruir las ultimas diez partidas de la sesion en curso). Criterio 2 dice 'Autoplay has a maximum' cuando el texto dice que el participante PUEDE controlar el maximo. No se ha encontrado en RD 176/2023 (consolidado 25/06/2026) ninguna prohibicion del juego automatico.",
+  "correccion": "Dividir en tres requisitos (incomplete games / autoplay control / replay). Criterio 2: 'The player can set the maximum amount and number of automatic bets and can disable autoplay at any time.'",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable (obligaciones expresas de especificacion tecnica).",
+  "mezcla_o_interfaz": "Mezcla 3 obligaciones. Criterio 1 y nota sobre 'displays the same information' rozan descripcion de interfaz (la propia Res. lo regula asi, pero conviene formular el QUE).",
+  "documento_origen": "Res. DGOJ 6/10/2014 anexo I apdos. 3.12, 3.13 y 3.14",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302",
+  "parrafo_origen": "3.14: informacion para reconstruir 'las últimas diez partidas de la sesión de usuario en curso'",
+  "fragmento": "«podrá desactivar en cualquier momento la funcionalidad de juego automático» (3.13)",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "gambling-third-party-systems-responsibility",
+  "veredicto": "IMPRECISO",
+  "problema": "Apdo. 3.10 confirma enunciado (terceros/proveedores parte del sistema tecnico; integraciones con otros operadores deben cumplir). Criterios: 'proveedores vinculados contractualmente' se apoya solo parcialmente en 4.9 (servicios de terceros deben incluir controles y metricas de seguridad en los contratos y ser auditados) y 4.7; 'acceso de proveedores autenticado' en 4.10 (todos los accesos autenticados); 'caidas y cambios de proveedores siguen los controles del operador' no se ha localizado en fuente oficial: NO VERIFICABLE.",
+  "correccion": "Criterio 1: 'Provider contracts include security controls and metrics and providers are audited (4.9)'; eliminar o fundamentar criterio 2.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2/P2 aceptables; defendible P1 por ser regla de responsabilidad del operador.",
+  "mezcla_o_interfaz": "Mezcla responsabilidad (3.10), contratos (4.9) y autenticacion (4.10). Sin interfaz.",
+  "documento_origen": "Res. DGOJ 6/10/2014 anexo I apdo. 3.10 (parrafos 1-2); apdos. 4.7, 4.9 y 4.10 para criterios",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302",
+  "parrafo_origen": "3.10: sistemas de terceros 'se considerarán parte del sistema técnico del operador'",
+  "fragmento": "«se considerarán a estos efectos parte del sistema técnico del operador» (3.10)",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "gambling-technical-system-biennial-audit",
+  "veredicto": "IMPRECISO",
+  "problema": "RD 1613/2011 art. 12 verificado (consolidado 15/11/2011, sin modificaciones). Matices: (a) la auditoria puede hacerla la propia CNJ/DGOJ o una entidad propuesta entre las reconocidas para homologacion, distinta de la que hizo el ultimo informe de homologacion (art. 12.1) - el enunciado omite la opcion de la DGOJ; (b) el art. 12.3 dice 'acordara provisionalmente la suspension' (imperativo), no 'puede'; (c) la primera auditoria cuenta desde la 'concesion de la homologacion' (art. 12.2), no de 'grant of the certification'. Criterio 1 'within six months of each two-year mark' es correcto (art. 12.2).",
+  "correccion": "Enunciado: 'must have its technical gaming system audited every two years (audit within six months after each two-year period) by the regulator or by a recognised entity different from the one that issued the last certification report, at its own cost'. Criterio 3: 'If no favourable report is submitted in time, the regulator suspends the activity provisionally and starts revocation of the licence'.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcto: obligacion legal con suspension y revocacion.",
+  "mezcla_o_interfaz": "Un solo bloque de obligacion; sin interfaz. Faltan tests.",
+  "documento_origen": "RD 1613/2011 art. 12.1, 12.2 y 12.3",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17835",
+  "parrafo_origen": "Art. 12.2: primera auditoria 'en los seis meses siguientes al vencimiento del plazo de dos años'",
+  "fragmento": "«cada dos años» (12.1); «acordará provisionalmente la suspensión de la actividad» (12.3)",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "gambling-critical-component-change-control",
+  "veredicto": "CORRECTO",
+  "problema": "RD art. 8.4 verificado (componentes criticos: GNA, registro de usuario y cuenta de juego, SCI, conexiones con la autoridad, procesamiento de pagos; modificacion sustancial requiere autorizacion previa; la DGOJ puede calificar otros como criticos). Res. 2014 apdo. 4.13 verificado (procedimiento documentado de gestion de cambios, registro de peticiones y decisiones, copias de codigo/binarios de las versiones usadas en los ultimos cuatro anos; letra d) modificada por Res. 2024 con efectos 22/03/2025). La URL cita solo el RD (act.php correcto); falta la URL de la Res. 2014.",
+  "correccion": "Anadir a la fuente https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302 (apdo. 4.13).",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcto (autorizacion previa obligatoria); security P2 aceptable.",
+  "mezcla_o_interfaz": "Agrupa tres obligaciones (proceso documentado, autorizacion previa de cambios sustanciales, conservacion de versiones 4 anos). Sin interfaz.",
+  "documento_origen": "RD 1613/2011 art. 8.4 (parrafos 1-3); Res. DGOJ 6/10/2014 anexo I apdo. 4.13 (letras a-d)",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17835 ; https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302",
+  "parrafo_origen": "Art. 8.4 p.2: modificacion sustancial en componente critico 'necesitará la previa autorización'",
+  "fragmento": "«necesitará la previa autorización de la Comisión Nacional del Juego» (art. 8.4)",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "gambling-critical-component-change-control-test-1",
+    "veredicto": "CORRECTO",
+    "comentario": "Valida art. 8.4 p.2 (cambio sustancial al GNA bloqueado sin autorizacion)."
+   }
+  ]
+ },
+ {
+  "slug": "gambling-annual-penetration-test",
+  "veredicto": "IMPRECISO",
+  "problema": "Apdo. 4.17 verificado: test de penetracion y analisis de vulnerabilidades al menos anual; previo al inicio de comercializacion; incluye todas las interfaces publicas con datos personales, economicos o de juego; exenciones (solo informativos; telefono/SMS); fallo muy grave comunicado inmediatamente a la DGOJ con plan de accion. Imprecision: el plazo de 4 anos de conservacion se refiere al 'informe completo de cada test o analisis'; para las medidas correctivas el texto solo dice conservarlas 'para su posterior revision' sin plazo. URL doc.php (original): el apdo. 4.17 coincide en el original, pero La URL doc.php?id=BOE-A-2014-10302 sirve el TEXTO ORIGINAL de 10/10/2014 (sin las modificaciones de 2018 y 2024), no el consolidado; usar act.php (consolidado, actualizado 22/06/2024, en vigor 22/03/2025).",
+  "correccion": "Criterio 2: 'Full reports are kept at least four years; corrective measures are kept for later review'. Citar URL consolidada.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcto (obligacion expresa, previa a comercializar).",
+  "mezcla_o_interfaz": "Agrupa tres obligaciones (realizar pruebas, conservar informes, notificar fallos muy graves). Sin interfaz.",
+  "documento_origen": "Res. DGOJ 6/10/2014 anexo I apdo. 4.17 (parrafos 1, 4, 6, 7 y 9)",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302",
+  "parrafo_origen": "4.17: pasar test y analisis 'al menos con periodicidad anual'; fallo muy grave 'comunicará inmediatamente a la DGOJ'",
+  "fragmento": "«al menos con periodicidad anual» (4.17)",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "gambling-annual-penetration-test-test-1",
+    "veredicto": "CORRECTO",
+    "comentario": "Valida el parrafo de fallo de seguridad muy grave (suplantacion) comunicado de inmediato con plan de accion."
+   }
+  ]
+ },
+ {
+  "slug": "gambling-information-security-management",
+  "veredicto": "IMPRECISO",
+  "problema": "Apdos. 4.2 a 4.12 existen y respaldan sistema de gestion de seguridad basado en riesgos (4.2-4.3), segregacion y separacion desarrollo/pruebas/produccion (4.9), incidentes (4.12), usuarios no genericos (4.10). Problema: la nota 'audit logs kept at least two years' se basa en 4.9 (sin modificar, 'periodo minimo de dos anos'), pero el apdo. 6.1 (texto Res. 2024, en vigor 22/03/2025) exige conservar 'registros y logs en materia de seguridad de los sistemas de informacion' al menos cuatro anos: conflicto interno no senalado; aplicar 4 anos. Mezcla varias obligaciones.",
+  "correccion": "Nota: 'Audit logs kept at least two years under 4.9, but security logs must be kept at least four years under 6.1 (as amended, in force 22/03/2025)'. Dividir en gestion de riesgos, separacion de entornos/segregacion, gestion de incidentes y control de acceso.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "online P2 / security P1: aceptable.",
+  "mezcla_o_interfaz": "Mezcla 4+ obligaciones (riesgos, entornos, incidentes, cuentas genericas). Sin interfaz.",
+  "documento_origen": "Res. DGOJ 6/10/2014 anexo I apdos. 4.2, 4.3, 4.9 (viñetas segregacion, separacion entornos, logs 2 anos), 4.10 (no usuarios genericos), 4.12; y 6.1",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302",
+  "parrafo_origen": "4.10: «No existirán usuarios genéricos y todos los usuarios accederán con su usuario propio único.»",
+  "fragmento": "«No existirán usuarios genéricos» (4.10)",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "gambling-secure-communications",
+  "veredicto": "CORRECTO",
+  "problema": "RD arts. 22 (integridad y confidencialidad de comunicaciones con participantes; identidad de transmisor y receptor; cifrado y autenticacion eficaces) y 23 (comunicaciones entre componentes; protocolos seguros en redes publicas o de terceros) verificados; Res. apdo. 4.6 (identificacion mutua; cifrado obligatorio para datos personales y economicos; integridad y no repudio) verificado. La nota 'mandatory for user record and game account' coincide con 4.6.",
+  "correccion": "Anadir URL de la Res. 2014 (apdo. 4.6) a la fuente.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcto (obligacion expresa).",
+  "mezcla_o_interfaz": "Agrupa dos obligaciones (arts. 22 y 23: jugador-sistema y componente-componente). Sin interfaz.",
+  "documento_origen": "RD 1613/2011 arts. 22 y 23; Res. DGOJ 6/10/2014 anexo I apdo. 4.6 (parrafos 1-3)",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17835 ; https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302",
+  "parrafo_origen": "Art. 22: garantizar 'la identidad del transmisor y del receptor' y confidencialidad 'mediante el empleo de algoritmos de cifrado'",
+  "fragmento": "«algoritmos de cifrado y autenticación eficaces» (art. 22)",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "gambling-business-continuity-recovery",
+  "veredicto": "CORRECTO",
+  "problema": "RD art. 25 (plan de contingencia, informar de politicas de interrupcion, trato justo, no perdida de datos, replica) y Res. apdo. 4.16 (acceso a cuentas y saldo: una semana; retirada de fondos: una semana; juegos incompletos/apuestas pendientes y pago de premios: un mes; comunicacion inmediata de desastre a la DGOJ) verificados exactamente como en la nota. Apdos. 4.14 (plan de disponibilidad) y 4.15 (perdida de informacion) tambien existen.",
+  "correccion": "Anadir URL Res. 2014 (act.php) a la fuente; considerar separar notificacion de desastre.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcto.",
+  "mezcla_o_interfaz": "Agrupa plan de continuidad, trato justo/informacion de interrupciones y notificacion de desastres (3 obligaciones). Sin interfaz.",
+  "documento_origen": "RD 1613/2011 art. 25.1-25.3; Res. DGOJ 6/10/2014 anexo I apdo. 4.16 (viñetas de escenarios y ultimo parrafo)",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17835 ; https://www.boe.es/buscar/act.php?id=BOE-A-2014-10302",
+  "parrafo_origen": "4.16: acceso a registros y cuentas 'El tiempo máximo ... será de una semana'; juegos incompletos 'de un mes'",
+  "fragmento": "«En caso de desastre, el operador deberá informar a la Dirección General de Ordenación del Juego con carácter inmediato»",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "gambling-player-complaints-handling",
+  "veredicto": "IMPRECISO",
+  "problema": "Orden EHA/3080/2011 art. 7 verificado (consolidada 30/07/2014): sistema gratuito, al menos en castellano, con acceso electronico que deja constancia de fecha y hora (7.1); plazo minimo de presentacion de 3 meses DESDE EL EVENTO deportivo (7.2, especifico de apuestas deportivas); acuse con identidad del operador y plazo (7.2); resolucion en un mes (7.2); reclamacion ante la DGOJ, que resuelve en dos meses (7.3); suspension de caducidad de premios (7.4). Imprecisiones: (a) 'informs the player of escalation to the regulator' NO figura en arts. 7 u 8 de la Orden (el derecho esta en Ley 13/2011 art. 15.1.c; la obligacion de informar no se ha localizado: NO VERIFICABLE); (b) 'igual en las demas ordenes' verificado en 3084 (concursos), 3085, 3086, 3087, 3088 y poquer (art. 7 analogo; 3084 anade acceso telefonico), pero el plazo de 3 meses desde el evento no es generalizable; (c) la semilla cita solo la 3080 aunque el requisito es generico.",
+  "correccion": "Citar Orden por modalidad (art. 7 en cada una) y Ley 13/2011 art. 15.1.c; criterio 'player informed of right to complain to the regulator after one month without answer' solo si se localiza fundamento.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable (obligacion expresa); defendible P1 (sin sistema de reclamaciones no hay habilitacion).",
+  "mezcla_o_interfaz": "Mezcla 5 obligaciones (canal, acuse, plazo, escalado, suspension de caducidad). 'electronic channel' no describe interfaz concreta.",
+  "documento_origen": "Orden EHA/3080/2011 art. 7.1 (parrafos 1-3), 7.2, 7.3 y 7.4; Ley 13/2011 art. 15.1.c",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17964 ; https://www.boe.es/buscar/act.php?id=BOE-A-2011-9280",
+  "parrafo_origen": "Art. 7.2: «resolverá la reclamación del participante en el plazo de un mes»; 7.4: caducidad de premios interrumpida",
+  "fragmento": "«en el plazo de un mes contado desde la fecha en la que ésta hubiera sido recibida» (7.2)",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "gambling-player-complaints-handling-test-1",
+    "veredicto": "CORRECTO",
+    "comentario": "Valida art. 7.2-7.3: contestacion en un mes o posibilidad de acudir a la DGOJ."
+   }
+  ]
+ },
+ {
+  "slug": "gambling-rules-and-information-to-players",
+  "veredicto": "IMPRECISO",
+  "problema": "Orden EHA/3080/2011 art. 6.3-6.4 (publicacion permanente, facil y gratuita de las reglas particulares; notificar a la CNJ la fecha de publicacion y modificaciones) y art. 8 (informacion del operador incl. titulos habilitantes y vigencia; reglas, eventos y coeficientes; al menos en castellano) verificados. Arts. 6 y 8 son analogos en las demas ordenes (comprobado en concursos, ruleta, punto y banca, bingo, blackjack y poquer). Imprecisiones: 'odds' y 'accuracy of events and odds' son especificos de apuestas deportivas (art. 8.c y 8.e); la semilla cita solo la Orden 3080 aunque el requisito es generico; agrupa 3 obligaciones (publicar reglas + notificar, identidad/licencia, informacion veraz).",
+  "correccion": "Citar el articulo equivalente de cada Orden aplicable; separar notificacion de reglas de informacion al participante.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable (obligacion expresa).",
+  "mezcla_o_interfaz": "Mezcla publicacion de reglas, notificacion al regulador e informacion del operador. 'accessible permanently, easily and free' no describe interfaz.",
+  "documento_origen": "Orden EHA/3080/2011 art. 6.3 y 6.4, art. 8 (letras a, c, e) y ultimo parrafo (castellano)",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17964",
+  "parrafo_origen": "Art. 8: información al participante 'al menos, en castellano'",
+  "fragmento": "«de forma permanente, fácil y gratuita» (art. 6.3)",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ }
+]

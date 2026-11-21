@@ -1,0 +1,149 @@
+[
+ {
+  "slug": "betting-bet-receipt-and-locked-odds",
+  "veredicto": "IMPRECISO",
+  "problema": "Art. 13.2-13.4 existen y son vigentes y el contenido del resguardo es literal del 13.3. Pero: (a) mezcla tres obligaciones (resguardo 13.3, coeficiente vinculado 13.4, cierre de apuestas antes del inicio 13.2); (b) el art. 13.2 solo se refiere a apuestas 'convencionales' (no a las en directo), y en apuestas combinadas al primer evento por orden cronológico; (c) falta 'por el mismo medio por el que realizó la apuesta' (13.3); (d) 'tipo de apuesta' es 'en su caso'.",
+  "correccion": "Separar: 'El operador emitirá por el mismo medio un resguardo con identificación de la apuesta, importe, evento, tipo (en su caso), pronóstico, coeficiente en el momento de la apuesta y código alfanumérico único' (13.3); 'La apuesta queda vinculada al coeficiente vigente al realizarla' (13.4); 'Las apuestas convencionales se cierran antes del inicio del evento (en combinadas, del primero)' (13.2).",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable: obligación expresa de reglamentación básica, incumplimiento sancionable como condición del título habilitante (Ley 13/2011 art. 40.a / 41.b). Podría ser P1 en el vínculo al coeficiente.",
+  "mezcla_o_interfaz": "Mezcla 3 obligaciones. Sin interfaz (el 'medio' lo fija el operador).",
+  "documento_origen": "Orden EHA/3080/2011, de 8 de noviembre (apuestas deportivas de contrapartida), consolidada, última actualización 30/07/2014",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17964",
+  "parrafo_origen": "Art. 13.3 (resguardo), 13.4 (coeficiente vinculado), 13.2 (cierre previo al evento) del Anexo I",
+  "fragmento": "«vinculada al coeficiente vigente para esa apuesta en el momento de su realización»",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "betting-bet-receipt-and-locked-odds-test-1",
+    "veredicto": "CORRECTO",
+    "comentario": "Valida el art. 13.4 (cuota 2.0 se mantiene aunque cambie a 1.5). No valida el resguardo ni el cierre de apuestas; sería conveniente un test del contenido del resguardo."
+   }
+  ]
+ },
+ {
+  "slug": "betting-event-cancellation-and-refund",
+  "veredicto": "IMPRECISO",
+  "problema": "Art. 13.5-13.6 existen y dicen lo afirmado (reglas particulares para suspensión/anulación/aplazamiento y sustitución, derecho al cobro de premios por hechos ya sustanciados, devolución íntegra sin coste). Problemas: (a) mezcla la previsión de reglas (13.5) y la devolución íntegra (13.6); (b) la nota 'existen disposiciones equivalentes en otras órdenes' es genérica; son equivalentes p.ej. Orden EHA/3085/2011 art. 13.3-13.4 (ruleta), 3084/2011 art. 12.3-12.4 (concursos), 3087/2011 art. 13.3-13.4 (bingo), 3089/2011 art. 13.3-13.4 (póquer); (c) 'full refund' aplica a apuestas anuladas 'por el operador en aplicación de sus reglas'.",
+  "correccion": "Citar 13.5 y 13.6 como dos obligaciones; añadir que la devolución se hace en la forma fijada en las reglas particulares (13.6).",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable (obligación expresa; el impago/retención de importes es sancionable, Ley 13/2011 art. 40.m para premios).",
+  "mezcla_o_interfaz": "Mezcla 2 obligaciones (reglas de suspensión y derecho a premios ya ganados; devolución íntegra sin coste). Sin interfaz. Sin tests (0).",
+  "documento_origen": "Orden EHA/3080/2011, de 8 de noviembre (apuestas deportivas de contrapartida), consolidada, última actualización 30/07/2014",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17964",
+  "parrafo_origen": "Art. 13.5 (reglas para suspensión/anulación y premios ya sustanciados) y 13.6 (devolución íntegra) del Anexo I",
+  "fragmento": "«siempre sin ningún coste ni obligación adicional para los participantes»",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "betting-event-programme-and-results-publication",
+  "veredicto": "IMPRECISO",
+  "problema": "Art. 14.2 (programa, 6 años, 15 días hábiles, prohibido ofrecer fuera del programa) y 14.6 (resultados en el sitio web en 24 h) existen y son literales (14.1-2 redactados por Orden HAP/1998/2013, vigente desde 31/10/2013). Problemas: (a) mezcla dos obligaciones (gestión del programa y publicación de resultados); (b) el 'claim period' del criterio 3 es el plazo de presentación de reclamaciones (art. 7.2), no el de cobro de premios (art. 15.3); (c) el art. 14.2 dice que la DGOJ puede 'instar' la suspensión y retirada, no suspender directamente; (d) 'publicar en el sitio web' es el medio fijado por la norma, no interfaz propia.",
+  "correccion": "Separar 14.2 y 14.6. En 14.6: 'resultados publicados accesibles desde su publicación hasta el último día natural fijado para presentar reclamación (art. 7.2)'. Sustituir 'may suspend' por 'DGOJ may request suspension and withdrawal'.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable.",
+  "mezcla_o_interfaz": "Mezcla 2 obligaciones. 'Sitio web' viene de la norma. Sin tests (0).",
+  "documento_origen": "Orden EHA/3080/2011, de 8 de noviembre (apuestas deportivas de contrapartida), consolidada, última actualización 30/07/2014",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17964",
+  "parrafo_origen": "Art. 14.2 párrafos 2-4 y art. 14.6 del Anexo I",
+  "fragmento": "«publicados por el operador en su sitio web dentro de las veinticuatro horas siguientes»",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "gambling-prize-claim-period",
+  "veredicto": "IMPRECISO",
+  "problema": "Existen y son literales: Orden 3080 art. 15.3 (caducidad no inferior a tres meses desde el día siguiente a la finalización del evento que cerraba el programa), art. 7.4 (plazo de caducidad interrumpido durante la reclamación) y Orden EHA/3084/2011 art. 14.3 (concursos, desde el día siguiente a la finalización del concurso) y art. 7.4. Problemas: (a) 'event or draw': no hay 'sorteo' en estas dos órdenes, es 'evento' o 'concurso'; (b) mezcla dos obligaciones (mínimo de tres meses, interrupción por reclamación); (c) la fuente indicada solo enlaza la Orden 3080, pero la categoría incluye concursos (3084: BOE-A-2011-17968); (d) la norma dice 'interrumpido', no 'pausado'; (e) el plazo 'se fija en las reglas particulares', no 'se publica' expresamente. Las órdenes de ruleta (art. 16.3), bingo y póquer (art. 16.3) tienen la misma regla de tres meses, no recogidas.",
+  "correccion": "'El derecho al cobro de premios no caducará antes de tres meses desde el día siguiente a la finalización del evento/concurso/partida; el plazo queda interrumpido desde la recepción de una reclamación hasta su resolución.' Citar 3080 arts. 15.3 y 7.4; 3084 arts. 14.3 y 7.4 (URL BOE-A-2011-17968).",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable (el impago de premios es infracción grave, Ley 13/2011 art. 40.1.m).",
+  "mezcla_o_interfaz": "Mezcla 2 obligaciones. Sin interfaz. Sin tests (0).",
+  "documento_origen": "Orden EHA/3080/2011, de 8 de noviembre (apuestas deportivas de contrapartida), consolidada, última actualización 30/07/2014; Orden EHA/3084/2011 (concursos) consolidada 30/07/2014",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17964 ; https://www.boe.es/buscar/act.php?id=BOE-A-2011-17968",
+  "parrafo_origen": "Orden 3080 Anexo I art. 15.3 párr. 2 y art. 7.4; Orden 3084 Anexo I art. 14.3 párr. 2 y art. 7.4",
+  "fragmento": "«no será inferior a tres meses contados desde el día siguiente»",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "casino-end-of-session-summary",
+  "veredicto": "IMPRECISO",
+  "problema": "Art. 13.2 de Orden EHA/3085/2011 (ruleta) existe, vigente (consolidada 30/07/2014) y dice lo afirmado. La cita solo contiene ruleta y la nota menciona Black Jack (3088 art. 13.2, verificado); la categoría incluye póquer pero no se cita la Orden EHA/3089/2011 art. 13.2 (y art. 8.e) que contiene la obligación para el póquer. Punto y banca (3086) art. 13.2 también. Criterio 3 'stored in the history' no figura en esos artículos (no verificable en la norma). La ruleta dice 'resultados obtenidos'; Black Jack y póquer 'premios obtenidos'.",
+  "correccion": "Citar Orden EHA/3085/2011 art. 13.2, EHA/3086/2011 art. 13.2, EHA/3088/2011 art. 13.2 y EHA/3089/2011 art. 13.2 y art. 8.e. Quitar o justificar el criterio del historial.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable.",
+  "mezcla_o_interfaz": "Una obligación; el criterio 'stored in the history' añade algo no exigido. Sin interfaz. Sin tests (0).",
+  "documento_origen": "Orden EHA/3085/2011, de 8 de noviembre (ruleta), consolidada 30/07/2014",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17969 ; póquer https://www.boe.es/buscar/act.php?id=BOE-A-2011-17973 ; Black Jack https://www.boe.es/buscar/act.php?id=BOE-A-2011-17972",
+  "parrafo_origen": "Orden 3085 Anexo I art. 13.2; Orden 3089 Anexo I art. 13.2 y art. 8.e",
+  "fragmento": "«comunicación al final de cada sesión de juego ... por el mismo medio por el que participó»",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "casino-roulette-table-rules",
+  "veredicto": "IMPRECISO",
+  "problema": "Art. 14.3 (mesas multijugador: apuestas individuales contra la banca, periodo igual y simultáneo) y 14.5 (giro con apariencia de realidad, no prescindible) existen y son literales. Problemas: (a) la nota de jurisdicción sobre ruleta en vivo (elementos físicos, ubicación autorizada por la CCAA, acceso visual, grabación) pertenece al art. 14.4 y art. 15.1, 15.4, 15.5 (grabaciones al menos un año), no al 14 como se cita; (b) mezcla dos obligaciones (reglas de mesa compartida 14.3 y giro 14.5); (c) 'individual house bets' bien, pero 'no joint or crossed bets' = 'conjuntas o mancomunadas ... ni cruzadas'.",
+  "correccion": "Citar arts. 14.3 y 14.5; mover la nota de ruleta en vivo a su propio requisito con arts. 14.4 y 15.1-15.5.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable.",
+  "mezcla_o_interfaz": "Mezcla 2 obligaciones. 'Cannot be skipped' roza la interfaz pero es literal de la norma. Sin tests (0).",
+  "documento_origen": "Orden EHA/3085/2011 (ruleta), consolidada 30/07/2014",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17969",
+  "parrafo_origen": "Anexo I art. 14.3 párrafos 1-2 y art. 14.5 párrafo 2",
+  "fragmento": "«no podrán prescindir de la acción de giro de la Ruleta»",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "bingo-prize-fund-and-game-rules",
+  "veredicto": "IMPRECISO",
+  "problema": "Art. 15.2 (70%-90%, accesible en todo momento), 15.3 (premios mayores a combinaciones menos probables), 14.2 (anulación) y 14.4 (marcado automático) existen y son vigentes. Problemas: (a) mezcla tres obligaciones (reparto de premios, anulación de la partida, marcado automático); (b) el art. 14.2 dice literalmente 'La partida se considerará anulada si al menos tres participantes no han adquirido cartones', redacción defectuosa; la lectura 'menos de tres participantes' es interpretación razonable pero no verificable literalmente en el BOE (confirmar con DGOJ); (c) el marcado automático es 'cuando los medios lo permitan' y el manual 'complementario'; (d) falta 'cuando los medios empleados lo permitan'; (e) el art. 2.1.u Ley 10/2010 limita el bingo en AML a pago de premios.",
+  "correccion": "Separar 15.2-15.3, 14.2 y 14.4. Redactar 14.2: 'la partida se anula si no participan al menos tres jugadores (interpretación del art. 14.2; contrastar con DGOJ)'.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable.",
+  "mezcla_o_interfaz": "Mezcla 3 obligaciones; 'mark numbers automatically' es comportamiento de interfaz (aunque lo exige la norma).",
+  "documento_origen": "Orden EHA/3087/2011, de 8 de noviembre (bingo), consolidada 30/07/2014",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17971",
+  "parrafo_origen": "Anexo I art. 15.2 párr. 1-2, art. 15.3 párr. 1, art. 14.2 párr. 3, art. 14.4 párr. 1",
+  "fragmento": "«no podrá ser inferior al setenta ni superior al noventa por ciento»",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "bingo-prize-fund-and-game-rules-test-1",
+    "veredicto": "CORRECTO",
+    "comentario": "Valida la anulación con solo dos compradores, coherente con la lectura 'menos de tres' del art. 14.2 (texto literal ambiguo). No valida el reparto 70-90% ni el marcado automático."
+   }
+  ]
+ },
+ {
+  "slug": "poker-game-rules-and-fund",
+  "veredicto": "IMPRECISO",
+  "problema": "Art. 14.2 (>=2 jugadores en la mesa), 15.1 (fondo = apuestas menos comisión; torneo) y 8.e (información de ganancias y apuestas al final de la sesión) existen y son vigentes. Problemas: (a) mezcla tres obligaciones; (b) la nota 'cuota fija por jugador en torneo / porcentaje en cash' viene de la definición art. 2.14, no de arts. 8, 14 o 15; (c) el criterio 'Collusion between players is detected' no figura en arts. 8, 14 o 15: solo el art. 16.4 dice que la CNJ/DGOJ establecerá procedimientos 'para evitar fenómenos de colusión' (obligación del regulador, no directa del operador; en el fichero 02 existe gambling-fraud-collusion-reporting); no verificable aquí; (d) 'tell players winnings after each session' duplica casino-end-of-session-summary.",
+  "correccion": "Citar arts. 14.2, 15.1, 8.e y 2.14; eliminar o reubicar el criterio de colusión (art. 16.4 + resolución DGOJ).",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable.",
+  "mezcla_o_interfaz": "Mezcla 3 obligaciones; el criterio de colusión NO VERIFICABLE en los artículos citados. Sin tests (0).",
+  "documento_origen": "Orden EHA/3089/2011, de 8 de noviembre (póquer), consolidada 30/07/2014",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17973",
+  "parrafo_origen": "Anexo I art. 14.2; art. 15.1 párr. 2-3; art. 8.e; definición art. 2.14",
+  "fragmento": "«siempre que participen, al menos, dos jugadores en la mesa»",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "contests-participation-price-disclosure",
+  "veredicto": "IMPRECISO",
+  "problema": "Existen y son vigentes: Orden EHA/3084/2011 art. 12.2 (precio total en euros, incluidos servicios con tarificación adicional), art. 8.2 (información del precio en la invitación a participar, estática, caracteres adecuados), Anexo III (máximo 6 EUR por participación; 1.000.000 EUR de premios), art. 12.4 (devolución), y RD 958/2020 art. 21.3 (consolidado 08/06/2024; contenido audiovisual: precio sobreimpreso estático, tamaño no menor al del medio de participación). Problemas: (a) cita 'arts. 12-13' pero la obligación de mostrar el precio en la invitación está en el art. 8.2 (no citado) y los límites en el Anexo III (arts. 12.2 y 13.2 remiten); (b) mezcla tres obligaciones (informar del precio, límites de importe y premio, devolución); (c) la nota audiovisual es RD 958/2020 art. 21.3 y Orden art. 8.2, y se cita solo de pasada; (d) el criterio de devolución viene del art. 12.4, no de 12-13 en su totalidad.",
+  "correccion": "Citar Orden 3084 art. 8.2 y 12.2 (precio), art. 12.2 último párr. y 13.2 + Anexo III (límites: 6 EUR y 1.000.000 EUR), art. 12.4 (devolución), RD 958/2020 art. 21.3 (audiovisual, https://www.boe.es/buscar/act.php?id=BOE-A-2020-13495). Separar en tres requisitos.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P2 aceptable (precio informado y límites son obligaciones expresas).",
+  "mezcla_o_interfaz": "Mezcla 3 obligaciones; 'shown statically with legible characters' es presentación, pero literal de la norma. Sin tests (0).",
+  "documento_origen": "Orden EHA/3084/2011, de 8 de noviembre (concursos), consolidada 30/07/2014",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2011-17968",
+  "parrafo_origen": "Anexo I art. 12.2 párrafos 2-4; art. 8.2 párr. 1; Anexo III primero y segundo",
+  "fragmento": "«será el importe total que pagará el participante»; «seis euros»",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ }
+]

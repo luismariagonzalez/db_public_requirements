@@ -1,0 +1,68 @@
+[
+ {
+  "slug": "gambling-aml-customer-due-diligence-threshold",
+  "veredicto": "IMPRECISO",
+  "problema": "El art. 7.6 Ley 10/2010 (y 7.3) existen y están en vigor (art. 7 última redacción 29/04/2021, sin cambios por RD 813/2026). Pero: (a) 'full customer due diligence' es impreciso: a partir de 2.000 EUR se aplica 'el resto de las medidas de diligencia debida' (la identificación/comprobación ya se exige antes, al registrarse); (b) el criterio 3 (fin de la relación + examen especial) es otra obligación (art. 7.3) y se mezcla; (c) el art. 2.1.u limita a concursos, bingos y loterías a las operaciones de pago de premios, matiz ausente; (d) la agregación de operaciones relacionadas procede de RD 304/2014 art. 34.d, no citado; (e) falta citar el RD 304/2014 (art. 4.1 mod. por RD 813/2026: identificación de premios >=2.500 EUR) y su URL.",
+  "correccion": "Statement: 'Cuando un jugador realice transacciones por valor igual o superior a 2.000 EUR en una operación o en varias entre las que parezca existir relación, al cobrar ganancias o apostar, el operador aplicará el resto de medidas de diligencia debida (arts. 3-6 Ley 10/2010) además de la identificación ya practicada.' Mover el criterio 3 a un requisito propio (art. 7.3). Cita: Ley 10/2010 arts. 2.1.u, 7.3 y 7.6 + RD 304/2014 art. 34.d.",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcta: obligación legal; su incumplimiento es infracción grave (Ley 10/2010 art. 52.1.a-d).",
+  "mezcla_o_interfaz": "Mezcla dos obligaciones: umbral de 2.000 EUR (art. 7.6) y consecuencia de imposibilidad de aplicar la diligencia (art. 7.3). Sin interfaz.",
+  "documento_origen": "Ley 10/2010, de 28 de abril, de prevención del blanqueo de capitales y de la financiación del terrorismo (texto consolidado 30/09/2026)",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2010-6737",
+  "parrafo_origen": "Art. 7.6, párrafo segundo (operadores de juego electrónicos); art. 7.3 (imposibilidad de aplicar diligencia debida); art. 2.1.u (sujetos obligados)",
+  "fragmento": "«igual o superior a 2.000 euros en una operación o en varias operaciones entre las que parezca existir algún tipo de relación»",
+  "fecha_consulta": "2026-11-21",
+  "tests": [
+   {
+    "slug": "gambling-aml-customer-due-diligence-threshold-test-1",
+    "veredicto": "CORRECTO",
+    "comentario": "Valida el umbral acumulado de operaciones relacionadas (2.100 >= 2.000, art. 7.6 par. 2). Supone que las tres operaciones son 'relacionadas'; conviene explicitarlo. 'Full' debería decir 'resto de medidas de diligencia'. No cubre el criterio 3 (art. 7.3)."
+   }
+  ]
+ },
+ {
+  "slug": "gambling-aml-special-examination-and-reporting",
+  "veredicto": "IMPRECISO",
+  "problema": "Todas las obligaciones existen (Ley 10/2010 arts. 17, 18, 19, 24; RD 304/2014 art. 43 y art. 33.1.f-g; vigentes). Problemas: (a) mezcla cinco obligaciones (detección con alertas, examen especial estructurado, comunicación por indicio, abstención de ejecución, prohibición de revelación); (b) la nota de jurisdicción incluye contenidos del art. 43 RD (identificación de ganadores >=2.500 EUR, representante, plan de formación) ajenos a detección/comunicación; (c) la cita de RD 304/2014 no lleva URL propia; (d) la comunicación va al Servicio Ejecutivo de la Comisión (SEPBLAC), no a 'la autoridad' genérica; (e) tras RD 813/2026 el art. 12.2 RD 304/2014 añade analizar la procedencia de comunicar por indicio cuando no se completó la diligencia debida inicial.",
+  "correccion": "Dividir en: (1) detectar y examinar por escrito (Ley art. 17; RD arts. 33.1.f-g y 43.1.a.3-4); (2) comunicar al SEPBLAC sin dilación (art. 18); (3) abstenerse de ejecutar salvo imposibilidad (art. 19.1); (4) no revelar al cliente (art. 24.1). Añadir RD 304/2014 art. 12.2 (nuevo).",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcta: examen especial, comunicación, abstención y revelación son infracciones graves/muy graves (art. 52.1.g,h,i y art. 51.1.c Ley 10/2010).",
+  "mezcla_o_interfaz": "Mezcla 4-5 obligaciones distintas. Sin interfaz. Sin tests (0).",
+  "documento_origen": "Ley 10/2010 (texto consolidado 30/09/2026) y Real Decreto 304/2014 (consolidado 08/10/2026, en vigor 28/10/2026)",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2010-6737 ; https://www.boe.es/buscar/act.php?id=BOE-A-2014-4742",
+  "parrafo_origen": "Ley 10/2010 art. 17 (párr. 1 y 2), art. 18.1-2, art. 19.1, art. 24.1; RD 304/2014 art. 43.1.a.2º-4º",
+  "fragmento": "«cobro repetitivo de premios» (RD 304/2014 art. 43.1.a.2º); «no revelarán al cliente ni a terceros» (Ley art. 24.1)",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "gambling-aml-record-keeping",
+  "veredicto": "CORRECTO",
+  "problema": "Contenido ajustado al art. 25 Ley 10/2010 (vigente). Matices: la ley añade eliminación tras los diez años (art. 25.1) y conservar los datos de identificación electrónica (art. 25.3); el RD 813/2026 reescribe el art. 28.1 RD 304/2014 (toda la documentación de diligencia debida, 10 años), aplicable según su DT 3.ª a los 18 meses de la publicación (08/10/2026 + 18 meses = 08/04/2028, cálculo propio). La fuente no cita RD 304/2014 art. 28.",
+  "correccion": "Opcional: añadir RD 304/2014 art. 28.1 (nueva redacción, DT 3.ª) y la eliminación tras 10 años. 'Tamper-proof' = 'imposibilidad de manipulación' (art. 25.2).",
+  "prioridad_ok": true,
+  "prioridad_comentario": "P1 correcta: obligación legal, infracción grave (art. 52.1.l Ley 10/2010). Categoría privacy-gdpr P2 razonable.",
+  "mezcla_o_interfaz": "Agrupa plazo, restricción de acceso a 5 años y soporte íntegro; todas del mismo art. 25, aceptable. Sin interfaz. Sin tests (0).",
+  "documento_origen": "Ley 10/2010 (BOE-A-2010-6737), texto consolidado, última actualización 30/09/2026",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2010-6737",
+  "parrafo_origen": "Art. 25.1 párr. 1 (diez años; tras cinco años solo órganos de control interno) y art. 25.2 (soportes que garanticen integridad e imposibilidad de manipulación; atención en tiempo y forma a las autoridades)",
+  "fragmento": "«conservarán durante un período de diez años la documentación»; «imposibilidad de manipulación»",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ },
+ {
+  "slug": "gambling-aml-policies-and-training",
+  "veredicto": "IMPRECISO",
+  "problema": "Los artículos existen y están vigentes, pero: (a) mezcla cinco obligaciones (políticas/procedimientos, manual, órgano de control interno, formación, examen externo); (b) falta citar art. 26 ter (órgano de control interno) y 26.5 (manual): el art. 26 solo cubre políticas; (c) el examen externo es anual (art. 28.1) y no exigible a empresarios individuales (art. 28.4) ni a micro-sujetos (<10 personas y <2 M EUR, RD art. 31.1 exime de arts. 31-33, 38, 39), por lo que 'must' sin excepción es excesivo; (d) tras RD 813/2026 (en vigor 28/10/2026) el art. 31.1 RD exige políticas también de sanciones y contramedidas financieras, el art. 32.1 amplía el análisis de riesgos y se añade art. 33.1.o; (e) para concursos, bingo y loterías (art. 2.1.u: solo pago de premios) aplica el art. 43 RD 304/2014.",
+  "correccion": "Separar en requisitos: política/procedimientos y manual (Ley 26.1, 26.5; RD 31-34), análisis de riesgo documentado (RD 32), órgano de control interno y representante (Ley 26 ter; RD 35), formación con plan anual (Ley 29; RD 39), examen externo anual (Ley 28; RD 38). Citar Ley 10/2010 arts. 26, 26 ter, 28, 29 y RD 304/2014 arts. 31-39 (texto 08/10/2026).",
+  "prioridad_ok": false,
+  "prioridad_comentario": "P2 infravalorada: son obligaciones legales con sanción grave (Ley art. 52.1.m,ñ,p,q,r), igual que los requisitos P1 del mismo fichero. Propuesta P1.",
+  "mezcla_o_interfaz": "Mezcla 5 obligaciones. Sin interfaz. Sin tests (0).",
+  "documento_origen": "Ley 10/2010 (BOE-A-2010-6737), texto consolidado, última actualización 30/09/2026; RD 304/2014 consolidado 08/10/2026",
+  "url_oficial": "https://www.boe.es/buscar/act.php?id=BOE-A-2010-6737 ; https://www.boe.es/buscar/act.php?id=BOE-A-2014-4742",
+  "parrafo_origen": "Ley art. 26.1 y 26.5 (políticas y manual); 26 ter.4 (órgano de control interno); 28.1 (examen anual por experto externo); 29 párr. 2 (plan anual de formación). RD 304/2014 arts. 31.1, 33.1, 35.2, 38, 39.1",
+  "fragmento": "«serán objeto de examen anual por un experto externo» (art. 28.1)",
+  "fecha_consulta": "2026-11-21",
+  "tests": []
+ }
+]
