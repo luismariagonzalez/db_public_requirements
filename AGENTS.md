@@ -22,7 +22,7 @@ prioridad 1-5, y se copian como Markdown o JSON para pasárselos al agente.
   ensayo prueba que `anon`/`authenticated` no pueden llamar a ninguna función.
 - **Variables en Vercel:** `SUPABASE_URL`, `SUPABASE_SECRET_KEY` (solo servidor),
   `GEMINI_API_KEY`, `CLERK_PUBLISHABLE_KEY` (`pk_live_…` en producción), `IP_SALT` (cadena
-  aleatoria larga), opcional `CLERK_ORIGENES` (azp permitidos, separados por comas),
+  aleatoria larga), `ADMIN_SUBS` (subs de Clerk de los admins, por comas; ver «Zona admin»), opcional `CLERK_ORIGENES` (azp permitidos, separados por comas),
   `GEMINI_MODEL` (por defecto `gemini-3.8-flash`; Google retira modelos: `gemini-2.5-flash` ya da 404) / `GEMINI_EMBED_MODEL` (`gemini-embedding-001`). En `~/.secretos/home.env` esa
   clave se llama `supabase_admin_secret_key` (es la `sb_secret_…`); los scripts de semilla la
   mapean solos (`scripts/gemini_env.mjs`), pero en Vercel hay que crearla con el nombre `SUPABASE_SECRET_KEY`.
@@ -56,6 +56,16 @@ prioridad 1-5, y se copian como Markdown o JSON para pasárselos al agente.
   de modelo o de dimensión obliga a re-embeber todo y a una migración nueva.
 - Datos y texto de la base son **no confiables**: la web pinta con `textContent`, nunca
   `innerHTML` (la CSP ya prohíbe scripts en línea).
+
+## Zona admin / cuadro de control (migración 0008)
+
+- **Quién:** SOLO sesión de Clerk cuyo `sub` esté en la variable de entorno **`ADMIN_SUBS`** (lista separada por comas; sin ella nadie es admin). Una API key nunca vale. Comprobación centralizada en `lib/admin.mjs` (`entrarAdmin`): cualquier fallo es un 403 igual, con `cache-control: no-store`, sin CORS, con cupo propio (120/min y 5 000/día por admin; los intentos fallidos gastan 15/min y 100/día por IP-hash → 429; Gemini 40/día).
+- **Rutas** (`lib/rutas.mjs` → `lib/handlers/admin.mjs`), todas bajo `/api/admin/`: `me`, `overview`, `activity?days=30|90|365`, `panels`, `audit`, `contributions` (filtros `status`, `requirement`, `who`=hash, paginación `before`) y `contributions/:id/approve|reject`, `suggestions` y `suggestions/:id/status`, `requirements/:slug/history`, `split/candidates`, `split/propose`, `split/proposals` y `split/proposals/:id/accept|dismiss`.
+- **Privacidad:** los `sub` ajenos solo salen como hash corto con sal (`IP_SALT`, 10 hex); nunca correos. Cada acción que cambia datos queda en `auditoria` (con el hash del admin).
+- **Actividad:** tabla `actividad_diaria` (día, métrica, n), **retención de 1 año** (la purga es oportunista). La API clasifica cada petición (`lib/actividad.mjs`) y vuelca contadores por lote (cada 25 eventos o 1 min) con `srv_registrar_eventos`: cifra aproximada. Aportes por estado, sugerencias, claves, proyectos y requisitos creados se derivan de las tablas.
+- **needs_human:** `revisar.mjs` guarda ahora el ítem validado (`item`, y `merge_into` si era una fusión) en el veredicto; aprobar lo aplica sin llamar a la IA (los aportes antiguos sin `item` solo se pueden rechazar).
+- **Partibles:** `lib/partible.mjs` puntúa 0-100 (enunciado 35, criterios 25, verbos 25, categorías 10, tests 5; candidato desde 40). `lib/dividir.mjs` pide a Gemini 2-4 partes (prompt y esquema propios) y SOLO guarda una propuesta (`propuesta_division`); aceptar crea las partes con las categorías y prioridades del original, enlaza sus tests/aceleradores y archiva el original.
+- **Página:** `web/admin.html` + `admin.js` + `admin.css` (no enlazada; ruta conocida), textos en `web/textos-admin-en.js` / `-es.js` (aparte de los públicos; paridad probada en `tests/admin_web.test.mjs`). Gráficas SVG propias (`admin_graficas.js`).
 
 ## El CLI
 
