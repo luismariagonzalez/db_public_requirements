@@ -134,11 +134,20 @@ const recorta = (s, n = 110) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 const lineaReq = (it) => `P${it.priority}  ${it.slug}${it.project_status ? `  [${it.project_status}]` : ''}  ${recorta(it.title)}`;
 function imprimir(io, f, datos, texto) { io.out(f.json ? JSON.stringify(datos, null, 2) : texto()); }
 
+// Aviso de país: hay requisitos que dependen de un país y no se ha pedido ninguno.
+const pistaTexto = (r) => (r.country_hint ? `Tip: ${r.country_hint.message.replace('Add country=<code>', 'Add --country <code>')}` : '');
+// Lo que `pull` pide de una vez (el servidor junta las páginas en el Markdown).
+const MAX_PULL = 1000;
+// «Showing 1–50 of 340» y cómo pedir la siguiente página, si la hay.
+const paginaTexto = (r) => r.total != null && r.next_offset != null
+  ? `Showing ${(r.offset ?? 0) + 1}–${r.next_offset} of ${r.total} requirement(s). Next page: --offset ${r.next_offset}. Details: reqdb show <slug>`
+  : '';
+
 // Con `conProyecto`, lo que no se pide por flag sale de .reqdb.json (pull y check); en las búsquedas sueltas, no.
 const flagsBusqueda = (ctx, f, conProyecto = false) => ({
   category: lista(f.category ?? (conProyecto ? ctx.proy.categories : undefined)),
   max_priority: f['max-priority'] ?? (conProyecto ? ctx.proy.maxPriority : undefined),
-  kind: f.kind, sort: f.sort, limit: f.limit,
+  kind: f.kind, sort: f.sort, limit: f.limit, offset: f.offset,
   // país: solo el matiz de ese país; `--country-only` deja fuera los requisitos genéricos
   country: f.country ?? (conProyecto ? ctx.proy.country : undefined),
   country_only: f['country-only'] ? 1 : undefined,
@@ -152,7 +161,7 @@ Usage: reqdb <command> [options]
 Discover
   categories [--type T] [--q text]      audiences, domains, software categories, app types, flows, topics
   search [text] [--category a,b] [--max-priority N] [--kind functional|technical] [--country ES] [--country-only]
-         [--sort priority|copies|relevance] [--tests] [--accelerators] [--limit N]
+         [--sort priority|copies|relevance] [--tests] [--accelerators] [--limit N] [--offset N]
   show <slug>                           one requirement with its tests and accelerators
   tests [text] [--category a,b] [--max-priority N]
   accelerators [text] [--category a,b] [--model open_source|proprietary|saas] [--platform p]
@@ -216,7 +225,7 @@ const COMANDOS = {
     imprimir(io, f, r, () => [...r.requirements.map((it) => [lineaReq(it),
       ...(it.tests ?? []).map((t) => `      test P${t.priority}  ${t.slug}  ${recorta(t.title, 90)}`),
       ...(it.accelerators ?? []).map((a) => `      accelerator  ${a.slug}  ${a.name} (${a.model}, ${a.cost}${conPop(a)})`)].join('\n')),
-      `${r.count} requirement(s). Details: reqdb show <slug>`].join('\n'));
+      paginaTexto(r) || `${r.count} requirement(s). Details: reqdb show <slug>`, pistaTexto(r)].filter(Boolean).join('\n'));
   },
 
   async show({ ctx, f, pos, io }) {
@@ -265,7 +274,7 @@ const COMANDOS = {
 
   async pull({ ctx, f, io, cwd }) {
     const md = await llamar(ctx, io, 'GET', '/api/v1/requirements', { texto: true, query: { ...flagsBusqueda(ctx, f, true),
-      format: 'md', limit: f.limit ?? 200, project: ctx.project,
+      format: 'md', limit: f.limit ?? MAX_PULL, project: ctx.project,
       include: [!f['no-tests'] && ctx.proy.tests !== false && 'tests', !f['no-accelerators'] && ctx.proy.accelerators !== false && 'accelerators'].filter(Boolean),
       hide: f['hide-done'] ? 'done' : f.hide } });
     if (typeof md !== 'string') throw new Fallo('Unexpected response from the server.', 5);
@@ -273,7 +282,12 @@ const COMANDOS = {
     if (f.out === '-') { io.out(md); return; }
     const ruta = resolve(cwd, f.out ?? 'REQUIREMENTS.md');
     writeFileSync(ruta, md);
-    imprimir(io, f, { file: ruta, requirements: Number(n) || 0, bytes: md.length }, () => `Wrote ${n} requirement(s) to ${ruta}${ctx.project ? ` (project ${ctx.project})` : ' (no project: run `reqdb init` so your agent can record progress)'}`);
+    // El servidor junta las páginas hasta MAX_PULL; si aún queda algo, lo dice al principio del Markdown.
+    const pag = /\*\*Page (\d+)–(\d+) of (\d+) requirements\.\*\*/.exec(md);
+    const resto = pag ? `\nWarning: this is requirements ${pag[1]}–${pag[2]} of ${pag[3]}. Narrow the filters (--category, --max-priority) or pull the rest with --offset ${pag[2]} -o REQUIREMENTS-2.md.` : '';
+    const dep = /\*\*(\d+) of these requirements depend on the country \(([^)]+)\)/.exec(md);
+    const tip = dep ? `\nTip: ${dep[1]} of these requirements depend on the country (${dep[2]}). Pull again with --country <code> to get only what applies there.` : '';
+    imprimir(io, f, { file: ruta, requirements: Number(n) || 0, bytes: md.length, ...(pag ? { total: Number(pag[3]), next_offset: Number(pag[2]) } : {}) }, () => `Wrote ${n} requirement(s) to ${ruta}${ctx.project ? ` (project ${ctx.project})` : ' (no project: run `reqdb init` so your agent can record progress)'}${resto}${tip}`);
   },
 
   async mark({ ctx, f, pos, io }) {
@@ -305,9 +319,14 @@ const COMANDOS = {
   async check({ ctx, f, io }) {
     const id = proyectoOError(ctx);
     const max = Number(f['max-priority'] ?? ctx.proy.maxPriority ?? 2);
-    const r = await llamar(ctx, io, 'GET', '/api/v1/requirements', { clave: true, query: { category: lista(f.category ?? ctx.proy.categories), max_priority: max, project: id, hide: 'done,skipped', limit: 200,
-      country: f.country ?? ctx.proy.country, country_only: f['country-only'] ? 1 : undefined } });
-    const faltan = r.requirements;
+    // todas las páginas: un proyecto grande puede tener más de 200 pendientes
+    const faltan = [];
+    for (let offset = 0, vueltas = 0; offset != null && vueltas < 50; vueltas++) {
+      const r = await llamar(ctx, io, 'GET', '/api/v1/requirements', { clave: true, query: { category: lista(f.category ?? ctx.proy.categories), max_priority: max, project: id, hide: 'done,skipped', limit: 200, offset: offset || undefined,
+        country: f.country ?? ctx.proy.country, country_only: f['country-only'] ? 1 : undefined } });
+      faltan.push(...r.requirements);
+      offset = r.next_offset ?? null;
+    }
     imprimir(io, f, { max_priority: max, pending: faltan.length, requirements: faltan }, () => faltan.length
       ? [`${faltan.length} requirement(s) up to P${max} are not done or skipped:`, ...faltan.map(lineaReq)].join('\n')
       : `OK: every requirement up to P${max} is done or skipped.`);

@@ -385,3 +385,8 @@ details.sub > :last-child { margin-bottom: 6px; }
 .pag.principal em { align-self: flex-start; font: 500 11px var(--mono); font-style: normal; text-transform: uppercase; letter-spacing: .08em; color: var(--bg); background: var(--acc); padding: 3px 9px; border-radius: 999px; }
 .pag.principal i { font-size: 20px; top: 22px; }
 @media (min-width: 760px) { .pag.principal { grid-column: span 2; } }
+
+/* «Ver más» bajo la lista de requisitos */
+.mas-res { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 0 4px; }
+.mas-res .nota:empty { display: none; }
+.aviso-pais { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; border: 1px solid var(--acc); border-radius: 8px; padding: 8px 12px; background: var(--acc-bg); color: var(--txt); }

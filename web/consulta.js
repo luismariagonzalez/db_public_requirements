@@ -1,7 +1,7 @@
 // Lógica pura de la página (sin document ni fetch): construye la URL de la API
 // a partir de los filtros elegidos. Se prueba en tests/consulta.test.mjs.
 
-export function paramsDe({ q = '', prio = 5, cats = [], formato = 'json', limite = 50,
+export function paramsDe({ q = '', prio = 5, cats = [], formato = 'json', limite = 50, desde = 0,
   incluirTests = false, incluirAceleradores = false, proyecto = null, ocultarHecho = false, kinds = [], orden = null,
   paises = [], soloPais = false } = {}) {
   const p = new URLSearchParams();
@@ -14,6 +14,7 @@ export function paramsDe({ q = '', prio = 5, cats = [], formato = 'json', limite
   if (q.trim()) p.set('q', q.trim());
   if (formato === 'md') p.set('format', 'md');
   if (limite !== 50) p.set('limit', String(limite));
+  if (desde > 0) p.set('offset', String(desde));
   const inc = [incluirTests && 'tests', incluirAceleradores && 'accelerators'].filter(Boolean);
   if (inc.length) p.set('include', inc.join(','));
   // Los tests siguen la misma prioridad máxima que los requisitos.

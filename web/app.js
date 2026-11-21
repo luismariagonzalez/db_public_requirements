@@ -21,7 +21,7 @@ iniciar(() => renderTodo());
 const BASE = new URL('./', location.href).pathname.replace(/\/$/, '');
 const estado = { q: '', prio: 5, cats: [], audiencias: [], dominios: [], filtroCat: '', items: [], sel: new Set(), categorias: [],
   incluirTests: true, incluirAceleradores: false, proyecto: null, ocultarHecho: false, kinds: [], orden: null, recordar: true, tab: 'md', pestana: 'tipos',
-  paises: [], soloPais: false, jurisdicciones: [] };
+  paises: [], soloPais: false, jurisdicciones: [], total: 0, siguiente: null, pista: null };
 let sesion = false;
 let proyectos = [];
 
@@ -233,6 +233,8 @@ async function buscar() {
     const r = await api('GET', rutaBusqueda(consulta()));
     if (yo !== ultima) return;            // llegó tarde: ya hay otra búsqueda
     estado.items = r.requirements;
+    estado.total = r.total ?? r.requirements.length; estado.siguiente = r.next_offset ?? null;
+    estado.pista = r.country_hint ?? null;
     estado.sel = new Set(estado.items.map((i) => i.slug));   // por defecto, todo lo que sale
     pintarLista();
   } catch (e) { if (yo === ultima) $('#estado').textContent = msgError(e); }
@@ -299,6 +301,34 @@ function filaReq(it) {
   return li;
 }
 
+// «Ver más»: la página siguiente se añade a la lista (y a la selección), sin perder lo ya elegido.
+let cargandoMas = false;
+async function verMas() {
+  if (cargandoMas || estado.siguiente == null) return;
+  cargandoMas = true; $('#verMas').disabled = true;
+  const yo = ultima;
+  try {
+    const r = await api('GET', rutaBusqueda({ ...consulta(), desde: estado.siguiente }));
+    if (yo !== ultima) return;            // entretanto cambió la búsqueda
+    const ya = new Set(estado.items.map((i) => i.slug));
+    const nuevos = r.requirements.filter((i) => !ya.has(i.slug));
+    estado.items.push(...nuevos);
+    for (const i of nuevos) estado.sel.add(i.slug);
+    estado.total = r.total ?? estado.total; estado.siguiente = r.next_offset ?? null;
+    pintarLista();
+  } catch (e) { avisar(msgError(e)); }
+  finally { cargandoMas = false; $('#verMas').disabled = false; }
+}
+$('#verMas').addEventListener('click', verMas);
+
+function pintarMas() {
+  const resto = estado.siguiente != null ? Math.max(0, (estado.total ?? 0) - estado.items.length) : 0;
+  $('#verMas').hidden = !resto;
+  if (resto) $('#verMas').textContent = T('lista.mas', { n: Math.min(50, resto), resto });
+  $('#totalRes').textContent = estado.items.length && estado.total > estado.items.length
+    ? T('lista.total', { n: estado.items.length, total: estado.total }) : '';
+}
+
 function pintarLista() {
   const ul = $('#lista'); ul.replaceChildren();
   if (estado.items.length) $('#estado').textContent = '';
@@ -306,7 +336,19 @@ function pintarLista() {
   for (const it of estado.items) ul.append(filaReq(it));
   // aviso legal: siempre que lo que se ve toque normativa de algún país
   $('#avisoLegal').hidden = !(estado.paises.length || estado.items.some((it) => it.jurisdictions?.length));
+  pintarMas(); pintarPistaPais();
   actualizarCuenta();
+}
+
+// Hay requisitos que dependen de un país y no se ha elegido ninguno: se dice, con un botón por país.
+function pintarPistaPais() {
+  const p = estado.paises.length ? null : estado.pista;
+  $('#avisoPais').hidden = !p;
+  if (!p) return;
+  const nombre = (c) => estado.jurisdicciones.find((j) => j.code === c)?.name ?? c;
+  $('#avisoPais').replaceChildren(T('pais.pista', { n: p.requirements, paises: p.jurisdictions.map(nombre).join(', ') }), ' ',
+    ...p.jurisdictions.map((c) => el('button', { type: 'button', class: 'mini acento-b',
+      onclick: () => { estado.paises = [c]; pintarFiltros(); buscar(); } }, T('pais.usar', { pais: nombre(c) }))));
 }
 function actualizarCuenta() {
   const n = estado.sel.size;

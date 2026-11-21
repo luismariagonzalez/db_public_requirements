@@ -543,6 +543,13 @@
   "orden": 100
  },
  {
+  "slug": "child-safety",
+  "tipo": "cross_cutting",
+  "nombre": "Child safety",
+  "descripcion": "Minors and families: age assurance, supervised accounts, parental controls, contact with strangers, age-appropriate defaults, purchases and moderation.",
+  "orden": 110
+ },
+ {
   "slug": "crm-sales",
   "tipo": "app_type",
   "nombre": "CRM / sales",

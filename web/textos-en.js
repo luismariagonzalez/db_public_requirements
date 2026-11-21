@@ -63,6 +63,8 @@ export default {
   'inc.tests': 'Tests', 'inc.acel': 'Accelerators', 'lat.proyecto': 'Project', 'proy.ninguno': '— none —', 'proy.ocultar': 'Hide what I did',
 
   'lista.titulo': 'Requirements', 'sel.todos': 'all', 'sel.ninguno': 'none', 'sel.cuenta': '{n}/{total} selected',
+  'pais.pista': '{n} of these requirements depend on the country ({paises}). Choose it to see only what applies there, with its note and official source.', 'pais.usar': 'Use {pais}',
+  'lista.mas': 'Show {n} more ({resto} left)', 'lista.total': 'Showing {n} of {total}',
   'marcar.texto': 'Mark the selected in the project as', 'marcar.aplicar': 'Apply', 'marcar.aria': 'Status',
   'marcar.ok': '{n} item(s) marked as {estado}',
 
@@ -97,10 +99,10 @@ export default {
   'api.p.html': 'Public and rate limited — 20 req/min without a key. JSON by default, or paste-ready Markdown with <code>format=md</code>, ending with instructions for your agent to record what\'s done and what\'s pending in your project.',
   'api.leyenda': 'Priority scale · per category',
   'api.lectura': 'Read · public', 'api.clave': 'With a key',
-  'api.ep.cats': 'audiences, domains, categories', 'api.ep.reqs.html': 'search, filter, <code>format=md</code>',
+  'api.ep.cats': 'audiences, domains, categories', 'api.ep.reqs.html': 'search, filter, <code>format=md</code>, pages with <code>offset</code>',
   'api.ep.tests': 'tests by category and priority', 'api.ep.acel': 'libraries and services',
   'api.ep.proyectos': 'your projects', 'api.ep.marcar': 'mark done / planned / skipped', 'api.ep.sugerir': 'suggest a feature or report a problem with the app',
-  'api.nota.html': 'Add <code>project=&lt;id&gt;</code> to a search to see what you already shipped, and <code>hide=done</code> to skip it.',
+  'api.nota.html': 'Add <code>project=&lt;id&gt;</code> to a search to see what you already shipped, and <code>hide=done</code> to skip it. JSON comes in pages of up to 200 (<code>limit</code>, <code>offset</code>; the answer brings <code>total</code> and <code>next_offset</code>); Markdown takes up to 1,000 at once.',
   'api.cli.titulo': 'Prefer the terminal?', 'api.cli.p': 'The airedb CLI (reqdb.mjs) is one file, no dependencies: pull requirements into your repo, let your agent mark progress, and fail CI while P1 work is pending.',
   'api.cli.enlace': 'CLI docs for agents →',
 

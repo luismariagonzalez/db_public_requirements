@@ -952,6 +952,42 @@ await prueba('CLI: --country filtra y show lleva el matiz', async () => {
   assert.match(w.out, /ES \(Spain\): Spanish identity detail\./);
 });
 
+await prueba('paginación: total y next_offset en JSON, aviso en Markdown, --offset en el CLI', async () => {
+  const p1 = await pedir('GET', '/api/v1/requirements?limit=1');
+  assert.equal(p1.estado, 200);
+  assert.ok(p1.json.total >= 2, `total ${p1.json.total}`);
+  assert.equal(p1.json.offset, 0); assert.equal(p1.json.limit, 1); assert.equal(p1.json.next_offset, 1);
+  const p2 = await pedir('GET', '/api/v1/requirements?limit=1&offset=1');
+  assert.equal(p2.json.total, p1.json.total);
+  assert.notEqual(p2.json.requirements[0].slug, p1.json.requirements[0].slug, 'la página 2 no repite la 1');
+  const ultima = await pedir('GET', `/api/v1/requirements?limit=200&offset=${p1.json.total - 1}`);
+  assert.equal(ultima.json.requirements.length, 1); assert.equal(ultima.json.next_offset, null);
+  assert.equal((await pedir('GET', '/api/v1/requirements?offset=-1')).estado, 400);
+  assert.equal((await pedir('GET', '/api/v1/requirements?limit=500')).estado, 400, 'en JSON, como mucho 200');
+  // Markdown: hasta 1.000 de una vez; si se corta, lo dice arriba
+  const md = await pedir('GET', '/api/v1/requirements?limit=1&format=md');
+  assert.match(md.texto, /\*\*Page 1–1 of \d+ requirements\.\*\*/);
+  const todo = await pedir('GET', '/api/v1/requirements?limit=1000&format=md');
+  assert.equal(todo.estado, 200);
+  assert.doesNotMatch(todo.texto, /\*\*Page \d+/, 'con todo dentro no hay aviso de página');
+  const c = await cli(['search', '--limit', '1']);
+  assert.equal(c.code, 0, c.err);
+  assert.match(c.out, /Showing 1–1 of \d+ requirement\(s\)\. Next page: --offset 1/);
+});
+
+await prueba('aviso de país: sin country se avisa de lo que depende del país; con country, no', async () => {
+  const sin = await pedir('GET', '/api/v1/requirements?category=gambling-t');
+  assert.ok(sin.json.country_hint, 'sin país debe venir country_hint');
+  assert.deepEqual(sin.json.country_hint.jurisdictions, ['ES', 'EU']);
+  assert.match(sin.json.country_hint.message, /depend on the country/);
+  const con = await pedir('GET', '/api/v1/requirements?category=gambling-t&country=ES');
+  assert.equal(con.json.country_hint, undefined);
+  const md = await pedir('GET', '/api/v1/requirements?category=gambling-t&format=md');
+  assert.match(md.texto, /\*\*\d+ of these requirements depend on the country \(ES, EU\)/);
+  const c = await cli(['search', '--category', 'gambling-t']);
+  assert.match(c.out, /Tip: \d+ of these requirements depend on the country \(ES, EU\)\. Add --country <code>/);
+});
+
 api.close(); await falso.cerrar();
 console.log(fallos.length ? `\n  ${fallos.length} fallo(s).\n` : '\n  API ensayada de punta a punta.\n');
 process.exit(fallos.length ? 1 : 0);

@@ -61,34 +61,34 @@ begin
   end if;
 
   -- filtro de prioridad: con max 2 solo sale A
-  r := public.db_public_requirements_srv_buscar(null, null, '{messaging}', 2, null, 50);
+  r := public.db_public_requirements_srv_buscar(null, null, '{messaging}', 2, null, 50)->'items';
   if jsonb_array_length(r) <> 1 or r->0->>'slug' <> a->>'slug' then
     raise exception 'filtro prioridad<=2 falla: %', r;
   end if;
   -- sin tope salen los dos, y el de mejor prioridad primero
-  r := public.db_public_requirements_srv_buscar(null, null, '{messaging}', 5, null, 50);
+  r := public.db_public_requirements_srv_buscar(null, null, '{messaging}', 5, null, 50)->'items';
   if jsonb_array_length(r) <> 2 or r->0->>'slug' <> a->>'slug' then
     raise exception 'orden por prioridad falla: %', r;
   end if;
   -- filtro de categoría: security solo tiene A
-  r := public.db_public_requirements_srv_buscar(null, null, '{security}', 5, null, 50);
+  r := public.db_public_requirements_srv_buscar(null, null, '{security}', 5, null, 50)->'items';
   if jsonb_array_length(r) <> 1 then raise exception 'filtro de categoría falla'; end if;
   -- prioridad efectiva = la de las categorías pedidas, no la mejor global
   if (r->0->>'priority')::int <> 2 then
     raise exception 'la prioridad efectiva debería ser 2 en security, es %', r->0->>'priority';
   end if;
   -- clase
-  r := public.db_public_requirements_srv_buscar(null, null, null, 5, '{functional}', 50);
+  r := public.db_public_requirements_srv_buscar(null, null, null, 5, '{functional}', 50)->'items';
   if jsonb_array_length(r) <> 1 or r->0->>'slug' <> b->>'slug' then
     raise exception 'filtro de clase falla';
   end if;
   -- texto completo
-  r := public.db_public_requirements_srv_buscar(null, 'password reset', null, 5, null, 50);
+  r := public.db_public_requirements_srv_buscar(null, 'password reset', null, 5, null, 50)->'items';
   if jsonb_array_length(r) <> 1 or r->0->>'slug' <> a->>'slug' then
     raise exception 'búsqueda de texto falla: %', r;
   end if;
   -- vector: v(2) está más cerca de B
-  r := public.db_public_requirements_srv_buscar(pg_temp.v(2), null, null, 5, null, 1);
+  r := public.db_public_requirements_srv_buscar(pg_temp.v(2), null, null, 5, null, 1)->'items';
   if r->0->>'slug' <> b->>'slug' then raise exception 'búsqueda vectorial falla: %', r; end if;
 
   -- similares
@@ -637,18 +637,18 @@ begin
   if public.db_public_requirements_srv_contar_copias('{}', 'p1') <> 0 then raise exception 'lista vacía debería dar 0'; end if;
 
   -- orden por defecto (priority): P1 primero y, entre P2, el más copiado
-  r := public.db_public_requirements_srv_buscar(null, null, '{saas-b2b}', 5, null, 50);
+  r := public.db_public_requirements_srv_buscar(null, null, '{saas-b2b}', 5, null, 50)->'items';
   if r->0->>'slug' <> e->>'slug' or r->1->>'slug' <> d->>'slug' or r->2->>'slug' <> c->>'slug' then
     raise exception 'orden priority falla: %', (select jsonb_agg(x->>'slug') from jsonb_array_elements(r) x);
   end if;
   if (r->1->>'copies')::int <> 3 or (r->2->>'copies')::int <> 1 then raise exception 'copies mal en la ficha: %', r; end if;
   -- orden por copiados: D, C, E
-  r := public.db_public_requirements_srv_buscar(null, null, '{saas-b2b}', 5, null, 50, 'copies');
+  r := public.db_public_requirements_srv_buscar(null, null, '{saas-b2b}', 5, null, 50, 'copies')->'items';
   if r->0->>'slug' <> d->>'slug' or r->1->>'slug' <> c->>'slug' or r->2->>'slug' <> e->>'slug' then
     raise exception 'orden copies falla: %', (select jsonb_agg(x->>'slug') from jsonb_array_elements(r) x);
   end if;
   -- con límite, el orden se aplica antes de cortar
-  r := public.db_public_requirements_srv_buscar(null, null, '{saas-b2b}', 5, null, 1, 'copies');
+  r := public.db_public_requirements_srv_buscar(null, null, '{saas-b2b}', 5, null, 1, 'copies')->'items';
   if r->0->>'slug' <> d->>'slug' or jsonb_array_length(r) <> 1 then raise exception 'copies + limite falla: %', r; end if;
   begin
     perform public.db_public_requirements_srv_buscar(null, null, null, 5, null, 5, 'raro');
@@ -1340,21 +1340,21 @@ do $$
 declare r jsonb; j jsonb;
 begin
   -- sin país: igual que antes, salen los tres
-  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50);
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50)->'items';
   if jsonb_array_length(r) <> 3 then raise exception 'sin país deben salir 3, salen %', jsonb_array_length(r); end if;
   -- ES (ya expandido a ES y EU): los tres (el genérico sigue)
-  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['ES','EU'], false);
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['ES','EU'], false)->'items';
   if jsonb_array_length(r) <> 3 then raise exception 'ES: deben salir 3'; end if;
   -- solo lo específico de ES: quita el genérico
-  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['ES','EU'], true);
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['ES','EU'], true)->'items';
   if jsonb_array_length(r) <> 2 then raise exception 'ES solo: deben salir 2'; end if;
   -- otro país sin datos: solo el genérico; con solo país, ninguno
-  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['US'], false);
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['US'], false)->'items';
   if jsonb_array_length(r) <> 1 or r->0->>'slug' <> 'pais-generico' then raise exception 'US: solo el genérico'; end if;
-  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['US'], true);
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['US'], true)->'items';
   if jsonb_array_length(r) <> 0 then raise exception 'US solo: ninguno'; end if;
   -- solo UE: el requisito de ES y UE aparece, el solo-ES no
-  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['EU'], true);
+  r := public.db_public_requirements_srv_buscar(null, null, array['gambling-x'], 5, null, 50, null, array['EU'], true)->'items';
   if jsonb_array_length(r) <> 1 or r->0->>'slug' <> 'pais-es-ue' then raise exception 'EU solo: solo es-ue'; end if;
 
   -- matices: solo los de lo pedido
@@ -1387,5 +1387,49 @@ set role anon;
 do $$ begin
   begin perform public.db_public_requirements_srv_jurisdicciones(); raise exception 'anon no debía poder'; exception when insufficient_privilege then null; end;
   begin perform public.db_public_requirements_srv_jurisdicciones_de(array['x'], null); raise exception 'anon no debía poder'; exception when insufficient_privilege then null; end;
+end $$;
+reset role;
+
+
+-- ═══ 0012: alcance de las transversales y paginación ═══
+set role service_role;
+select public.db_public_requirements_srv_upsert_categoria('alc-juego', 'app_type', 'Game (scope test)', '', 91);
+select public.db_public_requirements_srv_upsert_categoria('alc-clinica', 'app_type', 'Clinic (scope test)', '', 92);
+select public.db_public_requirements_srv_upsert_categoria('alc-seguridad', 'cross_cutting', 'Security (scope test)', '', 93);
+-- uno del juego, uno genérico de seguridad, uno de seguridad de la clínica y uno regulatorio de seguridad del juego (ES)
+select public.db_public_requirements_srv_crear_requisito('Scope: game sync', 'The system must keep the game state in sync.', '["a b c d e", "f g h i j"]'::jsonb, 'technical', '[{"slug":"alc-juego","priority":1}]'::jsonb, null, null, null, 'alc-juego-sync');
+select public.db_public_requirements_srv_crear_requisito('Scope: generic hashing', 'The system must hash stored passwords.', '["a b c d e", "f g h i j"]'::jsonb, 'technical', '[{"slug":"alc-seguridad","priority":1}]'::jsonb, null, null, null, 'alc-generico');
+select public.db_public_requirements_srv_crear_requisito('Scope: clinic records', 'The system must encrypt patient records.', '["a b c d e", "f g h i j"]'::jsonb, 'technical', '[{"slug":"alc-clinica","priority":1},{"slug":"alc-seguridad","priority":1}]'::jsonb, null, null, null, 'alc-clinica-cifrado');
+select public.db_public_requirements_srv_crear_requisito('Scope: regulated game logs', 'The operator must keep gaming logs.', '["a b c d e", "f g h i j"]'::jsonb, 'technical', '[{"slug":"alc-juego","priority":2},{"slug":"alc-seguridad","priority":1}]'::jsonb, null, null, null, 'alc-juego-regulado');
+select public.db_public_requirements_srv_asociar_jurisdiccion('alc-juego-regulado', 'ES', 'Spanish logs.', 'Norma X', 'https://www.boe.es/z', '2026-01-01');
+do $$
+declare r jsonb; s text[];
+begin
+  -- lo que construyes + una transversal: lo del juego y lo genérico; NO la seguridad de la clínica
+  r := public.db_public_requirements_srv_buscar(null, null, array['alc-juego','alc-seguridad'], 5, null, 50);
+  select array_agg(x->>'slug' order by x->>'slug') into s from jsonb_array_elements(r->'items') x;
+  if s <> array['alc-generico','alc-juego-regulado','alc-juego-sync'] then raise exception 'alcance (juego+seguridad) mal: %', s; end if;
+  if (r->>'total')::int <> 3 then raise exception 'total mal: %', r->>'total'; end if;
+  -- la clínica + seguridad: lo de la clínica y lo genérico, nada del juego
+  r := public.db_public_requirements_srv_buscar(null, null, array['alc-clinica','alc-seguridad'], 5, null, 50);
+  select array_agg(x->>'slug' order by x->>'slug') into s from jsonb_array_elements(r->'items') x;
+  if s <> array['alc-clinica-cifrado','alc-generico'] then raise exception 'alcance (clínica+seguridad) mal: %', s; end if;
+  -- solo la transversal: la unión de siempre, pero lo regulatorio solo con país
+  r := public.db_public_requirements_srv_buscar(null, null, array['alc-seguridad'], 5, null, 50);
+  select array_agg(x->>'slug' order by x->>'slug') into s from jsonb_array_elements(r->'items') x;
+  if s <> array['alc-clinica-cifrado','alc-generico'] then raise exception 'solo transversal sin país mal: %', s; end if;
+  r := public.db_public_requirements_srv_buscar(null, null, array['alc-seguridad'], 5, null, 50, null, array['ES','EU'], false);
+  select array_agg(x->>'slug' order by x->>'slug') into s from jsonb_array_elements(r->'items') x;
+  if s <> array['alc-clinica-cifrado','alc-generico','alc-juego-regulado'] then raise exception 'solo transversal con país mal: %', s; end if;
+
+  -- paginación: 2 por página, el total no cambia y las páginas no se pisan
+  r := public.db_public_requirements_srv_buscar(null, null, array['alc-juego','alc-seguridad'], 5, null, 2);
+  if (r->>'total')::int <> 3 or jsonb_array_length(r->'items') <> 2 then raise exception 'página 1 mal: %', r; end if;
+  s := array[r->'items'->0->>'slug', r->'items'->1->>'slug'];
+  r := public.db_public_requirements_srv_buscar(null, null, array['alc-juego','alc-seguridad'], 5, null, 2, null, null, false, 2);
+  if (r->>'total')::int <> 3 or jsonb_array_length(r->'items') <> 1 then raise exception 'página 2 mal: %', r; end if;
+  if (r->'items'->0->>'slug') = any (s) then raise exception 'la página 2 repite un elemento de la 1'; end if;
+  r := public.db_public_requirements_srv_buscar(null, null, array['alc-juego','alc-seguridad'], 5, null, 2, null, null, false, 50);
+  if jsonb_array_length(r->'items') <> 0 or (r->>'total')::int <> 3 then raise exception 'más allá del final: lista vacía y total igual'; end if;
 end $$;
 reset role;

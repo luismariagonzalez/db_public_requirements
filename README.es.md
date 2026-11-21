@@ -34,7 +34,7 @@ Leer es anónimo y con límite de uso; los proyectos necesitan una clave de API.
 curl "https://joderestatodocogido.com/proyectos/requirements-db/app/api/v1/requirements?category=messaging&max_priority=2&format=md"
 ```
 
-- Lectura: `/api/v1/categories`, `/api/v1/requirements`, `/api/v1/tests`, `/api/v1/accelerators` (y `/:slug`), `POST /api/v1/export`. `include=tests,accelerators` los devuelve junto a los requisitos.
+- Lectura: `/api/v1/categories`, `/api/v1/requirements`, `/api/v1/tests`, `/api/v1/accelerators` (y `/:slug`), `POST /api/v1/export`. `include=tests,accelerators` los devuelve junto a los requisitos. Los resultados van por páginas: `limit` (hasta 200 en JSON y 1.000 en Markdown) y `offset`; la respuesta JSON trae `total` y `next_offset`.
 - Con cuenta o clave de API: `/api/v1/projects` (y `PUT /:id/items` para que el agente marque lo hecho, lo que está en curso y lo planeado), `/api/v1/suggestions`.
 - Con sesión (Clerk: Google, GitHub o correo con código): `POST /api/contribute` (la revisa una IA: ¿ya está? ¿fusionar o crear?), `/api/me/keys`, `/api/me/contributions`, `DELETE /api/me`.
 

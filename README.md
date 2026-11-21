@@ -34,7 +34,7 @@ Reading is anonymous and rate limited; projects need an API key. Exit codes: `0`
 curl "https://joderestatodocogido.com/proyectos/requirements-db/app/api/v1/requirements?category=messaging&max_priority=2&format=md"
 ```
 
-- Read: `/api/v1/categories`, `/api/v1/requirements`, `/api/v1/tests`, `/api/v1/accelerators` (and `/:slug`), `POST /api/v1/export`. `include=tests,accelerators` returns them with the requirements.
+- Read: `/api/v1/categories`, `/api/v1/requirements`, `/api/v1/tests`, `/api/v1/accelerators` (and `/:slug`), `POST /api/v1/export`. `include=tests,accelerators` returns them with the requirements. Results come in pages: `limit` (up to 200 in JSON, 1,000 in Markdown) and `offset`; the JSON answer includes `total` and `next_offset`.
 - With an account or API key: `/api/v1/projects` (and `PUT /:id/items` so the agent marks what is done, in progress or planned), `/api/v1/suggestions`.
 - With a session (Clerk: Google, GitHub or email with a code): `POST /api/contribute` (an AI reviews it: is it already there? merge or create), `/api/me/keys`, `/api/me/contributions`, `DELETE /api/me`.
 

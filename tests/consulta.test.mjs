@@ -117,3 +117,9 @@ test('los flujos se agrupan por familia, en orden, y una familia desconocida va 
   assert.deepEqual(g.map(([f, l]) => [f, l.map((c) => c.slug)]),
     [['account', ['flow-sign-in', 'flow-sign-up']], ['buy', ['screen-checkout']], ['otra', ['screen-rara']]]);
 });
+
+test('paginación: «Ver más» pide la página siguiente con offset; la primera no lo lleva', () => {
+  assert.equal(rutaBusqueda({ cats: ['messaging'] }), '/api/v1/requirements?category=messaging');
+  assert.equal(rutaBusqueda({ cats: ['messaging'], desde: 50 }), '/api/v1/requirements?category=messaging&offset=50');
+  assert.equal(rutaBusqueda({ cats: ['messaging'], desde: 0 }), '/api/v1/requirements?category=messaging');
+});

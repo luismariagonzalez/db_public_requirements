@@ -63,6 +63,8 @@ export default {
   'inc.tests': 'Tests', 'inc.acel': 'Aceleradores', 'lat.proyecto': 'Proyecto', 'proy.ninguno': '— ninguno —', 'proy.ocultar': 'Ocultar lo que ya hice',
 
   'lista.titulo': 'Requisitos', 'sel.todos': 'todos', 'sel.ninguno': 'ninguno', 'sel.cuenta': '{n}/{total} seleccionados',
+  'pais.pista': '{n} de estos requisitos dependen del país ({paises}). Elígelo para ver solo lo que aplica allí, con su matiz y su fuente oficial.', 'pais.usar': 'Usar {pais}',
+  'lista.mas': 'Ver {n} más (quedan {resto})', 'lista.total': 'Mostrando {n} de {total}',
   'marcar.texto': 'Marcar lo seleccionado en el proyecto como', 'marcar.aplicar': 'Aplicar', 'marcar.aria': 'Estado',
   'marcar.ok': '{n} elemento(s) marcados como {estado}',
 
@@ -97,10 +99,10 @@ export default {
   'api.p.html': 'Pública y con límite de uso: 20 peticiones por minuto sin clave. JSON por defecto, o Markdown listo para pegar con <code>format=md</code>, que termina con instrucciones para que tu agente anote en tu proyecto lo hecho y lo pendiente.',
   'api.leyenda': 'Escala de prioridad · por categoría',
   'api.lectura': 'Lectura · pública', 'api.clave': 'Con clave',
-  'api.ep.cats': 'audiencias, dominios, categorías', 'api.ep.reqs.html': 'busca, filtra, <code>format=md</code>',
+  'api.ep.cats': 'audiencias, dominios, categorías', 'api.ep.reqs.html': 'busca, filtra, <code>format=md</code>, páginas con <code>offset</code>',
   'api.ep.tests': 'tests por categoría y prioridad', 'api.ep.acel': 'librerías y servicios',
   'api.ep.proyectos': 'tus proyectos', 'api.ep.marcar': 'marcar hecho / planeado / descartado', 'api.ep.sugerir': 'sugerir una funcionalidad o avisar de un problema de la app',
-  'api.nota.html': 'Añade <code>project=&lt;id&gt;</code> a una búsqueda para ver lo que ya has hecho, y <code>hide=done</code> para saltártelo.',
+  'api.nota.html': 'Añade <code>project=&lt;id&gt;</code> a una búsqueda para ver lo que ya has hecho, y <code>hide=done</code> para saltártelo. El JSON llega en páginas de hasta 200 (<code>limit</code>, <code>offset</code>; la respuesta trae <code>total</code> y <code>next_offset</code>); el Markdown admite hasta 1.000 de una vez.',
   'api.cli.titulo': '¿Prefieres la terminal?', 'api.cli.p': 'El CLI de airedb (reqdb.mjs) es un solo fichero sin dependencias: baja los requisitos a tu repo, deja que tu agente marque el avance y haz que falle el CI mientras haya trabajo P1 pendiente.',
   'api.cli.enlace': 'Documentación del CLI para agentes →',
 
