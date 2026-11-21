@@ -44,11 +44,13 @@ export async function sembrar({ requisitos, dry = false, soloValidar = false, de
     nuevos: 0, existentes: 0, asociaciones: 0, testsNuevos: 0 };
 
   // 1. validar contra lo que hay en la base (si se puede)
-  let jurisdiccionesValidas = null, categoriasValidas = null;
+  let jurisdiccionesValidas = null, categoriasValidas = null, dominios = null;
   if (!soloValidar) {
     try {
       jurisdiccionesValidas = new Set((await rpc('jurisdicciones')).map((j) => j.code));
-      categoriasValidas = new Set((await rpc('categorias')).map((c) => c.slug));
+      const cats = await rpc('categorias');
+      categoriasValidas = new Set(cats.map((c) => c.slug));
+      dominios = new Set(cats.filter((c) => ['app_type', 'software_category'].includes(c.type ?? c.tipo)).map((c) => c.slug));
     } catch (e) {
       if (!dry) throw e;
       // dry-run contra una base sin la migración 0011: se valida solo el formato
@@ -57,6 +59,11 @@ export async function sembrar({ requisitos, dry = false, soloValidar = false, de
     }
   }
   const errores = validarLote(requisitos, { jurisdiccionesValidas, categoriasValidas });
+  // Lo regulatorio siempre pertenece a un tipo de app o categoría de software: sin él, la búsqueda lo
+  // trata como genérico y aparece en proyectos que nada tienen que ver (pasó con 44 de Colombia).
+  if (dominios?.size) for (const r of requisitos)
+    if (!(r.categories ?? []).some((c) => dominios.has(c.slug)))
+      errores.push(`${r.slug}: necesita un tipo de app o categoría de software (p. ej. online-gambling), no solo transversales`);
   if (errores.length) {
     errores.slice(0, 40).forEach((m) => log(`  ✗ ${m}`));
     throw new Error(`${errores.length} error(es) de validación en la semilla`);
