@@ -108,6 +108,8 @@ async function fase2() {
   const todos = archivos.flatMap((f) => JSON.parse(readFileSync(new URL(`borrador/${f}`, raiz), 'utf8')));
   if (!todos.length) throw new Error('no hay borradores: ejecuta sin --fusionar');
   console.log(`\n  Deduplicando ${todos.length} requisitos con embeddings…`);
+  // Aquí NO se usan las etiquetas (lib/texto_embedding.mjs): estos vectores solo comparan borradores entre sí
+  // y un mismo requisito sale en varias categorías, que no debe separarlo. Los que se guardan, al cargar la semilla.
   const vecs = await embedLote(todos.map((i) => `${i.title}. ${i.statement}`));
 
   // Greedy: primero los más importantes, para que su texto sea el que se queda.

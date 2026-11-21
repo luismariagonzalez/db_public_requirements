@@ -29,12 +29,14 @@ test('el español está de verdad traducido (casi ningún texto igual al inglés
 
 test('todas las claves del HTML y del JS existen en el diccionario', () => {
   const claves = new Set();
-  for (const f of ['index.html']) {
+  for (const f of ['index.html', 'mapa.html']) {
     for (const m of leer(f).matchAll(/data-i18n(?:-html)?="([^"]+)"/g)) claves.add(m[1]);
     for (const m of leer(f).matchAll(/data-i18n-attr="([^"]+)"/g)) for (const par of m[1].split(';')) claves.add(par.split(':')[1].trim());
   }
-  for (const m of leer('app.js').matchAll(/\bT\('([^']+)'/g)) claves.add(m[1]);
-  for (const m of leer('app.js').matchAll(/\bTN\('([^']+)'/g)) { claves.add(`${m[1]}.one`); claves.add(`${m[1]}.other`); }
+  for (const js of ['app.js', 'mapa.js']) {
+    for (const m of leer(js).matchAll(/\bT\('([^']+)'/g)) claves.add(m[1]);
+    for (const m of leer(js).matchAll(/\bTN\('([^']+)'/g)) { claves.add(`${m[1]}.one`); claves.add(`${m[1]}.other`); }
+  }
   for (const k of claves) assert.ok(k in en, `la clave «${k}» no está en textos-en.js`);
   assert.ok(claves.size > 80, `solo ${claves.size} claves encontradas: ¿ha cambiado el formato?`);
 });
@@ -45,6 +47,7 @@ test('las claves dinámicas (p1…p5, estados, grupos) existen', () => {
   for (const g of ['audience', 'domain', 'software_category', 'app_type', 'screen_type', 'cross_cutting']) assert.ok(`g.${g}` in en);
   for (const s of ['created', 'merged', 'rejected', 'needs_human', 'pending']) assert.ok(`ap.${s}` in en);
   for (const s of ['new', 'accepted', 'dismissed']) assert.ok(`sug.estado.${s}` in en);
+  for (const k of ['functional', 'technical']) assert.ok(`mapa.kind.${k}` in en);   // mapa.js: T(`mapa.kind.${…}`)
 });
 
 test('t(): variables, caída al inglés, clave desconocida visible y plurales', () => {

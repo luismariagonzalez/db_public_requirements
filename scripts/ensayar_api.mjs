@@ -411,6 +411,64 @@ await prueba('CLI: login guarda la clave y los comandos con clave funcionan sin 
   assert.equal((await cli(['projects'], { clave: false })).code, 3);
 });
 
+// ── mapa 2D: reembebido y cálculo con vectores SIMULADOS (nunca Gemini), contra el Postgres local
+await prueba('GET /api/v1/map: vacío sin coordenadas; tras reembeber + mapa_calcular, los puntos y la caché', async () => {
+  const { reembeber } = await import('./reembeber.mjs');
+  const { calcularMapa } = await import('./mapa_calcular.mjs');
+  const { embedLoteSimulado } = await import('./embedding_simulado.mjs');
+  const mudo = () => {};
+
+  const vacio = await pedir('GET', '/api/v1/map');
+  assert.equal(vacio.estado, 200);
+  assert.deepEqual(vacio.json, { count: 0, generated_at: null, points: [] });
+  assert.match(vacio.cab.get('cache-control'), /s-maxage=\d+/);
+
+  // más requisitos, para que la proyección tenga de dónde sacar un plano
+  for (let i = 0; i < 12; i++)
+    await rpc('crear_requisito', { p_titulo: `Mapped requirement number ${i}`, p_enunciado: `The product must support mapped behaviour number ${i} in ${['chat', 'billing', 'search'][i % 3]} flows.`,
+      p_criterios: [], p_clase: i % 2 ? 'technical' : 'functional',
+      p_categorias: [{ slug: i % 3 ? 'messaging' : 'security', priority: 1 + (i % 5) }, ...(i % 4 === 0 ? [{ slug: 'security', priority: 2 }] : [])],
+      p_vec: null, p_autor: null, p_aporte_id: null, p_slug: `mapped-requirement-number-${i}` });
+
+  const antes = await reembeber({ embedLote: embedLoteSimulado, log: mudo });
+  assert.ok(antes.hechos >= 14, `reembeber recalculó ${antes.hechos}`);
+  assert.equal((await reembeber({ embedLote: embedLoteSimulado, log: mudo })).hechos, 0, 'reanudable: la segunda vez no queda nada');
+
+  const calculo = await calcularMapa({ refit: true, log: mudo });
+  assert.equal(calculo.modo, 'refit'); assert.ok(calculo.escritos >= 14);
+
+  const r = await pedir('GET', '/api/v1/map');
+  assert.equal(r.estado, 200);
+  assert.equal(r.json.count, calculo.escritos);
+  assert.ok(r.json.generated_at);
+  const p = r.json.points.find((x) => x.slug === 'password-reset-by-email-link');
+  assert.ok(p, 'el requisito de siempre está en el mapa');
+  assert.deepEqual(Object.keys(p).sort(), ['app_type', 'copies', 'kind', 'priority', 'slug', 'title', 'topics', 'x', 'y']);
+  assert.equal(p.app_type, 'messaging'); assert.deepEqual(p.topics, ['security']); assert.equal(p.priority, 1);
+  assert.ok(Number.isFinite(p.x) && Number.isFinite(p.y) && Math.abs(p.x) <= 2 && Math.abs(p.y) <= 2);
+  assert.ok(!r.texto.includes('single-use link'), 'sin enunciados');
+
+  // un requisito nuevo se coloca solo a él: los demás no se mueven
+  await rpc('crear_requisito', { p_titulo: 'One more mapped requirement', p_enunciado: 'The product must support one more mapped behaviour in chat flows.',
+    p_criterios: [], p_clase: 'functional', p_categorias: [{ slug: 'messaging', priority: 2 }], p_vec: null, p_autor: null, p_aporte_id: null, p_slug: 'one-more-mapped-requirement' });
+  await reembeber({ embedLote: embedLoteSimulado, log: mudo });
+  const inc = await calcularMapa({ log: mudo });
+  assert.equal(inc.modo, 'incremental'); assert.equal(inc.escritos, 1);
+  const r2 = await pedir('GET', '/api/v1/map');
+  assert.equal(r2.json.count, r.json.count + 1);
+  for (const a of r.json.points) {
+    const b = r2.json.points.find((x) => x.slug === a.slug);
+    assert.deepEqual([b.x, b.y], [a.x, a.y], `${a.slug} no debe moverse`);
+  }
+});
+
+await prueba('GET /api/v1/map: el cupo anónimo también lo cuenta (429 al pasarse)', async () => {
+  const ipLimite = '10.9.9.9';
+  let ultimo;
+  for (let i = 0; i < 21; i++) ultimo = await pedir('GET', '/api/v1/map', { ipFija: ipLimite });
+  assert.equal(ultimo.estado, 429);
+});
+
 api.close(); await falso.cerrar();
 console.log(fallos.length ? `\n  ${fallos.length} fallo(s).\n` : '\n  API ensayada de punta a punta.\n');
 process.exit(fallos.length ? 1 : 0);

@@ -16,6 +16,7 @@ import { embedLote, aLiteral } from '../lib/gemini.mjs';
 import { exige } from './entorno.mjs';
 import { rpc } from '../lib/bd.mjs';
 import { validarItem } from '../lib/umbral.mjs';
+import { textoParaEmbedding, indexarCategorias } from '../lib/texto_embedding.mjs';
 
 exige('SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'GEMINI_API_KEY');
 const umbral = Number(process.argv.find((a) => a.startsWith('--umbral='))?.split('=')[1] ?? 0.90);
@@ -57,11 +58,16 @@ for (const i of orden) {
 }
 
 // 2) contra la base y la semilla
+// En la base los vectores llevan las etiquetas (lib/texto_embedding.mjs): para compararlos se embebe cada
+// candidato con su texto completo. (La fusión entre borradores, de arriba, sigue con título + enunciado:
+// ahí un mismo requisito sale con etiquetas distintas y no debe separarse por ellas.)
+const catsBase = await rpc('categorias').then(indexarCategorias).catch(() => indexarCategorias([]));
+const vecsBase = await embedLote(reps.map((r) => textoParaEmbedding(r.item, catsBase)));
 let repetidos = 0; const salida = new Map();
-for (const { item, vec } of reps) {
+for (const [k, { item }] of reps.entries()) {
   const s = slugify(item.title);
   let parecido = null;
-  try { parecido = (await rpc('similares', { p_vec: aLiteral(vec), p_limite: 1 }))?.[0]; } catch { /* sin base: se sigue */ }
+  try { parecido = (await rpc('similares', { p_vec: aLiteral(vecsBase[k]), p_limite: 1 }))?.[0]; } catch { /* sin base: se sigue */ }
   if (existentes.has(s) || (parecido && Number(parecido.similarity) >= umbral)) {
     repetidos++; console.log(`    · omitido «${item.title}» ~ ${parecido?.slug ?? s} (${parecido ? Number(parecido.similarity).toFixed(2) : 'mismo slug'})`);
     continue;

@@ -13,6 +13,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { rpc } from '../lib/bd.mjs';
 import { embedLote, aLiteral } from '../lib/gemini.mjs';
 import { exige } from './entorno.mjs';
+import { textoParaEmbedding, indexarCategorias } from '../lib/texto_embedding.mjs';
 
 const DRY = process.argv.includes('--dry');
 exige('SUPABASE_URL', 'SUPABASE_SECRET_KEY');
@@ -77,7 +78,9 @@ if (DRY || !(nuevos.length + nuevosTests.length + nuevosAcel.length)) {
 // Orden: requisitos primero (los tests y aceleradores se enlazan por slug).
 let n = 0;
 if (nuevos.length) {
-  const vecs = await embedLote(nuevos.map((r) => `${r.title}. ${r.statement}`));
+  // El embedding de un requisito lleva sus etiquetas (lib/texto_embedding.mjs).
+  const idxCat = indexarCategorias(categorias);
+  const vecs = await embedLote(nuevos.map((r) => textoParaEmbedding(r, idxCat)));
   for (let i = 0; i < nuevos.length; i++) {
     const r = nuevos[i];
     await rpc('crear_requisito', { p_titulo: r.title, p_enunciado: r.statement, p_criterios: r.criteria,
