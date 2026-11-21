@@ -1,8 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import en from '../web/textos-en.js';
-import es from '../web/textos-es.js';
+import enBase from '../web/textos-en.js';
+import esBase from '../web/textos-es.js';
+import colEn from '../web/textos-colaborar-en.js';
+import colEs from '../web/textos-colaborar-es.js';
+const en = { ...enBase, ...colEn }, es = { ...esBase, ...colEs };   // como los junta i18n.js
 import { t, tn, fijar, idiomaInicial } from '../web/i18n.js';
 
 const leer = (f) => readFileSync(new URL(`../web/${f}`, import.meta.url), 'utf8');
@@ -33,9 +36,9 @@ test('todas las claves del HTML y del JS existen en el diccionario', () => {
     for (const m of leer(f).matchAll(/data-i18n(?:-html)?="([^"]+)"/g)) claves.add(m[1]);
     for (const m of leer(f).matchAll(/data-i18n-attr="([^"]+)"/g)) for (const par of m[1].split(';')) claves.add(par.split(':')[1].trim());
   }
-  for (const js of ['app.js', 'mapa.js']) {
-    for (const m of leer(js).matchAll(/\bT\('([^']+)'/g)) claves.add(m[1]);
-    for (const m of leer(js).matchAll(/\bTN\('([^']+)'/g)) { claves.add(`${m[1]}.one`); claves.add(`${m[1]}.other`); }
+  for (const js of ['app.js', 'mapa.js', 'colaborar.js']) {
+    for (const m of leer(js).matchAll(/T\('([^']+)'/g)) claves.add(m[1]);
+    for (const m of leer(js).matchAll(/TN\('([^']+)'/g)) { claves.add(`${m[1]}.one`); claves.add(`${m[1]}.other`); }
   }
   for (const k of claves) assert.ok(k in en, `la clave «${k}» no está en textos-en.js`);
   assert.ok(claves.size > 80, `solo ${claves.size} claves encontradas: ¿ha cambiado el formato?`);

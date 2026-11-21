@@ -1,0 +1,26 @@
+/* «¿Quieres colaborar?»: botón de la cabecera y caja del final de la página */
+.boton-col { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; }
+.boton-col:hover { color: var(--bg); }
+@media (max-width: 760px) { .boton-col { padding: 0 9px; font-size: 12px; } }
+
+.col-caja { grid-column: 1 / -1; scroll-margin-top: 64px; }
+.col-pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; }
+.col-pasos li { display: flex; flex-direction: column; gap: 4px; background: var(--bg); border: 1px solid var(--l1); border-radius: 10px; padding: 12px 14px; }
+.col-pasos b { font-weight: 500; }
+.col-cuerpo { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 760px) { .col-cuerpo { grid-template-columns: minmax(0, 1fr); } }
+.col-izq, .col-der { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.col-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 340px; overflow: auto; }
+.col-item { width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; text-align: left; padding: 7px 10px; min-height: 36px;
+  border: 1px solid var(--l1); border-radius: 8px; background: var(--bg); font-size: 13px; }
+.col-item:hover { border-color: var(--l4); }
+.col-item[aria-pressed="true"] { border-color: var(--acc); background: var(--panel); }
+.col-item small { font: 11px var(--mono); }
+.col-detalle { display: flex; flex-direction: column; gap: 4px; }
+.col-detalle:empty { display: none; }
+.col-enl { display: flex; gap: 14px; }
+.col-enl a { color: var(--acc); text-decoration: underline; text-underline-offset: 2px; }
+.col-der .salida-cab { padding: 0; border: 0; }
+.col-prompt { margin: 0; max-height: 360px; overflow: auto; padding: 12px 14px; background: var(--bg); border: 1px solid var(--l2); border-radius: 10px;
+  font: 12px/1.55 var(--mono); white-space: pre-wrap; word-break: break-word; color: var(--dim); }
+.col-der > .nota a { color: var(--acc); text-decoration: underline; text-underline-offset: 2px; }

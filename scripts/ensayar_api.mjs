@@ -305,16 +305,43 @@ await prueba('instrucciones al agente', async () => {
 });
 
 // ── sugerencias
-await prueba('sugerencias: crear, listar, objetivo inexistente, validación', async () => {
-  const ok = await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { kind: 'improvement', target_type: 'requirement',
-    target: 'typing-indicator', text: 'It should also cover group conversations with several people.' } });
-  assert.equal(ok.estado, 201);
-  assert.equal((await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { text: 'A requirement about message retention.', kind: 'new_item' } })).estado, 201);
-  assert.equal((await pedir('GET', '/api/v1/suggestions', { key: KEY })).json.suggestions.length, 2);
+await prueba('sugerencias sobre la app: crear, listar, alias antiguos, redirección a contribute, validación', async () => {
+  const ok = await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { kind: 'feature', text: 'Let me export my whole project as one file.' } });
+  assert.equal(ok.estado, 201); assert.equal(ok.json.kind, 'feature');
+  assert.equal((await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { kind: 'problem', text: 'The copy button does nothing on my browser.' } })).estado, 201);
+  // agentes antiguos: new_item / report sin objetivo siguen valiendo (se tratan como feature / problem)
+  const viejo = await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { text: 'A dark and a light theme, please.', kind: 'new_item', target_type: 'general' } });
+  assert.equal(viejo.estado, 201); assert.equal(viejo.json.kind, 'feature');
+  const lista = (await pedir('GET', '/api/v1/suggestions', { key: KEY })).json.suggestions;
+  assert.equal(lista.length, 3); assert.ok(lista.every((s) => s.target_type === 'app' && s.target === null));
   assert.equal((await pedir('GET', '/api/v1/suggestions', { key: KEY_OTRA })).json.suggestions.length, 0);
+  // lo de requisitos/tests/aceleradores se aporta: 400 que apunta a contribute
+  const objetivo = await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { kind: 'improvement', target_type: 'requirement', target: 'typing-indicator', text: 'It should also cover group conversations.' } });
+  assert.equal(objetivo.estado, 400); assert.match(objetivo.json.error, /POST \/api\/contribute/);
   assert.equal((await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { target: 'no-existe-nada', text: 'This target does not exist at all.' } })).estado, 400);
   assert.equal((await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { text: 'corto' } })).estado, 400);
   assert.equal((await pedir('POST', '/api/v1/suggestions', { key: KEY, cuerpo: { kind: 'x', text: 'A perfectly fine suggestion text.' } })).estado, 400);
+});
+
+await prueba('herramientas: GET /api/v1/tools público, con caché, filtros y solo las activas', async () => {
+  assert.equal((await pedir('GET', '/api/v1/tools')).estado, 200);
+  for (const [slug, nombre, cat, codigo, docs, orden, estado] of [
+    ['ensayo-auth', 'Ensayo Auth', 'auth', 'https://github.com/example/auth', null, 10, 'active'],
+    ['ensayo-next', 'Ensayo Next', 'framework', 'https://github.com/example/next', 'https://example.com/docs', 20, 'active'],
+    ['ensayo-oculta', 'Ensayo Hidden', 'other', 'https://example.com/x', null, 1, 'hidden']])
+    await rpc('upsert_herramienta', { p_slug: slug, p_nombre: nombre, p_categoria: cat, p_descripcion: `${nombre} test tool`,
+      p_url_codigo: codigo, p_url_docs: docs, p_plataformas: ['web'], p_estado: estado, p_orden: orden });
+  const todas = await pedir('GET', '/api/v1/tools');
+  assert.equal(todas.estado, 200); assert.equal(todas.json.count, todas.json.tools.length);
+  assert.ok(!todas.json.tools.some((t) => t.slug === 'ensayo-oculta'));          // las ocultas no salen
+  const mias = (await pedir('GET', '/api/v1/tools?q=ensayo')).json.tools;
+  assert.deepEqual(mias.map((t) => t.slug), ['ensayo-auth', 'ensayo-next']);      // ordenadas por `orden`
+  assert.match(todas.cab.get('cache-control'), /s-maxage=300/);
+  assert.equal(todas.cab.get('access-control-allow-origin'), '*');
+  assert.deepEqual(mias[1], { slug: 'ensayo-next', name: 'Ensayo Next', category: 'framework', description: 'Ensayo Next test tool',
+    code_url: 'https://github.com/example/next', docs_url: 'https://example.com/docs', platforms: ['web'] });
+  assert.deepEqual((await pedir('GET', '/api/v1/tools?category=auth&q=ensayo')).json.tools.map((t) => t.slug), ['ensayo-auth']);
+  assert.ok(Number(todas.cab.get('x-ratelimit-remaining-minute')) >= 0);          // pasa por el cupo
 });
 
 await prueba('borrar el proyecto', async () => {
@@ -463,8 +490,9 @@ await prueba('CLI: status, pull --hide-done, projects, suggest, agent y use', as
   const md = readFileSync(join(cwdCli, 'pendientes.md'), 'utf8');
   assert.match(md, /Typing indicator/); assert.doesNotMatch(md, /Password reset by email link/);
   assert.match((await cli(['projects'])).out, new RegExp(`${idCli}\\s+App de prueba CLI`));
-  const sug = await cli(['suggest', 'cover group chats as well, please', '--about', 'typing-indicator']);
+  const sug = await cli(['suggest', 'export my whole project as a single file, please', '--kind', 'feature']);
   assert.equal(sug.code, 0, sug.err); assert.match(sug.out, /received/);
+  assert.match((await cli(['tools', '--json'], { clave: false })).out, /"tools"/);
   const ag = await cli(['agent']);
   assert.equal(ag.code, 0); assert.match(ag.out, new RegExp(`id ${idCli}`));
   assert.equal((await cli(['use', String(idCli)])).code, 0);

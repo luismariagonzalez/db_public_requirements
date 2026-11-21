@@ -13,6 +13,14 @@ test('el mensaje explica los estados y cómo marcar el proyecto', () => {
   assert.doesNotMatch(m, /<project_id>/);
 });
 
+test('el mensaje manda lo de requisitos/tests/aceleradores a contribute y las sugerencias solo a la app', () => {
+  const m = mensajeAgente({ base: 'https://r.example' });
+  assert.match(m, /POST https:\/\/r\.example\/api\/contribute/);
+  assert.match(m, /Do NOT use suggestions for that/);
+  assert.match(m, /"kind": "feature" \| "problem"/);
+  assert.doesNotMatch(m, /"target_type"|"improvement"/);
+});
+
 test('sin proyecto, el mensaje enseña a crearlo', () => {
   const m = mensajeAgente({ base: 'https://r.example' });
   assert.match(m, /projects\/<project_id>\/items/);

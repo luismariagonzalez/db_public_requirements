@@ -72,7 +72,7 @@ export default {
   'estado.vacio': 'Todavía no hay requisitos para esta selección. Prueba con los asuntos transversales (seguridad, privacidad…), con menos filtros, o aporta uno.',
   'err.429': 'Demasiadas peticiones. Inténtalo de nuevo en {s}, o entra para tener un límite mayor.', 'err.429.poco': 'unos segundos',
 
-  'item.incluir': 'Incluir {titulo}', 'det.tests': 'Tests', 'det.acel': 'Aceleradores', 'det.sugerir': 'Sugerir',
+  'item.incluir': 'Incluir {titulo}', 'det.tests': 'Tests', 'det.acel': 'Aceleradores',
   'n.test.one': '{n} test', 'n.test.other': '{n} tests', 'n.acel.one': '{n} acelerador', 'n.acel.other': '{n} aceleradores',
   'n.req.one': '{n} requisito', 'n.req.other': '{n} requisitos',
 
@@ -89,7 +89,7 @@ export default {
   'api.lectura': 'Lectura · pública', 'api.clave': 'Con clave',
   'api.ep.cats': 'audiencias, dominios, categorías', 'api.ep.reqs.html': 'busca, filtra, <code>format=md</code>',
   'api.ep.tests': 'tests por categoría y prioridad', 'api.ep.acel': 'librerías y servicios',
-  'api.ep.proyectos': 'tus proyectos', 'api.ep.marcar': 'marcar hecho / planeado / descartado', 'api.ep.sugerir': 'sugerir algo',
+  'api.ep.proyectos': 'tus proyectos', 'api.ep.marcar': 'marcar hecho / planeado / descartado', 'api.ep.sugerir': 'sugerir una funcionalidad o avisar de un problema de la app',
   'api.nota.html': 'Añade <code>project=&lt;id&gt;</code> a una búsqueda para ver lo que ya has hecho, y <code>hide=done</code> para saltártelo.',
   'api.cli.titulo': '¿Prefieres la terminal?', 'api.cli.p': 'El CLI de airedb (reqdb.mjs) es un solo fichero sin dependencias: baja los requisitos a tu repo, deja que tu agente marque el avance y haz que falle el CI mientras haya trabajo P1 pendiente.',
   'api.cli.enlace': 'Documentación del CLI para agentes →',
@@ -120,10 +120,10 @@ export default {
   'ap.created': 'Creado', 'ap.merged': 'Fusionado', 'ap.rejected': 'No añadido', 'ap.needs_human': 'Lo mirará una persona', 'ap.pending': 'Pendiente',
 
   'sug.h2': 'Sugiere algo',
-  'sug.p': '¿Falta un test o un acelerador, un requisito se puede mejorar o hay algo mal? Una persona revisa cada sugerencia. Usa «Sugerir» en cualquier resultado para señalarlo.',
-  'sug.tipo.aria': 'Tipo', 'sug.tipo.improvement': 'Mejorar algo', 'sug.tipo.new_item': 'Añadir algo nuevo', 'sug.tipo.report': 'Avisar de un problema',
-  'sug.obj.aria': 'Tipo de elemento', 'sug.obj.requirement': 'requisito', 'sug.obj.test': 'test', 'sug.obj.accelerator': 'acelerador', 'sug.obj.general': 'general',
-  'sug.slug.placeholder': 'Sobre qué (slug, opcional)', 'sug.slug.aria': 'Slug del que trata', 'sug.placeholder': '¿Qué debería cambiar y por qué?',
+  'sug.p': '¿Echas en falta una funcionalidad en airedb o has encontrado un problema en la app? Una persona revisa cada sugerencia. Para añadir o mejorar un requisito, un test o un acelerador, usa «¿Quieres colaborar?» más arriba.',
+  'sug.tipo.aria': 'Tipo', 'sug.tipo.feature': 'Una funcionalidad que me gustaría', 'sug.tipo.problem': 'Un problema de la app',
+  'sug.tipo.improvement': 'Mejora (antigua)', 'sug.tipo.new_item': 'Elemento nuevo (antiguo)', 'sug.tipo.report': 'Aviso (antiguo)',
+  'sug.placeholder': '¿Qué te gustaría que hiciera airedb o qué ha ido mal?',
   'sug.enviar': 'Enviar sugerencia', 'sug.mias': 'Mis sugerencias', 'sug.entra': 'Entra para enviar sugerencias', 'sug.gracias': '¡Gracias! Una persona la revisará.',
   'sug.estado.new': 'nueva', 'sug.estado.accepted': 'aceptada', 'sug.estado.dismissed': 'descartada',
 

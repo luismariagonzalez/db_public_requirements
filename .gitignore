@@ -26,3 +26,6 @@ semilla/aceleradores_primera_pasada.json
 
 .vercel
 semilla/reorganizacion.json
+
+# Catálogo de herramientas generado (el de ejemplo, herramientas.ejemplo.json, sí se versiona)
+semilla/herramientas.json

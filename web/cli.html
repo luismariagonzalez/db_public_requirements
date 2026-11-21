@@ -64,7 +64,8 @@ reqdb check --max-priority 1              # exit 1 while any P1 is pending</pre>
       <tr><td>mark &lt;status&gt; &lt;item…&gt;</td><td>Status is <code>done</code>, <code>in_progress</code>, <code>planned</code> or <code>skipped</code>. Items: <code>slug</code>, <code>test:slug</code>, <code>accelerator:slug</code>. Optional <code>--note</code>.</td></tr>
       <tr><td>status</td><td>What is done and what is pending in the current project.</td></tr>
       <tr><td>check [--max-priority N]</td><td>Exit code 1 if requirements up to priority N are still pending. Built for CI.</td></tr>
-      <tr><td>suggest &lt;text&gt;</td><td>Send a suggestion (<code>--about slug</code>, <code>--type requirement|test|accelerator</code>). A person reviews it.</td></tr>
+      <tr><td>suggest &lt;text&gt;</td><td>Suggest a feature or report a problem about airedb itself (<code>--kind feature|problem</code>). A person reviews it. To add or improve a requirement, test or accelerator, contribute it instead (<code>POST /api/contribute</code>; see “Want to help?” on the website).</td></tr>
+      <tr><td>tools [text]</td><td>List the catalogue of tools with public code or documentation you can study to contribute (<code>--category</code>).</td></tr>
       <tr><td>agent</td><td>Print the standing instructions an agent should follow: record done, in progress and planned work in the project.</td></tr>
     </tbody>
   </table>
@@ -147,7 +148,8 @@ reqdb check --max-priority 1              # sale con 1 mientras haya algún P1 p
       <tr><td>mark &lt;estado&gt; &lt;elemento…&gt;</td><td>El estado es <code>done</code>, <code>in_progress</code>, <code>planned</code> o <code>skipped</code>. Elementos: <code>slug</code>, <code>test:slug</code>, <code>accelerator:slug</code>. <code>--note</code> opcional.</td></tr>
       <tr><td>status</td><td>Qué está hecho y qué pendiente en el proyecto actual.</td></tr>
       <tr><td>check [--max-priority N]</td><td>Código de salida 1 si quedan pendientes requisitos hasta la prioridad N. Pensado para CI.</td></tr>
-      <tr><td>suggest &lt;texto&gt;</td><td>Envía una sugerencia (<code>--about slug</code>, <code>--type requirement|test|accelerator</code>). La revisa una persona.</td></tr>
+      <tr><td>suggest &lt;texto&gt;</td><td>Sugiere una funcionalidad o avisa de un problema de la propia airedb (<code>--kind feature|problem</code>). La revisa una persona. Para añadir o mejorar un requisito, test o acelerador, aporta eso en su lugar (<code>POST /api/contribute</code>; mira «¿Quieres colaborar?» en la web).</td></tr>
+      <tr><td>tools [texto]</td><td>Lista el catálogo de herramientas con código o documentación públicos que puedes estudiar para colaborar (<code>--category</code>).</td></tr>
       <tr><td>agent</td><td>Imprime las instrucciones permanentes del agente: anotar en el proyecto lo hecho, lo que está en curso y lo planeado.</td></tr>
     </tbody>
   </table>

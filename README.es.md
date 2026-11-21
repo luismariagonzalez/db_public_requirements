@@ -61,4 +61,4 @@ La web nunca habla con la base de datos: todo pasa por una única función serve
 
 ## Contribuir
 
-Sugiere un requisito, un test o un acelerador desde la web, la API o `reqdb suggest`. Los informes de errores y las pull requests del código son bienvenidos.
+¿Quieres colaborar? La web tiene una caja «¿Quieres colaborar?»: elige una herramienta con código o documentación públicos (`GET /api/v1/tools`), copia el prompt ya preparado y pégalo en tu agente; comprobará lo que ya existe y propondrá requisitos, tests y aceleradores. Las ideas y los problemas de la propia app van por `reqdb suggest` / `POST /api/v1/suggestions`. Los informes de errores y las pull requests del código son bienvenidos.

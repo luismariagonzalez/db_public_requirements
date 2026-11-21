@@ -1,0 +1,5 @@
+[
+  {"slug": "next-js", "nombre": "Next.js", "categoria": "framework", "descripcion": "React framework for full-stack web apps: routing, server rendering, data fetching and API routes.", "url_codigo": "https://github.com/vercel/next.js", "url_docs": "https://nextjs.org/docs", "plataformas": ["web", "javascript"], "orden": 10},
+  {"slug": "clerk", "nombre": "Clerk", "categoria": "auth", "descripcion": "Hosted authentication and user management with prebuilt flows, sessions, organizations and webhooks.", "url_codigo": null, "url_docs": "https://clerk.com/docs", "plataformas": ["web", "javascript"], "orden": 24},
+  {"slug": "pocketbase", "nombre": "PocketBase", "categoria": "backend", "descripcion": "Single-binary backend with an embedded database, authentication, file storage and an admin dashboard.", "url_codigo": "https://github.com/pocketbase/pocketbase", "url_docs": null, "plataformas": ["backend", "any"], "orden": 51}
+]

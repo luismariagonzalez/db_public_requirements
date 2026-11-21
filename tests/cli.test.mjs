@@ -141,12 +141,24 @@ test('search: manda el texto y los filtros; --json imprime JSON; no usa el proye
   assert.equal(JSON.parse(e.out.join('\n')).count, 1);
 });
 
+test('tools lista el catálogo', async () => {
+  const e = entorno({ rutas: { 'GET /api/v1/tools': { body: { count: 1, tools: [{ slug: 'lucia', name: 'Lucia', category: 'auth', code_url: 'https://github.com/lucia-auth/lucia', docs_url: null }] } } } });
+  assert.equal(await e.correr('tools', 'auth', '--category', 'auth'), 0);
+  assert.deepEqual([e.llamadas[0].q.q, e.llamadas[0].q.category], ['auth', 'auth']);
+  assert.match(e.out.join('\n'), /lucia {2}Lucia {2}\[auth\] {2}https:\/\/github\.com\/lucia-auth\/lucia/);
+});
+
 test('suggest y agent', async () => {
   const e = entorno({ env: { REQDB_KEY: KEY, REQDB_PROJECT: '5' }, rutas: {
     'POST /api/v1/suggestions': { status: 201, body: { id: 3, status: 'new' } },
     'GET /api/v1/agent-instructions': { body: '## Instructions for the agent\n', headers: { 'content-type': 'text/markdown' } } } });
-  assert.equal(await e.correr('suggest', 'cover group chats as well', '--about', 'typing-indicator'), 0);
-  assert.deepEqual([e.llamadas[0].cuerpo.target, e.llamadas[0].cuerpo.target_type, e.llamadas[0].cuerpo.kind], ['typing-indicator', 'requirement', 'improvement']);
+  assert.equal(await e.correr('suggest', 'export the whole project as one file'), 0);
+  assert.deepEqual(e.llamadas[0].cuerpo, { kind: 'feature', text: 'export the whole project as one file' });
+  assert.equal(await e.correr('suggest', 'the copy button fails on Safari', '--kind', 'problem'), 0);
+  assert.equal(e.llamadas[1].cuerpo.kind, 'problem');
+  assert.equal(await e.correr('suggest', 'cover group chats as well', '--about', 'typing-indicator'), 2);   // eso se aporta, no se sugiere
+  assert.match(e.err.join('\n'), /POST \/api\/contribute/);
+  assert.equal(e.llamadas.length, 2);
   assert.equal(await e.correr('suggest', 'corto'), 2);
   assert.equal(await e.correr('agent'), 0);
   assert.equal(e.llamadas.at(-1).q.project, '5');

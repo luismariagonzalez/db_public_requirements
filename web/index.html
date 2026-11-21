@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="./estilo.css">
+<link rel="stylesheet" href="./colaborar.css">
 </head>
 <body>
 <header class="barra">
@@ -26,6 +27,7 @@
       <a href="./terms.html" data-i18n="nav.terms">Terms</a>
     </nav>
     <div class="der">
+      <a id="btnColaborar" href="#colaborar" class="boton acento-b boton-col" data-i18n="col.btn" data-i18n-attr="title:col.btn.t">Want to help?</a>
       <span class="atajo"><span data-i18n="atajo.buscar">search</span> <kbd>/</kbd></span>
       <div class="idiomas" role="group" data-i18n-attr="aria-label:idioma.aria">
         <button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="es" aria-pressed="false">ES</button>
@@ -202,6 +204,7 @@
         <div class="ep"><span class="mono">/api/v1/requirements</span><span data-i18n-html="api.ep.reqs.html">search, filter, <code>format=md</code></span></div>
         <div class="ep"><span class="mono">/api/v1/tests</span><span data-i18n="api.ep.tests">tests by category and priority</span></div>
         <div class="ep"><span class="mono">/api/v1/accelerators</span><span data-i18n="api.ep.acel">libraries and services</span></div>
+        <div class="ep"><span class="mono">/api/v1/tools</span><span data-i18n="col.api.tools">tools with public code or docs to study</span></div>
       </div>
       <div class="caja-ep">
         <div class="cab-ep mono"><span data-i18n="api.clave">With a key</span><span>Authorization: Bearer rq_…</span></div>
@@ -223,6 +226,35 @@
 
 <section id="cuenta-zona" class="cuenta-zona">
   <div class="cuenta-in">
+    <section id="colaborar" class="caja col-caja" aria-labelledby="t-colaborar">
+      <h2 id="t-colaborar" data-i18n="col.h2">Want to help?</h2>
+      <p class="nota" data-i18n="col.p">airedb grows when people and their coding agents contribute what they learn from real software.</p>
+      <ol class="col-pasos">
+        <li><span class="mono acento">01</span><b data-i18n="col.paso1">Pick a tool</b><span class="nota" data-i18n="col.paso1.d"></span></li>
+        <li><span class="mono acento">02</span><b data-i18n="col.paso2">Copy the prompt</b><span class="nota" data-i18n="col.paso2.d"></span></li>
+        <li><span class="mono acento">03</span><b data-i18n="col.paso3">Paste it into your agent</b><span class="nota" data-i18n="col.paso3.d"></span></li>
+      </ol>
+      <div class="col-cuerpo">
+        <div class="col-izq">
+          <input id="colBuscar" class="campo" type="search" maxlength="80" autocomplete="off" placeholder="Filter tools…" aria-label="Filter tools"
+                 data-i18n-attr="placeholder:col.buscar.placeholder;aria-label:col.buscar.aria">
+          <ul id="colLista" class="col-lista" aria-label="Tools to study" data-i18n-attr="aria-label:col.lista.aria"></ul>
+          <p id="colEstado" class="nota" aria-live="polite" data-i18n="col.cargando">Loading tools…</p>
+        </div>
+        <div class="col-der">
+          <div id="colDetalle" class="col-detalle"></div>
+          <div class="salida-cab">
+            <span id="colChars" class="mono nota"></span>
+            <button id="colCopiar" type="button" class="mini acento-b" data-i18n="col.copiar" disabled>Copy prompt</button>
+          </div>
+          <pre id="colPrompt" class="col-prompt" tabindex="0" aria-label="Prompt preview" data-i18n-attr="aria-label:col.prompt.aria"></pre>
+          <p class="nota"><span data-i18n="col.clave">Contributing needs an API key.</span>
+            <a id="colClaves" href="#claves" data-i18n="col.clave.enlace">Get a key</a> ·
+            <a href="#api" data-i18n="col.enlaces.api">API</a> · <a href="./cli.html" data-i18n="col.enlaces.cli">CLI</a></p>
+        </div>
+      </div>
+    </section>
+
     <section id="proyectos" class="caja" hidden aria-labelledby="t-proy">
       <h2 id="t-proy" data-i18n="proy.h2">My projects</h2>
       <p class="nota" data-i18n-html="proy.p.html">Track which requirements, tests and accelerators you implemented in each app, so next time you only pick what is new.
@@ -291,24 +323,12 @@
 
     <section id="sugerencias" class="caja" hidden aria-labelledby="t-sug">
       <h2 id="t-sug" data-i18n="sug.h2">Suggest something</h2>
-      <p class="nota" data-i18n="sug.p">A missing test or accelerator, a requirement that could be better, or something wrong? A person reviews every suggestion.
-         Use “Suggest” on any result to point at it.</p>
-      <div class="fila-in">
-        <select id="sugTipo" class="campo" aria-label="Kind" data-i18n-attr="aria-label:sug.tipo.aria">
-          <option value="improvement" data-i18n="sug.tipo.improvement">Improve something</option>
-          <option value="new_item" data-i18n="sug.tipo.new_item">Add something new</option>
-          <option value="report" data-i18n="sug.tipo.report">Report a problem</option>
-        </select>
-        <select id="sugObjetivoTipo" class="campo" aria-label="Type of item" data-i18n-attr="aria-label:sug.obj.aria">
-          <option value="requirement" data-i18n="sug.obj.requirement">requirement</option>
-          <option value="test" data-i18n="sug.obj.test">test</option>
-          <option value="accelerator" data-i18n="sug.obj.accelerator">accelerator</option>
-          <option value="general" data-i18n="sug.obj.general">general</option>
-        </select>
-      </div>
-      <input id="sugObjetivo" class="campo" type="text" maxlength="120" placeholder="About (slug, optional)" aria-label="Slug it is about"
-             data-i18n-attr="placeholder:sug.slug.placeholder;aria-label:sug.slug.aria">
-      <textarea id="sugTexto" class="campo" rows="3" maxlength="1500" placeholder="What should change, and why?" data-i18n-attr="placeholder:sug.placeholder"></textarea>
+      <p class="nota" data-i18n="sug.p">A feature you miss in airedb, or a problem you found in the app? A person reviews every suggestion.</p>
+      <select id="sugTipo" class="campo" aria-label="Kind" data-i18n-attr="aria-label:sug.tipo.aria">
+        <option value="feature" data-i18n="sug.tipo.feature">A feature I would like</option>
+        <option value="problem" data-i18n="sug.tipo.problem">A problem with the app</option>
+      </select>
+      <textarea id="sugTexto" class="campo" rows="3" maxlength="1500" placeholder="What would you like airedb to do, or what went wrong?" data-i18n-attr="placeholder:sug.placeholder"></textarea>
       <button id="sugEnviar" type="button" class="boton acento-b" data-i18n="sug.enviar">Send suggestion</button>
       <h3 data-i18n="sug.mias">My suggestions</h3>
       <ul id="misSugerencias" class="lista-simple"></ul>
