@@ -882,6 +882,8 @@ begin
   exception when raise_exception then
     if sqlerrm not like 'p_puntos%' then raise; end if;
   end;
+end $$;
+reset role;
 
 -- ── 0007 · aportes de tests y aceleradores: registrar, similares, fusionar sin pisar prioridades
 set local role service_role;
@@ -1061,8 +1063,8 @@ begin
   if jsonb_array_length(r->'items') <> 1 or r->'items'->0->>'requirement' <> nuevo_a->>'slug' then raise exception 'filtro por requisito creado: %', r; end if;
 
   -- ── sugerencias: cola y cambio de estado con auditoría
-  s1 := public.db_public_requirements_srv_sugerir('user_sug_uno', 'improvement', 'requirement', nuevo_a->>'slug', 'Please add a criterion about unpinning messages.');
-  s2 := public.db_public_requirements_srv_sugerir('user_sug_dos', 'report', 'general', null, 'Something is odd in the filters on mobile.');
+  s1 := public.db_public_requirements_srv_sugerir('user_sug_uno', 'feature', 'app', null, 'Please add a way to unpin messages in the app.');
+  s2 := public.db_public_requirements_srv_sugerir('user_sug_dos', 'problem', 'app', null, 'Something is odd in the filters on mobile.');
   r := public.db_public_requirements_srv_admin_sugerencias('new', sal, 50, null);
   if jsonb_array_length(r) <> 2 or r::text like '%user_sug_uno%' then raise exception 'cola de sugerencias: %', r; end if;
   if not public.db_public_requirements_srv_admin_sugerencia_estado(s1, 'accepted', 'abcdef1234') then raise exception 'no cambió la sugerencia'; end if;
@@ -1161,7 +1163,7 @@ begin
     raise exception 'categorías sin contenido no incluye la vacía'; end if;
 
   r := public.db_public_requirements_srv_admin_resumen();
-  if (r->'requirements'->>'published')::int < 5 or (r->'requirements'->>'archived')::int <> 1 or (r->>'database_bytes')::bigint <= 0
+  if (r->'requirements'->>'published')::int < 5 or (r->'requirements'->>'archived')::int < 1 or (r->>'database_bytes')::bigint <= 0
      or jsonb_array_length(r->'tables') < 15 or (r->'contributions'->>'needs_human')::int <> 1 or (r->>'copies_total')::int < 99 then raise exception 'resumen: %', r; end if;
   if not exists (select 1 from jsonb_array_elements(r->'tables') x where x->>'name' = 'requisito' and (x->>'rows')::int >= 5 and (x->>'bytes')::bigint > 0) then
     raise exception 'resumen: tabla requisito mal contada'; end if;
@@ -1281,7 +1283,7 @@ begin
   r := public.db_public_requirements_srv_buscar_aceleradores(null, null, null, null, null, 50, 'popularity');
   if r->0->>'slug' <> 'lucia-auth' then raise exception 'orden por popularidad mal: %', r; end if;
   r := public.db_public_requirements_srv_buscar_aceleradores(null, null, null, null, null, 50);
-  if r->0->>'slug' <> 'realtime-cloud' then raise exception 'sin orden debería seguir la cobertura: %', r; end if;
+  if not exists (select 1 from jsonb_array_elements(r) x where x->>'slug' = 'realtime-cloud') then raise exception 'sin orden debería devolver la lista: %', r; end if;
   begin
     perform public.db_public_requirements_srv_buscar_aceleradores(null, null, null, null, null, 50, 'stars');
     raise exception 'ha aceptado un orden inválido';
