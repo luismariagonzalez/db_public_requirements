@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Requirements map · Requirements DB</title>
+<meta name="description" content="A 2D map of every requirement in the database, placed by what it means: close dots are similar requirements. Colour by app type, topic, kind or priority, search, zoom and open any of them.">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./estilo.css">
+<link rel="stylesheet" href="./mapa.css">
+</head>
+<body>
+<header class="barra">
+  <div class="barra-in">
+    <a class="logo" href="./"><span class="cuadro"></span><span>airedb</span></a>
+    <nav data-i18n-attr="aria-label:nav.main">
+      <a href="./" data-i18n="nav.browse">Browse</a>
+      <a href="./mapa.html" class="act" aria-current="page" data-i18n="nav.map">Map</a>
+      <a href="./#api" data-i18n="nav.api">API</a>
+      <a href="./cli.html" data-i18n="nav.cli">CLI</a>
+      <a href="./terms.html" data-i18n="nav.terms">Terms</a>
+    </nav>
+    <div class="der">
+      <div class="idiomas" role="group" data-i18n-attr="aria-label:idioma.aria">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="es" aria-pressed="false">ES</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="mapa" class="mapa-pag">
+  <div class="mapa-cab">
+    <h1 data-i18n="mapa.h1">Requirements map</h1>
+    <p data-i18n="mapa.intro">Every dot is a requirement. Dots that sit close together are similar in meaning. Drag to move, scroll or pinch to zoom, click a dot for details.</p>
+  </div>
+
+  <div id="mapaEstado" class="mapa-estado" role="status"><p data-i18n="mapa.estado.cargando">Loading the map…</p></div>
+
+  <div id="mapaApp" hidden>
+    <div class="mapa-barra" role="search">
+      <input id="mapaQ" class="campo" type="search" autocomplete="off" maxlength="80"
+             placeholder="Find a requirement…" aria-label="Highlight requirements on the map"
+             data-i18n-attr="placeholder:mapa.buscar.placeholder;aria-label:mapa.buscar.aria">
+      <label class="mapa-color"><span data-i18n="mapa.color.label">Colour by</span>
+        <select id="mapaColor" class="campo" data-i18n-attr="aria-label:mapa.color.aria" aria-label="Colour the dots by">
+          <option value="archetype" data-i18n="mapa.color.archetype">App type</option>
+          <option value="topic" data-i18n="mapa.color.topic">Topic</option>
+          <option value="kind" data-i18n="mapa.color.kind">Kind</option>
+          <option value="priority" data-i18n="mapa.color.priority">Priority</option>
+        </select>
+      </label>
+      <span id="mapaCuenta" class="mono tenue" aria-live="polite"></span>
+    </div>
+    <ul id="mapaLeyenda" class="mapa-leyenda" aria-label="Legend: pick a colour to isolate it" data-i18n-attr="aria-label:mapa.leyenda.aria"></ul>
+
+    <div id="mapaLienzo" class="mapa-lienzo">
+      <canvas id="mapaCanvas" tabindex="0" role="application" aria-label="Map of requirements"></canvas>
+      <div class="mapa-zoom">
+        <button id="mapaZoomMas" type="button" class="boton" aria-label="Zoom in" data-i18n-attr="aria-label:mapa.zoom.mas">+</button>
+        <button id="mapaZoomMenos" type="button" class="boton" aria-label="Zoom out" data-i18n-attr="aria-label:mapa.zoom.menos">−</button>
+        <button id="mapaZoomTodo" type="button" class="boton" aria-label="Fit all" data-i18n-attr="aria-label:mapa.zoom.ajustar">⤢</button>
+      </div>
+      <div id="mapaPista" class="mapa-pista" hidden></div>
+      <p id="mapaSinCoincidencias" class="mapa-sin" role="status" hidden></p>
+      <aside id="mapaCard" class="mapa-card" aria-labelledby="mapaCardT" hidden></aside>
+    </div>
+
+    <section class="mapa-lista-caja">
+      <h2 id="mapaListaT" data-i18n="mapa.lista.notables">Most copied</h2>
+      <ul id="mapaLista" class="mapa-lista" aria-label="Requirements list" data-i18n-attr="aria-label:mapa.lista.aria"></ul>
+    </section>
+
+    <p class="nota"><span data-i18n="mapa.aviso">Positions come from a text embedding: they show similarity, not importance.</span> <span id="mapaGenerado"></span></p>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="pie-in">
+    <span data-i18n="pie.texto">airedb · community-curated · code MIT</span>
+    <span><a href="./" data-i18n="nav.browse">Browse</a><a href="./mapa.html" data-i18n="pie.mapa">Map</a><a href="./cli.html" data-i18n="pie.cli">CLI</a><a href="./legal.html" data-i18n="pie.legal">Legal &amp; privacy</a><a href="./terms.html" data-i18n="pie.terminos">Content terms</a></span>
+  </div>
+</footer>
+<script type="module" src="./mapa.js"></script>
+</body>
+</html>

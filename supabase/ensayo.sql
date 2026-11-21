@@ -699,3 +699,145 @@ begin
   select actualizado_en into v1 from db_public_requirements.requisito where id = id1;
   if v1 <= v0 then raise exception 'cambiar una prioridad debería mover actualizado_en del requisito'; end if;
 end $$;
+
+
+-- ════════════════════════════════════════════════════════════════════════════
+--  0006: embeddings con etiquetas (embedding_v) y mapa 2D
+-- ════════════════════════════════════════════════════════════════════════════
+-- anon y authenticated no pueden llamar a las funciones nuevas
+set local role anon;
+do $$ begin
+  perform public.db_public_requirements_srv_mapa();
+  raise exception 'anon ha podido leer el mapa';
+exception when insufficient_privilege then null;
+end $$;
+reset role;
+set local role authenticated;
+do $$ begin
+  perform public.db_public_requirements_srv_guardar_embedding(1, pg_temp.v(1), 2);
+  raise exception 'authenticated ha podido guardar un embedding';
+exception when insufficient_privilege then null;
+end $$;
+do $$ begin
+  perform 1 from db_public_requirements.mapa_requisito;
+  raise exception 'authenticated ha leído mapa_requisito';
+exception when insufficient_privilege then null;
+end $$;
+reset role;
+
+set local role service_role;
+select public.db_public_requirements_srv_upsert_categoria('map-app', 'app_type', 'Map app', '', 10);
+select public.db_public_requirements_srv_upsert_categoria('map-app-2', 'app_type', 'Second map app', '', 11);
+select public.db_public_requirements_srv_upsert_categoria('map-topic', 'cross_cutting', 'Map topic', '', 10);
+select public.db_public_requirements_srv_upsert_categoria('map-topic-2', 'cross_cutting', 'Second map topic', '', 11);
+select public.db_public_requirements_srv_upsert_categoria('map-soft', 'software_category', 'Map software', '', 10, null, null, null, array['map-app-2']);
+
+do $$
+declare a jsonb; b jsonb; c jsonb; d jsonb; r jsonb; p jsonb; m0 timestamptz; n int; pend0 int; v int;
+begin
+  reset role;   -- las comprobaciones directas sobre tablas (archivar, leer la versión) van como propietario
+  a := public.db_public_requirements_srv_crear_requisito('Map item alpha',
+    'The product must keep the first mapped requirement for the embedding test.', '["It is mapped"]', 'functional',
+    '[{"slug":"map-app","priority":2},{"slug":"map-app-2","priority":1},{"slug":"map-topic","priority":3},{"slug":"map-topic-2","priority":3}]', pg_temp.v(31), null);
+  b := public.db_public_requirements_srv_crear_requisito('Map item beta',
+    'The product must keep the second mapped requirement for the embedding test.', '[]', 'technical',
+    '[{"slug":"map-soft","priority":2}]', pg_temp.v(32), null);
+  c := public.db_public_requirements_srv_crear_requisito('Map item gamma',
+    'The product must keep a third mapped requirement without any app type.', '[]', 'functional',
+    '[{"slug":"map-topic","priority":4}]', pg_temp.v(33), null);
+  d := public.db_public_requirements_srv_crear_requisito('Map item without vector',
+    'The product must keep a requirement that has no embedding yet for the test.', '[]', 'functional',
+    '[{"slug":"map-app","priority":5}]', null, null);
+
+  -- los requisitos nuevos nacen con la versión 2 del texto; los viejos (1) son los que se reembeben
+  select embedding_v into v from db_public_requirements.requisito where id = (a->>'id')::bigint;
+  if v <> 2 then raise exception 'un requisito nuevo debería nacer con embedding_v 2 (es %)', v; end if;
+  update db_public_requirements.requisito set embedding_v = 1 where id in ((a->>'id')::bigint, (d->>'id')::bigint);
+
+  -- srv_requisitos_para_embeber: fichas con categorías, paginado por id y reanudable
+  r := public.db_public_requirements_srv_requisitos_para_embeber(2, 0, 200);
+  pend0 := (r->>'pending')::int;
+  if pend0 < 2 then raise exception 'pending debería contar al menos 2 (es %)', pend0; end if;
+  if not exists (select 1 from jsonb_array_elements(r->'items') x
+                  where x->>'slug' = a->>'slug' and jsonb_array_length(x->'categories') = 4 and x->'criteria' = '["It is mapped"]'::jsonb)
+  then raise exception 'las fichas para embeber no llevan categorías y criterios: %', r->'items'; end if;
+  if exists (select 1 from jsonb_array_elements(r->'items') x where x->>'slug' = b->>'slug')
+  then raise exception 'lo que ya está en la versión 2 no debe salir'; end if;
+  -- paginar: tras el id de a, no sale a
+  r := public.db_public_requirements_srv_requisitos_para_embeber(2, (a->>'id')::bigint, 200);
+  if exists (select 1 from jsonb_array_elements(r->'items') x where x->>'slug' = a->>'slug')
+  then raise exception 'p_despues no pagina'; end if;
+  if jsonb_array_length(public.db_public_requirements_srv_requisitos_para_embeber(2, 0, 1)->'items') <> 1
+  then raise exception 'p_limite no se respeta'; end if;
+
+  -- guardar el embedding sube la versión, cambia el vector y NO mueve la fecha de actualización
+  perform set_config('reqdb.sin_fechas', '', true);
+  select (public.db_public_requirements_srv_requisito(a->>'slug')->>'updated_at')::timestamptz into m0;
+  perform public.db_public_requirements_srv_guardar_embedding((a->>'id')::bigint, pg_temp.v(34), 2);
+  perform public.db_public_requirements_srv_guardar_embedding((d->>'id')::bigint, pg_temp.v(35), 2);
+  if (public.db_public_requirements_srv_requisitos_para_embeber(2, 0, 200)->>'pending')::int <> pend0 - 2
+  then raise exception 'pending debería bajar en 2'; end if;
+  if (select embedding::text from db_public_requirements.requisito where id = (a->>'id')::bigint) <> pg_temp.v(34)
+  then raise exception 'el vector no se guardó'; end if;
+  if (public.db_public_requirements_srv_requisito(a->>'slug')->>'updated_at')::timestamptz is distinct from m0
+  then raise exception 'guardar un embedding no debe mover actualizado_en'; end if;
+
+  -- el mapa: sin coordenadas, no sale nadie
+  if (public.db_public_requirements_srv_mapa()->>'count')::int <> 0 then raise exception 'el mapa debería estar vacío'; end if;
+  if public.db_public_requirements_srv_mapa_modelo() is not null then raise exception 'no debería haber modelo'; end if;
+
+  -- srv_mapa_para_calcular devuelve vectores
+  r := public.db_public_requirements_srv_mapa_para_calcular(0, 200, false);
+  if not exists (select 1 from jsonb_array_elements(r->'items') x where (x->>'id')::bigint = (c->>'id')::bigint and x->>'vec' like '[%')
+  then raise exception 'mapa_para_calcular no devuelve vectores'; end if;
+
+  -- guardar coordenadas y modelo
+  n := public.db_public_requirements_srv_guardar_mapa(jsonb_build_array(
+         jsonb_build_object('id', (a->>'id')::bigint, 'x', 0.5, 'y', -0.25),
+         jsonb_build_object('id', (b->>'id')::bigint, 'x', -1.0, 'y', 0.75),
+         jsonb_build_object('id', 999999999, 'x', 0, 'y', 0)),            -- un id que no existe se ignora
+       '{"version":1,"dims":768,"prueba":true}');
+  if n <> 2 then raise exception 'guardar_mapa debería escribir 2 puntos (escribió %)', n; end if;
+  if public.db_public_requirements_srv_mapa_modelo()->>'prueba' <> 'true' then raise exception 'el modelo no se guardó'; end if;
+  -- solo_nuevos: ya no salen a ni b
+  r := public.db_public_requirements_srv_mapa_para_calcular(0, 200, true);
+  if exists (select 1 from jsonb_array_elements(r->'items') x where (x->>'id')::bigint in ((a->>'id')::bigint, (b->>'id')::bigint))
+  then raise exception 'solo_nuevos devuelve lo que ya tiene coordenadas'; end if;
+  -- reescribir un punto lo actualiza, no lo duplica
+  perform public.db_public_requirements_srv_guardar_mapa(jsonb_build_array(jsonb_build_object('id', (a->>'id')::bigint, 'x', 0.6, 'y', -0.2)));
+  perform public.db_public_requirements_srv_guardar_mapa(jsonb_build_array(jsonb_build_object('id', (c->>'id')::bigint, 'x', 1.5, 'y', 0.1)));
+
+  r := public.db_public_requirements_srv_mapa();
+  if (r->>'count')::int <> 3 then raise exception 'el mapa debería tener 3 puntos: %', r; end if;
+  select x into p from jsonb_array_elements(r->'points') x where x->>'slug' = a->>'slug';
+  if round((p->>'x')::numeric, 2) <> 0.6 or round((p->>'y')::numeric, 2) <> -0.2 then raise exception 'coordenadas de alpha: %', p; end if;
+  -- el tipo de app principal es el de mejor prioridad (map-app-2, P1); topics solo los transversales; sin enunciado
+  if p->>'app_type' <> 'map-app-2' or p->'topics' <> '["map-topic","map-topic-2"]'::jsonb or p->>'kind' <> 'functional'
+     or (p->>'priority')::int <> 1 or p ? 'statement' then raise exception 'ficha del mapa de alpha: %', p; end if;
+  -- sin tipo de app propio, el primer arquetipo de su categoría de software
+  select x into p from jsonb_array_elements(r->'points') x where x->>'slug' = b->>'slug';
+  if p->>'app_type' <> 'map-app-2' then raise exception 'app_type heredado de la categoría de software: %', p; end if;
+  -- sin ningún tipo de app: null
+  select x into p from jsonb_array_elements(r->'points') x where x->>'slug' = c->>'slug';
+  if p->'app_type' <> 'null'::jsonb or p->'topics' <> '["map-topic"]'::jsonb then raise exception 'gamma: %', p; end if;
+
+  -- un requisito archivado desaparece del mapa y su punto se limpia al guardar
+  update db_public_requirements.requisito set estado = 'archived' where id = (c->>'id')::bigint;
+  if (public.db_public_requirements_srv_mapa()->>'count')::int <> 2 then raise exception 'lo archivado no debe salir en el mapa'; end if;
+  perform public.db_public_requirements_srv_guardar_mapa('[]');
+  if (select count(*) from db_public_requirements.mapa_requisito where requisito_id = (c->>'id')::bigint) <> 0 then
+    raise exception 'las coordenadas de un archivado deberían limpiarse'; end if;
+
+  -- validaciones
+  begin
+    perform public.db_public_requirements_srv_guardar_mapa(jsonb_build_array(jsonb_build_object('id', (a->>'id')::bigint, 'x', 99, 'y', 0)));
+    raise exception 'ha aceptado una coordenada fuera de rango';
+  exception when check_violation then null; end;
+  begin
+    perform public.db_public_requirements_srv_guardar_mapa('{"no":"array"}');
+    raise exception 'ha aceptado algo que no es un array';
+  exception when raise_exception then
+    if sqlerrm not like 'p_puntos%' then raise; end if;
+  end;
+end $$;
+reset role;

@@ -135,3 +135,39 @@ test('máximo 3 ítems por aporte', async () => {
   await revisar(aporte, m.deps);
   assert.equal(m.verbos().filter((v) => v === 'crear_requisito').length, 3);
 });
+
+// ── el embedding de un requisito lleva todas sus etiquetas
+test('el embedding del requisito nuevo se calcula con título, criterios, clase y categorías con nombre', async () => {
+  const m = mundo({ paso1: P1() });
+  const textos = [];
+  m.deps.embed = async (t) => { textos.push(t); return new Array(768).fill(0.01); };
+  await revisar(aporte, m.deps);
+  assert.equal(textos.length, 1);
+  assert.match(textos[0], /^Block users\. Users can block another user/);
+  assert.match(textos[0], /Acceptance criteria: Blocked users cannot send messages/);
+  assert.match(textos[0], /Kind: functional/);
+  assert.match(textos[0], /App types: Messaging/);
+});
+
+test('fusionar con categoría nueva recalcula el vector con TODAS las etiquetas (las viejas y la nueva)', async () => {
+  const conExtra = { ...ITEM, categories: [{ slug: 'messaging', priority: 2 }, { slug: 'security', priority: 3 }] };
+  const m = mundo({ paso1: P1({ items: [conExtra] }), similares: [existente(0.96)] });
+  const textos = [];
+  m.deps.embed = async (t) => { textos.push(t); return new Array(768).fill(0.02); };
+  await revisar(aporte, m.deps);
+  const f = m.llamadas.find((l) => l[0] === 'fusionar')[1];
+  assert.ok(f.p_vec?.startsWith('['), 'ya no se deja el vector viejo');
+  assert.match(textos.at(-1), /^Block user\. Users can block\./);
+  assert.match(textos.at(-1), /App types: Messaging/);
+  assert.match(textos.at(-1), /Cross-cutting concerns: Security/);
+});
+
+test('fusionar con categoría nueva sigue adelante si Gemini falla al recalcular el vector', async () => {
+  const conExtra = { ...ITEM, categories: [{ slug: 'messaging', priority: 2 }, { slug: 'security', priority: 3 }] };
+  const m = mundo({ paso1: P1({ items: [conExtra] }), similares: [existente(0.96)] });
+  let n = 0;
+  m.deps.embed = async () => { if (++n > 1) throw new Error('cupo'); return new Array(768).fill(0.02); };
+  const r = await revisar(aporte, m.deps);
+  assert.equal(r.status, 'merged');
+  assert.equal(m.llamadas.find((l) => l[0] === 'fusionar')[1].p_vec, null);
+});

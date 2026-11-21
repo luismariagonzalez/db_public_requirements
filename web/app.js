@@ -594,6 +594,9 @@ function renderTodo() {
 (async () => {
   try {
     estado.categorias = (await api('GET', '/api/v1/categories')).categories;
+    // Enlaces desde el mapa (mapa.html): ?q=<texto> lanza esa búsqueda.
+    const qUrl = new URLSearchParams(location.search).get('q')?.trim().slice(0, 200);
+    if (qUrl) { estado.q = qUrl; $('#q').value = qUrl; pintarResumenes(); }
     pintarFiltros();
   } catch (e) { $('#estado').textContent = msgError(e); }
   await buscar();
