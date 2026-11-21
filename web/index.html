@@ -236,11 +236,52 @@
     </section>
 
     <section id="aportar" class="caja" hidden aria-labelledby="t-aportar">
-      <h2 id="t-aportar" data-i18n="aporte.h2">Contribute a requirement</h2>
-      <p class="nota" data-i18n="aporte.p">Describe something an app should do, in any language. An AI reviews it: it checks it is a real requirement,
-         whether it already exists (then it merges or declines), and strips anything about screens or layout.</p>
-      <textarea id="aporteTexto" class="campo" rows="4" maxlength="4000" placeholder="e.g. Users must be able to block another user so they stop receiving their messages."
-                data-i18n-attr="placeholder:aporte.placeholder"></textarea>
+      <h2 id="t-aportar" data-i18n="aporte.h2">Contribute</h2>
+      <p class="nota" data-i18n="aporte.p">Add a requirement, a test or an accelerator, in any language. An AI checks it is real and legal, whether it already exists (then it merges or declines), and strips anything about screens or layout.</p>
+      <select id="aporteTipo" class="campo" aria-label="What do you contribute?" data-i18n-attr="aria-label:aporte.tipo.aria">
+        <option value="requirement" data-i18n="aporte.tipo.requirement">A requirement</option>
+        <option value="test" data-i18n="aporte.tipo.test">A test</option>
+        <option value="accelerator" data-i18n="aporte.tipo.accelerator">An accelerator</option>
+      </select>
+      <div id="aporteReq" class="aporte-campos">
+        <textarea id="aporteTexto" class="campo" rows="4" maxlength="4000" placeholder="e.g. Users must be able to block another user so they stop receiving their messages."
+                  data-i18n-attr="placeholder:aporte.placeholder"></textarea>
+      </div>
+      <div id="aporteTest" class="aporte-campos" hidden>
+        <input id="apTestTitulo" class="campo" type="text" maxlength="120" placeholder="Title, e.g. Reset link expires" aria-label="Title"
+               data-i18n-attr="placeholder:aporte.test.titulo;aria-label:aporte.test.titulo">
+        <textarea id="apTestEscenario" class="campo" rows="3" maxlength="800" placeholder="Scenario and expected result: what is done and what must happen."
+                  aria-label="Scenario" data-i18n-attr="placeholder:aporte.test.escenario;aria-label:aporte.test.escenario"></textarea>
+        <div class="fila-in">
+          <select id="apTestTipo" class="campo" aria-label="Test type" data-i18n-attr="aria-label:aporte.test.tipo">
+            <option value="unit">unit</option><option value="integration" selected>integration</option><option value="e2e">e2e</option>
+            <option value="security">security</option><option value="performance">performance</option>
+            <option value="accessibility">accessibility</option><option value="manual">manual</option>
+          </select>
+          <select id="apTestPrioridad" class="campo" aria-label="Suggested priority" data-i18n-attr="aria-label:aporte.prioridad">
+            <option value="1">P1</option><option value="2">P2</option><option value="3" selected>P3</option><option value="4">P4</option><option value="5">P5</option>
+          </select>
+        </div>
+        <input id="apTestReqs" class="campo" type="text" maxlength="400" placeholder="Requirements it verifies (slugs, comma separated)" aria-label="Requirements"
+               data-i18n-attr="placeholder:aporte.reqs;aria-label:aporte.reqs.aria">
+      </div>
+      <div id="aporteAcel" class="aporte-campos" hidden>
+        <input id="apAcName" class="campo" type="text" maxlength="80" placeholder="Name" aria-label="Name" data-i18n-attr="placeholder:aporte.ac.nombre;aria-label:aporte.ac.nombre">
+        <input id="apAcUrl" class="campo" type="url" maxlength="300" placeholder="https://… (official site or repository)" aria-label="URL"
+               data-i18n-attr="placeholder:aporte.ac.url;aria-label:aporte.ac.url.aria">
+        <textarea id="apAcDesc" class="campo" rows="3" maxlength="600" placeholder="Neutral description: what it is and what it helps with."
+                  aria-label="Description" data-i18n-attr="placeholder:aporte.ac.desc;aria-label:aporte.ac.desc.aria"></textarea>
+        <div class="fila-in">
+          <select id="apAcModelo" class="campo" aria-label="Model" data-i18n-attr="aria-label:aporte.ac.modelo">
+            <option value="open_source">open source</option><option value="proprietary">proprietary</option><option value="saas" selected>SaaS</option>
+          </select>
+          <select id="apAcCoste" class="campo" aria-label="Cost" data-i18n-attr="aria-label:aporte.ac.coste">
+            <option value="free">free</option><option value="freemium" selected>freemium</option><option value="paid">paid</option>
+          </select>
+        </div>
+        <input id="apAcReqs" class="campo" type="text" maxlength="600" placeholder="Requirements it helps with (slugs; add :full if it covers it alone)" aria-label="Requirements"
+               data-i18n-attr="placeholder:aporte.ac.reqs;aria-label:aporte.reqs.aria">
+      </div>
       <label class="check"><input type="checkbox" id="aporteLicencia"> <span data-i18n-html="aporte.terminos.html">I have the right to submit this and I agree to the <a href="./terms.html">Content Terms</a>, including the licence I grant the project over my contribution.</span></label>
       <button id="aporteEnviar" type="button" class="boton acento-b" data-i18n="aporte.enviar">Send for review</button>
       <div id="aporteResultado" class="resultado" hidden></div>

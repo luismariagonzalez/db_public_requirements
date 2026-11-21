@@ -42,6 +42,7 @@
     "api:ensayar": "node scripts/ensayar_api.mjs",
     "semilla:generar-extras": "node scripts/generar_tests_aceleradores.mjs",
     "gemini:ensayar": "node scripts/ensayar_gemini.mjs",
+    "gemini:revision": "node scripts/ensayar_revision_gemini.mjs",
     "semilla:recalibrar": "node scripts/recalibrar_prioridades.mjs",
     "cli": "node cli/reqdb.mjs"
   },

@@ -508,33 +508,58 @@ $('#sugEnviar').addEventListener('click', async () => {
   } catch (e) { avisar(msgError(e)); }
 });
 
-// ── aportes
+// ── aportes (requisito, test o acelerador)
 const estadoAporte = (s) => T(`ap.${s}`);
+const razonDe = (v) => [...(v?.items ?? []).map((i) => i.reason), v?.reason].filter(Boolean).filter((x, i, l) => l.indexOf(x) === i).join(' · ');
 async function cargarAportes() {
   try {
     const r = await api('GET', '/api/me/contributions', null, true);
     const ul = $('#misAportes'); ul.replaceChildren();
     if (!r.contributions.length) ul.append(el('li', { class: 'tenue' }, T('nada.todavia')));
     for (const a of r.contributions) {
-      const razones = (a.verdict?.items ?? []).map((i) => i.reason).filter(Boolean).join(' · ') || a.verdict?.reason || '';
-      ul.append(el('li', {}, el('strong', {}, estadoAporte(a.status)), ' · ', a.text.slice(0, 160),
+      const razones = razonDe(a.verdict);
+      ul.append(el('li', {}, el('strong', {}, estadoAporte(a.status)), ` · ${T(`ap.tipo.${a.type ?? 'requirement'}`)} · `, a.text.replace(/\s+/g, ' ').slice(0, 160),
         razones ? el('div', { class: 'tenue' }, razones) : null));
     }
   } catch (e) { avisar(msgError(e)); }
 }
-$('#aporteEnviar').addEventListener('click', async () => {
+const slugsDe = (txt) => txt.split(/[,\s]+/).map((x) => x.trim()).filter(Boolean).slice(0, 20);
+function cuerpoAporte() {
+  const tipo = $('#aporteTipo').value;
+  if (tipo === 'test') {
+    const reqs = slugsDe($('#apTestReqs').value);
+    const c = { type: 'test', title: $('#apTestTitulo').value.trim(), scenario: $('#apTestEscenario').value.trim(),
+      test_type: $('#apTestTipo').value, priority: Number($('#apTestPrioridad').value), requirements: reqs };
+    return c.title.length < 5 || c.scenario.length < 10 || !reqs.length ? { falta: 'aporte.faltan.test' } : { c };
+  }
+  if (tipo === 'accelerator') {
+    const reqs = slugsDe($('#apAcReqs').value).map((x) => { const [slug, cob] = x.split(':'); return { slug, coverage: cob === 'full' ? 'full' : 'partial' }; });
+    const c = { type: 'accelerator', name: $('#apAcName').value.trim(), url: $('#apAcUrl').value.trim(), description: $('#apAcDesc').value.trim(),
+      model: $('#apAcModelo').value, cost: $('#apAcCoste').value, requirements: reqs };
+    return c.name.length < 2 || !/^https:\/\//i.test(c.url) || c.description.length < 10 || !reqs.length ? { falta: 'aporte.faltan.ac' } : { c };
+  }
   const texto = $('#aporteTexto').value.trim();
+  return texto.length < 10 ? { falta: 'aporte.corto' } : { c: { type: 'requirement', text: texto, categories: estado.cats } };
+}
+function mostrarCamposAporte() {
+  const tipo = $('#aporteTipo').value;
+  $('#aporteReq').hidden = tipo !== 'requirement'; $('#aporteTest').hidden = tipo !== 'test'; $('#aporteAcel').hidden = tipo !== 'accelerator';
+}
+$('#aporteTipo').addEventListener('change', mostrarCamposAporte);
+$('#aporteEnviar').addEventListener('click', async () => {
   const caja = $('#aporteResultado');
-  if (texto.length < 10) return avisar(T('aporte.corto'));
+  const { c, falta } = cuerpoAporte();
+  if (falta) return avisar(T(falta));
   if (!$('#aporteLicencia').checked) return avisar(T('aporte.acepta'));
   $('#aporteEnviar').disabled = true; caja.hidden = false; caja.textContent = T('aporte.revisando');
   try {
-    const r = await api('POST', '/api/contribute', { text: texto, accept_terms: true, categories: estado.cats }, true);
+    const r = await api('POST', '/api/contribute', { ...c, accept_terms: true }, true);
     const lineas = [estadoAporte(r.status)];
     for (const i of r.items ?? []) lineas.push(`• ${i.reason ?? i.action}${i.slug ? ` (${i.slug})` : ''}${i.duplicate_of ? T('aporte.duplicado', { slug: i.duplicate_of }) : ''}`);
-    if (r.reason) lineas.push(r.reason);
+    if (r.reason && !(r.items ?? []).some((i) => i.reason === r.reason)) lineas.push(r.reason);
     caja.textContent = lineas.join('\n');
-    if (r.status === 'created' || r.status === 'merged') $('#aporteTexto').value = '';
+    if (r.status === 'created' || r.status === 'merged')
+      for (const id of ['aporteTexto', 'apTestTitulo', 'apTestEscenario', 'apTestReqs', 'apAcName', 'apAcUrl', 'apAcDesc', 'apAcReqs']) $(`#${id}`).value = '';
     cargarAportes();
   } catch (e) { caja.textContent = msgError(e); }
   finally { $('#aporteEnviar').disabled = false; }

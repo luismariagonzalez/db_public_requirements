@@ -839,5 +839,72 @@ begin
   exception when raise_exception then
     if sqlerrm not like 'p_puntos%' then raise; end if;
   end;
+
+-- ── 0007 · aportes de tests y aceleradores: registrar, similares, fusionar sin pisar prioridades
+set local role service_role;
+select public.db_public_requirements_srv_upsert_categoria('rev-cat', 'app_type', 'Revision cat', '', 90);
+select public.db_public_requirements_srv_crear_requisito('Revision requirement A', 'The app must do the thing A reliably.', '[]'::jsonb,
+  'functional', '[{"slug":"rev-cat","priority":1}]'::jsonb, null, null, null, 'rev-req-a');
+select public.db_public_requirements_srv_crear_requisito('Revision requirement B', 'The app must do the thing B reliably.', '[]'::jsonb,
+  'functional', '[{"slug":"rev-cat","priority":2}]'::jsonb, null, null, null, 'rev-req-b');
+do $$
+declare ap bigint; t jsonb; a jsonb; r jsonb; v_prio int; v_cob text; n int;
+begin
+  reset role;   -- las comprobaciones leen tablas directamente; los permisos de las funciones ya los prueba el contrato
+  -- registrar con tipo y propuesta; sin cuenta o con tipo raro falla
+  ap := public.db_public_requirements_srv_registrar_propuesta('user_rev', 'test',
+    E'Title: Rev test\nScenario: Do A and check the result.', '{"title":"Rev test"}'::jsonb, '{}');
+  if (select tipo from db_public_requirements.aporte where id = ap) <> 'test' then raise exception 'el aporte no guarda el tipo'; end if;
+  begin perform public.db_public_requirements_srv_registrar_propuesta(null, 'test', 'texto suficiente largo', null, '{}');
+    raise exception 'acepta un aporte sin autor';
+  exception when others then if sqlerrm not like 'hace falta una cuenta%' then raise; end if; end;
+  begin perform public.db_public_requirements_srv_registrar_propuesta('user_rev', 'otro', 'texto suficiente largo', null, '{}');
+    raise exception 'acepta un tipo inválido';
+  exception when others then if sqlerrm not like 'tipo de aporte inválido%' then raise; end if; end;
+
+  -- test: crear, similares, fusionar (enlace nuevo; la prioridad 1 no se toca)
+  t := public.db_public_requirements_srv_crear_test('Rev test reset', 'Do A and verify the result is refused.', 'integration', 1,
+         array['rev-req-a'], pg_temp.v(11), 'user_rev', 'rev-test-1');
+  perform public.db_public_requirements_srv_enlazar_aporte(ap, 'test', (t->>'id')::bigint);
+  r := public.db_public_requirements_srv_similares_tests(pg_temp.v(11), 3);
+  if r->0->>'slug' <> 'rev-test-1' or (r->0->>'similarity')::numeric < 0.99 then raise exception 'similares_tests falla: %', r; end if;
+  if r->0->>'priority' <> '1' then raise exception 'la ficha del test no trae la prioridad'; end if;
+  perform public.db_public_requirements_srv_fusionar_test((t->>'id')::bigint, 'Rev test reset improved', 'Do A twice and verify the second is refused.',
+    array['rev-req-b'], pg_temp.v(12), ap);
+  select prioridad into v_prio from db_public_requirements.test where slug = 'rev-test-1';
+  if v_prio <> 1 then raise exception 'fusionar_test ha cambiado la prioridad'; end if;
+  select count(*) into n from db_public_requirements.test_requisito where test_id = (t->>'id')::bigint;
+  if n <> 2 then raise exception 'fusionar_test no añade el enlace (n=%)', n; end if;
+  if (select estado from db_public_requirements.aporte where id = ap) <> 'merged'
+     or (select test_id from db_public_requirements.aporte where id = ap) <> (t->>'id')::bigint then raise exception 'el aporte no queda enlazado al test'; end if;
+  begin perform public.db_public_requirements_srv_fusionar_test((t->>'id')::bigint, 'x title', 'ten chars long', array['no-existe'], null, null);
+    raise exception 'fusionar_test acepta un requisito inexistente';
+  exception when others then if sqlerrm not like 'el requisito%' then raise; end if; end;
+
+  -- acelerador: crear, similares, por URL, fusionar (cobertura existente intacta, plataformas se suman)
+  a := public.db_public_requirements_srv_crear_acelerador('Rev Lib', 'A library that helps with the thing A.', 'open_source', 'free',
+         'https://rev-lib.dev/', array['javascript'], '[{"slug":"rev-req-a","coverage":"full"}]'::jsonb, pg_temp.v(21), 'user_rev', 'rev-lib');
+  r := public.db_public_requirements_srv_similares_aceleradores(pg_temp.v(21), 3);
+  if r->0->>'slug' <> 'rev-lib' then raise exception 'similares_aceleradores falla: %', r; end if;
+  r := public.db_public_requirements_srv_acelerador_por_url('HTTPS://REV-LIB.dev');
+  if r->>'slug' <> 'rev-lib' then raise exception 'acelerador_por_url no casa mayúsculas/barra final: %', r; end if;
+  if public.db_public_requirements_srv_acelerador_por_url('https://otra.dev') is not null then raise exception 'acelerador_por_url inventa'; end if;
+  ap := public.db_public_requirements_srv_registrar_propuesta('user_rev', 'accelerator', E'Name: Rev Lib\nURL: https://rev-lib.dev', null, '{}');
+  perform public.db_public_requirements_srv_fusionar_acelerador((a->>'id')::bigint, 'A better description of the library for A and B.', array['python'],
+    '[{"slug":"rev-req-a","coverage":"partial"},{"slug":"rev-req-b","coverage":"partial"}]'::jsonb, pg_temp.v(22), ap);
+  select cobertura into v_cob from db_public_requirements.acelerador_requisito ar
+    join db_public_requirements.requisito q on q.id = ar.requisito_id where ar.acelerador_id = (a->>'id')::bigint and q.slug = 'rev-req-a';
+  if v_cob <> 'full' then raise exception 'fusionar_acelerador ha pisado la cobertura existente (%)', v_cob; end if;
+  select count(*) into n from db_public_requirements.acelerador_requisito where acelerador_id = (a->>'id')::bigint;
+  if n <> 2 then raise exception 'fusionar_acelerador no añade el enlace'; end if;
+  if (select plataformas from db_public_requirements.acelerador where slug = 'rev-lib') <> array['javascript','python'] then
+    raise exception 'las plataformas no se suman: %', (select plataformas from db_public_requirements.acelerador where slug = 'rev-lib'); end if;
+
+  -- mis_aportes enseña tipo y slugs de lo creado/fusionado, y solo a su autor
+  r := public.db_public_requirements_srv_mis_aportes('user_rev');
+  if jsonb_array_length(r) <> 2 or not exists (select 1 from jsonb_array_elements(r) x where x->>'type' = 'test' and x->>'test' = 'rev-test-1')
+     or not exists (select 1 from jsonb_array_elements(r) x where x->>'type' = 'accelerator' and x->>'accelerator' = 'rev-lib') then
+    raise exception 'mis_aportes no lista los tipos: %', r; end if;
+  if jsonb_array_length(public.db_public_requirements_srv_mis_aportes('otra_persona')) <> 0 then raise exception 'mis_aportes filtra a otros'; end if;
 end $$;
 reset role;

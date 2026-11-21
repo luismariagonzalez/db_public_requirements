@@ -200,6 +200,8 @@ a.chip:hover { border-color: var(--acc); }
 .caja p { margin: 0; }
 .fila-in { display: flex; flex-wrap: wrap; gap: 8px; }
 .fila-in .campo { flex: 1 1 180px; width: auto; }
+.aporte-campos { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
+.aporte-campos[hidden] { display: none; }
 .lista-simple { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .lista-simple li { background: var(--bg); border: 1px solid var(--l1); border-radius: 8px; padding: 8px 12px; font-size: 13px; color: var(--dim); }
 .lista-simple li strong { color: var(--txt); font-weight: 500; }
