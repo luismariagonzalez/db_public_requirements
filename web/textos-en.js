@@ -7,6 +7,7 @@ export default {
 
   'nav.browse': 'Search', 'nav.api': 'API', 'nav.cli': 'CLI', 'nav.account': 'Account', 'nav.terms': 'Terms', 'nav.main': 'Main',
   // ── home (index.html): cajas hacia cada página
+  'home.empieza': 'Start here',
   'home.aria': 'Where to go',
   'home.buscador.t': 'Search', 'home.buscador.p': 'Find requirements, tests and accelerators by app type, topic and priority, and copy them for your agent.',
   'home.mapa.t': 'Map', 'home.mapa.p': 'Every requirement placed by meaning on one map: close dots are similar. Colour, zoom and open any of them.',

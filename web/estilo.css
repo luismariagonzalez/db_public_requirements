@@ -377,3 +377,11 @@ details.sub > :last-child { margin-bottom: 6px; }
 .pag i { position: absolute; right: 18px; top: 18px; font-style: normal; color: var(--acc); transition: transform .15s; }
 .pag:hover, .pag:focus-visible { border-color: var(--acc); background: var(--acc-bg); }
 .pag:hover i, .pag:focus-visible i { transform: translateX(3px); }
+
+/* La caja del buscador es el camino principal: más grande y con el color de acento */
+.pag.principal { border-color: var(--acc); background: linear-gradient(180deg, var(--acc-bg), var(--panel) 85%); padding-top: 26px; }
+.pag.principal b { font-size: 26px; letter-spacing: -.02em; }
+.pag.principal span { font-size: 15px; color: var(--txt); max-width: 44ch; }
+.pag.principal em { align-self: flex-start; font: 500 11px var(--mono); font-style: normal; text-transform: uppercase; letter-spacing: .08em; color: var(--bg); background: var(--acc); padding: 3px 9px; border-radius: 999px; }
+.pag.principal i { font-size: 20px; top: 22px; }
+@media (min-width: 760px) { .pag.principal { grid-column: span 2; } }

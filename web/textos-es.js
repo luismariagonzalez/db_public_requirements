@@ -7,6 +7,7 @@ export default {
 
   'nav.browse': 'Buscador', 'nav.api': 'API', 'nav.cli': 'CLI', 'nav.account': 'Cuenta', 'nav.terms': 'Términos', 'nav.main': 'Principal',
   // ── home (index.html): cajas hacia cada página
+  'home.empieza': 'Empieza aquí',
   'home.aria': 'Adónde ir',
   'home.buscador.t': 'Buscador', 'home.buscador.p': 'Encuentra requisitos, tests y aceleradores por tipo de app, tema y prioridad, y cópialos para tu agente.',
   'home.mapa.t': 'Mapa', 'home.mapa.p': 'Todos los requisitos colocados por significado en un mapa: los puntos cercanos se parecen. Colorea, haz zoom y abre cualquiera.',

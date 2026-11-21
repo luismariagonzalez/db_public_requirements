@@ -10,7 +10,7 @@ test('la portada solo lleva cabecera, hero, las cinco cajas y las cajas hacia ca
   assert.match(h, /class="hero"/); assert.match(h, /class="entidades"/); assert.match(h, /class="paginas"/);
   for (const id of ['filtros', 'browse', 'lista', 'cuenta-zona', 'api', 'claves'])
     assert.ok(!h.includes(`id="${id}"`), `la portada ya no lleva #${id}`);
-  const caja = [...h.matchAll(/class="pag" href="([^"]+)"/g)].map((m) => m[1]);
+  const caja = [...h.matchAll(/class="pag(?: principal)?" href="([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual(caja, ['./buscador.html', './mapa.html', './api.html', './terms.html']);
 });
 
