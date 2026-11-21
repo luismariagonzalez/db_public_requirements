@@ -5,7 +5,14 @@ export default {
   'meta.title': 'Requirements DB · lo que tu app debe cumplir, listo para tu agente de código',
   'meta.description': 'Una base de datos pública y colaborativa de requisitos, tests y aceleradores de software por tipo de app y asunto, con prioridades de 1 a 5. Busca, elige y pégaselos a tu agente de IA.',
 
-  'nav.browse': 'Explorar', 'nav.api': 'API', 'nav.cli': 'CLI', 'nav.account': 'Cuenta', 'nav.terms': 'Términos', 'nav.main': 'Principal',
+  'nav.browse': 'Buscador', 'nav.api': 'API', 'nav.cli': 'CLI', 'nav.account': 'Cuenta', 'nav.terms': 'Términos', 'nav.main': 'Principal',
+  // ── home (index.html): cajas hacia cada página
+  'home.aria': 'Adónde ir',
+  'home.buscador.t': 'Buscador', 'home.buscador.p': 'Encuentra requisitos, tests y aceleradores por tipo de app, tema y prioridad, y cópialos para tu agente.',
+  'home.mapa.t': 'Mapa', 'home.mapa.p': 'Todos los requisitos colocados por significado en un mapa: los puntos cercanos se parecen. Colorea, haz zoom y abre cualquiera.',
+  'home.api.t': 'API', 'home.api.p': 'La API REST, tus claves de API y el cliente de línea de comandos reqdb, para usar la base desde tu agente o desde CI.',
+  'home.terms.t': 'Términos', 'home.terms.p': 'Qué puedes hacer con el contenido: libre para tu propio software, sin extracción masiva.',
+  'claves.anon': 'Entra para crear y gestionar tus claves de API.',
   'cuenta.entrar': 'Entrar', 'cuenta.salir': 'Salir', 'atajo.buscar': 'buscar',
 
   'hero.kicker': '// una biblioteca colaborativa de requisitos para tu agente de código',

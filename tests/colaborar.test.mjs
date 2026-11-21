@@ -23,7 +23,7 @@ test('hay una etiqueta por cada categoría de herramienta de la base', () => {
 });
 
 test('el botón de la cabecera, la caja y sus claves existen en el HTML', () => {
-  const html = readFileSync(new URL('../web/index.html', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../web/buscador.html', import.meta.url), 'utf8');
   for (const id of ['btnColaborar', 'colaborar', 'colLista', 'colBuscar', 'colCopiar', 'colPrompt', 'colEstado', 'colClaves'])
     assert.ok(html.includes(`id="${id}"`), id);
   assert.match(html, /href="#colaborar"/);

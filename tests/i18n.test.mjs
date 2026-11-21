@@ -32,7 +32,7 @@ test('el español está de verdad traducido (casi ningún texto igual al inglés
 
 test('todas las claves del HTML y del JS existen en el diccionario', () => {
   const claves = new Set();
-  for (const f of ['index.html', 'mapa.html']) {
+  for (const f of ['index.html', 'buscador.html', 'api.html', 'mapa.html']) {
     for (const m of leer(f).matchAll(/data-i18n(?:-html)?="([^"]+)"/g)) claves.add(m[1]);
     for (const m of leer(f).matchAll(/data-i18n-attr="([^"]+)"/g)) for (const par of m[1].split(';')) claves.add(par.split(':')[1].trim());
   }

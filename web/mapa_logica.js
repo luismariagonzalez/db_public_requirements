@@ -139,8 +139,8 @@ export const ordenDeDibujo = (puntos) => puntos.map((_, i) => i).sort((a, b) => 
 export const notables = (puntos, n = 30) => [...puntos]
   .sort((a, b) => (b.copies ?? 0) - (a.copies ?? 0) || (a.priority ?? 9) - (b.priority ?? 9) || a.title.localeCompare(b.title)).slice(0, n);
 
-// Enlace para abrir el requisito en la app (la portada lee ?q= y lanza la búsqueda). Relativo: la app puede colgar de otra ruta.
-export const urlAbrir = (punto) => `./?${new URLSearchParams({ q: punto.title })}`;
+// Enlace para abrir el requisito en la app (el buscador lee ?q= y lanza la búsqueda). Relativo: la app puede colgar de otra ruta.
+export const urlAbrir = (punto) => `./buscador.html?${new URLSearchParams({ q: punto.title })}`;
 
 // Un nombre legible cuando la API de categorías no ha respondido.
 export const legible = (slug) => String(slug ?? '').replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());

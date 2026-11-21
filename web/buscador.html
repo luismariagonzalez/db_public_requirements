@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Search requirements · airedb</title>
+<meta name="description" content="Search the requirements, tests and accelerators by app type and concern, with priorities 1-5, and copy them for your AI coding agent.">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./estilo.css">
+<link rel="stylesheet" href="./colaborar.css">
+</head>
+<body data-pagina="buscador">
+<header class="barra">
+  <div class="barra-in">
+    <a class="logo" href="./"><span class="cuadro"></span><span>airedb</span></a>
+    <nav data-i18n-attr="aria-label:nav.main">
+      <a href="./buscador.html" class="act" aria-current="page" data-i18n="nav.browse">Search</a>
+      <a href="./mapa.html" data-i18n="nav.map">Map</a>
+      <a href="./api.html" data-i18n="nav.api">API</a>
+      <a href="./terms.html" data-i18n="nav.terms">Terms</a>
+    </nav>
+    <div class="der">
+      <a id="btnColaborar" href="#colaborar" class="boton acento-b boton-col" data-i18n="col.btn" data-i18n-attr="title:col.btn.t">Want to help?</a>
+      <span class="atajo"><span data-i18n="atajo.buscar">search</span> <kbd>/</kbd></span>
+      <div class="idiomas" role="group" data-i18n-attr="aria-label:idioma.aria">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="es" aria-pressed="false">ES</button>
+      </div>
+      <div class="proy-cab">
+        <button id="proyEntrar" type="button" class="boton" data-i18n="proy.cab">Project</button>
+        <select id="proyecto" class="campo" aria-label="Project" data-i18n-attr="aria-label:lat.proyecto" hidden><option value="" data-i18n="proy.ninguno">— none —</option></select>
+        <button id="proyNuevo" type="button" class="boton" aria-label="New project" data-i18n-attr="aria-label:proy.nuevo" hidden>+</button>
+        <div id="proyNuevoForm" class="proy-form" hidden>
+          <input id="proyNombreRapido" class="campo" type="text" maxlength="80" placeholder="Project name" aria-label="Project name"
+                 data-i18n-attr="placeholder:proy.nombre.placeholder;aria-label:proy.nombre.aria">
+          <button id="proyCrearRapido" type="button" class="boton acento-b" data-i18n="proy.crear">Create project</button>
+        </div>
+      </div>
+      <button id="btnCuenta" type="button" class="boton" data-i18n="cuenta.entrar">Sign in</button>
+    </div>
+  </div>
+</header>
+
+<section class="filtros-barra" id="filtros" aria-label="Search and filters" data-i18n-attr="aria-label:bar.aria">
+  <div class="fb-fila">
+    <label class="busca">
+      <span class="mono tenue">⌕</span>
+      <input id="q" type="search" maxlength="300" autocomplete="off" placeholder="Search by meaning…" aria-label="Search requirements by meaning"
+             data-i18n-attr="placeholder:busca.placeholder;aria-label:busca.aria">
+      <kbd>/</kbd>
+    </label>
+    <button id="btnFiltros" type="button" class="pildora solo-movil" aria-expanded="false" aria-controls="fbCuerpo"></button>
+  </div>
+
+  <div id="fbCuerpo" class="fb-cuerpo">
+    <div class="fb-bloque">
+      <button id="btnConstruyes" type="button" class="desplegable" aria-expanded="false" aria-controls="panelConstruyes">
+        <span class="etq" data-i18n="bar.construyes">What are you building?</span><b id="resConstruyes"></b><i aria-hidden="true">▾</i>
+      </button>
+      <div id="panelConstruyes" class="panel-desp" hidden>
+        <div class="pd-fila">
+          <span class="etq" data-i18n="pan.audiencia">Audience</span>
+          <div id="audiencias" class="pildoras"></div>
+        </div>
+        <div class="pd-tabs" role="tablist">
+          <button type="button" role="tab" data-pestana="tipos" aria-selected="true" data-i18n="pan.tipos">App types</button>
+          <button type="button" role="tab" data-pestana="sector" aria-selected="false" data-i18n="pan.sector">By sector</button>
+        </div>
+        <div id="pestanaTipos" class="pd-lista"></div>
+        <div id="pestanaSector" class="pd-sector" hidden>
+          <div class="pd-fila">
+            <select id="selDominio" class="campo" aria-label="Sector" data-i18n-attr="aria-label:pan.sector"></select>
+            <input id="filtroCat" class="filtro" type="search" maxlength="60" autocomplete="off" placeholder="Filter: CRM, payroll, LMS…" aria-label="Filter software categories"
+                   data-i18n-attr="placeholder:filtro.placeholder;aria-label:filtro.aria">
+          </div>
+          <div id="listaSector" class="pd-lista"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fb-bloque">
+      <button id="btnAdemas" type="button" class="desplegable" aria-expanded="false" aria-controls="panelAdemas">
+        <span class="etq" data-i18n="bar.ademas">Also include</span><b id="resAdemas"></b><i aria-hidden="true">▾</i>
+      </button>
+      <div id="panelAdemas" class="panel-desp" hidden>
+        <div class="pd-fila"><span class="etq" data-i18n="pan.transversales">Topics for every app</span></div>
+        <div id="transversales" class="pildoras"></div>
+        <div id="flujos"></div>
+      </div>
+    </div>
+
+    <div class="fb-grupo">
+      <div class="etq-lat"><span data-i18n="bar.tipo">Kind of requirement</span></div>
+      <div id="kinds" class="pildoras" role="group" data-i18n-attr="aria-label:bar.tipo"></div>
+    </div>
+    <div class="fb-grupo">
+      <div class="etq-lat" data-i18n="lat.prioridad">Priority up to</div>
+      <div id="prio" class="segmentos" role="group" data-i18n-attr="aria-label:prio.aria"></div>
+    </div>
+    <div class="fb-grupo">
+      <div class="etq-lat" data-i18n="bar.orden">Sort</div>
+      <select id="orden" class="campo" aria-label="Sort" data-i18n-attr="aria-label:bar.orden"></select>
+    </div>
+    <div class="fb-grupo" id="grupoPais" hidden>
+      <div class="etq-lat" data-i18n="bar.pais">Country</div>
+      <div class="pildoras">
+        <span id="paises" class="pildoras" role="group" aria-label="Country" data-i18n-attr="aria-label:bar.pais"></span>
+        <button id="soloPais" type="button" class="pildora" role="switch" aria-checked="false" hidden data-i18n="pais.solo" data-i18n-attr="title:pais.solo.t">Only country-specific</button>
+      </div>
+    </div>
+    <div class="fb-grupo">
+      <div class="etq-lat" data-i18n="bar.extras">Include with each requirement</div>
+      <div class="pildoras">
+        <button id="incTests" type="button" class="pildora" role="switch" aria-checked="true" data-i18n="inc.tests">Tests</button>
+        <button id="incAcel" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="inc.acel">Accelerators</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chips-activos" id="zonaChips" hidden>
+    <div id="chipsActivos" class="pildoras"></div>
+    <button id="borrarFiltros" type="button" class="enlace" data-i18n="bar.borrar">Clear filters</button>
+  </div>
+  <div id="prioDesc" class="nota"></div>
+</section>
+
+<main id="browse">
+  <section class="panel lista-panel" aria-labelledby="tituloCat">
+    <div class="panel-cab">
+      <div>
+        <div class="linea-titulo"><h2 id="tituloCat" data-i18n="lista.titulo">Requirements</h2><span id="slugCat" class="mono tenue"></span></div>
+        <div id="descCat" class="nota"></div>
+      </div>
+      <div id="acciones" class="barra-sel mono" hidden>
+        <span id="cuenta" class="tenue"></span>
+        <button id="selTodo" type="button" class="mini" data-i18n="sel.todos">all</button>
+        <button id="selNada" type="button" class="mini" data-i18n="sel.ninguno">none</button>
+      </div>
+    </div>
+    <p id="avisoLegal" class="nota aviso-legal" role="note" hidden data-i18n="aviso.legal">Informational guidance, not legal advice: always verify the current text of each cited norm in the official source.</p>
+    <div id="franjaProyecto" class="barra-proy" hidden>
+      <span id="resumenProyecto" class="nota"></span>
+      <button id="ocultarHecho" type="button" class="pildora" role="switch" aria-checked="false" data-i18n="proy.ocultar">Hide what I did</button>
+      <button id="recordarCopia" type="button" class="pildora" role="switch" aria-checked="true" data-i18n-attr="title:proy.recordar.t" data-i18n="proy.recordar">Remember what I copy</button>
+    </div>
+    <div id="accionesProyecto" class="barra-proy" hidden>
+      <span class="tenue" data-i18n="marcar.texto">Mark the selected in the project as</span>
+      <select id="estadoProyecto" class="campo chico" aria-label="Status" data-i18n-attr="aria-label:marcar.aria"></select>
+      <button id="marcar" type="button" class="mini acento-b" data-i18n="marcar.aplicar" disabled>Apply</button>
+    </div>
+    <p id="estado" class="vacio-msg" aria-live="polite"></p>
+    <ul id="lista" class="lista"></ul>
+  </section>
+
+  <section class="panel salida" aria-label="What your agent receives" data-i18n-attr="aria-label:tabs.aria">
+    <div class="salida-cab">
+      <div id="tabs" class="tabs mono" role="tablist">
+        <button type="button" role="tab" data-tab="md" aria-selected="true">Markdown</button>
+        <button type="button" role="tab" data-tab="curl" aria-selected="false">curl</button>
+        <button type="button" role="tab" data-tab="json" aria-selected="false">JSON</button>
+      </div>
+      <button id="copiarCodigo" type="button" class="mini acento-b" data-i18n="copiar">Copy</button>
+    </div>
+    <div id="codigo" class="codigo" tabindex="0" aria-label="Preview" data-i18n-attr="aria-label:codigo.preview"></div>
+    <div class="salida-pie mono"><span id="pieIzq"></span><span id="pieDer"></span></div>
+  </section>
+</main>
+
+<section id="cuenta-zona" class="cuenta-zona">
+  <div class="cuenta-in">
+    <section id="colaborar" class="caja col-caja" aria-labelledby="t-colaborar">
+      <h2 id="t-colaborar" data-i18n="col.h2">Want to help?</h2>
+      <p class="nota" data-i18n="col.p">airedb grows when people and their coding agents contribute what they learn from real software.</p>
+      <ol class="col-pasos">
+        <li><span class="mono acento">01</span><b data-i18n="col.paso1">Pick a tool</b><span class="nota" data-i18n="col.paso1.d"></span></li>
+        <li><span class="mono acento">02</span><b data-i18n="col.paso2">Copy the prompt</b><span class="nota" data-i18n="col.paso2.d"></span></li>
+        <li><span class="mono acento">03</span><b data-i18n="col.paso3">Paste it into your agent</b><span class="nota" data-i18n="col.paso3.d"></span></li>
+      </ol>
+      <div class="col-cuerpo">
+        <div class="col-izq">
+          <input id="colBuscar" class="campo" type="search" maxlength="80" autocomplete="off" placeholder="Filter tools…" aria-label="Filter tools"
+                 data-i18n-attr="placeholder:col.buscar.placeholder;aria-label:col.buscar.aria">
+          <ul id="colLista" class="col-lista" aria-label="Tools to study" data-i18n-attr="aria-label:col.lista.aria"></ul>
+          <p id="colEstado" class="nota" aria-live="polite" data-i18n="col.cargando">Loading tools…</p>
+        </div>
+        <div class="col-der">
+          <div id="colDetalle" class="col-detalle"></div>
+          <div class="salida-cab">
+            <span id="colChars" class="mono nota"></span>
+            <button id="colCopiar" type="button" class="mini acento-b" data-i18n="col.copiar" disabled>Copy prompt</button>
+          </div>
+          <pre id="colPrompt" class="col-prompt" tabindex="0" aria-label="Prompt preview" data-i18n-attr="aria-label:col.prompt.aria"></pre>
+          <p class="nota"><span data-i18n="col.clave">Contributing needs an API key.</span>
+            <a id="colClaves" href="./api.html#claves" data-i18n="col.clave.enlace">Get a key</a> ·
+            <a href="./api.html#api" data-i18n="col.enlaces.api">API</a> · <a href="./api.html#cli" data-i18n="col.enlaces.cli">CLI</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="proyectos" class="caja" hidden aria-labelledby="t-proy">
+      <h2 id="t-proy" data-i18n="proy.h2">My projects</h2>
+      <p class="nota" data-i18n-html="proy.p.html">Track which requirements, tests and accelerators you implemented in each app, so next time you only pick what is new.
+         Your agent can update this too (see <a href="./api.html#api">API</a> and <a href="./api.html#cli">CLI</a>).</p>
+      <div class="fila-in">
+        <input id="proyNombre" class="campo" type="text" maxlength="80" placeholder="New project name, e.g. “Acme chat”" aria-label="Project name"
+               data-i18n-attr="placeholder:proy.nombre.placeholder;aria-label:proy.nombre.aria">
+        <button id="proyCrear" type="button" class="boton acento-b" data-i18n="proy.crear">Create project</button>
+      </div>
+      <ul id="listaProyectos" class="lista-simple"></ul>
+    </section>
+
+    <section id="aportar" class="caja" hidden aria-labelledby="t-aportar">
+      <h2 id="t-aportar" data-i18n="aporte.h2">Contribute</h2>
+      <p class="nota" data-i18n="aporte.p">Add a requirement, a test or an accelerator, in any language. An AI checks it is real and legal, whether it already exists (then it merges or declines), and strips anything about screens or layout.</p>
+      <select id="aporteTipo" class="campo" aria-label="What do you contribute?" data-i18n-attr="aria-label:aporte.tipo.aria">
+        <option value="requirement" data-i18n="aporte.tipo.requirement">A requirement</option>
+        <option value="test" data-i18n="aporte.tipo.test">A test</option>
+        <option value="accelerator" data-i18n="aporte.tipo.accelerator">An accelerator</option>
+      </select>
+      <div id="aporteReq" class="aporte-campos">
+        <textarea id="aporteTexto" class="campo" rows="4" maxlength="4000" placeholder="e.g. Users must be able to block another user so they stop receiving their messages."
+                  data-i18n-attr="placeholder:aporte.placeholder"></textarea>
+      </div>
+      <div id="aporteTest" class="aporte-campos" hidden>
+        <input id="apTestTitulo" class="campo" type="text" maxlength="120" placeholder="Title, e.g. Reset link expires" aria-label="Title"
+               data-i18n-attr="placeholder:aporte.test.titulo;aria-label:aporte.test.titulo">
+        <textarea id="apTestEscenario" class="campo" rows="3" maxlength="800" placeholder="Scenario and expected result: what is done and what must happen."
+                  aria-label="Scenario" data-i18n-attr="placeholder:aporte.test.escenario;aria-label:aporte.test.escenario"></textarea>
+        <div class="fila-in">
+          <select id="apTestTipo" class="campo" aria-label="Test type" data-i18n-attr="aria-label:aporte.test.tipo">
+            <option value="unit">unit</option><option value="integration" selected>integration</option><option value="e2e">e2e</option>
+            <option value="security">security</option><option value="performance">performance</option>
+            <option value="accessibility">accessibility</option><option value="manual">manual</option>
+          </select>
+          <select id="apTestPrioridad" class="campo" aria-label="Suggested priority" data-i18n-attr="aria-label:aporte.prioridad">
+            <option value="1">P1</option><option value="2">P2</option><option value="3" selected>P3</option><option value="4">P4</option><option value="5">P5</option>
+          </select>
+        </div>
+        <input id="apTestReqs" class="campo" type="text" maxlength="400" placeholder="Requirements it verifies (slugs, comma separated)" aria-label="Requirements"
+               data-i18n-attr="placeholder:aporte.reqs;aria-label:aporte.reqs.aria">
+      </div>
+      <div id="aporteAcel" class="aporte-campos" hidden>
+        <input id="apAcName" class="campo" type="text" maxlength="80" placeholder="Name" aria-label="Name" data-i18n-attr="placeholder:aporte.ac.nombre;aria-label:aporte.ac.nombre">
+        <input id="apAcUrl" class="campo" type="url" maxlength="300" placeholder="https://… (official site or repository)" aria-label="URL"
+               data-i18n-attr="placeholder:aporte.ac.url;aria-label:aporte.ac.url.aria">
+        <textarea id="apAcDesc" class="campo" rows="3" maxlength="600" placeholder="Neutral description: what it is and what it helps with."
+                  aria-label="Description" data-i18n-attr="placeholder:aporte.ac.desc;aria-label:aporte.ac.desc.aria"></textarea>
+        <div class="fila-in">
+          <select id="apAcModelo" class="campo" aria-label="Model" data-i18n-attr="aria-label:aporte.ac.modelo">
+            <option value="open_source">open source</option><option value="proprietary">proprietary</option><option value="saas" selected>SaaS</option>
+          </select>
+          <select id="apAcCoste" class="campo" aria-label="Cost" data-i18n-attr="aria-label:aporte.ac.coste">
+            <option value="free">free</option><option value="freemium" selected>freemium</option><option value="paid">paid</option>
+          </select>
+        </div>
+        <input id="apAcReqs" class="campo" type="text" maxlength="600" placeholder="Requirements it helps with (slugs; add :full if it covers it alone)" aria-label="Requirements"
+               data-i18n-attr="placeholder:aporte.ac.reqs;aria-label:aporte.reqs.aria">
+      </div>
+      <label class="check"><input type="checkbox" id="aporteLicencia"> <span data-i18n-html="aporte.terminos.html">I have the right to submit this and I agree to the <a href="./terms.html">Content Terms</a>, including the licence I grant the project over my contribution.</span></label>
+      <button id="aporteEnviar" type="button" class="boton acento-b" data-i18n="aporte.enviar">Send for review</button>
+      <div id="aporteResultado" class="resultado" hidden></div>
+      <h3 data-i18n="aporte.mias">My contributions</h3>
+      <ul id="misAportes" class="lista-simple"></ul>
+    </section>
+
+    <section id="sugerencias" class="caja" hidden aria-labelledby="t-sug">
+      <h2 id="t-sug" data-i18n="sug.h2">Suggest something</h2>
+      <p class="nota" data-i18n="sug.p">A feature you miss in airedb, or a problem you found in the app? A person reviews every suggestion.</p>
+      <select id="sugTipo" class="campo" aria-label="Kind" data-i18n-attr="aria-label:sug.tipo.aria">
+        <option value="feature" data-i18n="sug.tipo.feature">A feature I would like</option>
+        <option value="problem" data-i18n="sug.tipo.problem">A problem with the app</option>
+      </select>
+      <textarea id="sugTexto" class="campo" rows="3" maxlength="1500" placeholder="What would you like airedb to do, or what went wrong?" data-i18n-attr="placeholder:sug.placeholder"></textarea>
+      <button id="sugEnviar" type="button" class="boton acento-b" data-i18n="sug.enviar">Send suggestion</button>
+      <h3 data-i18n="sug.mias">My suggestions</h3>
+      <ul id="misSugerencias" class="lista-simple"></ul>
+    </section>
+
+  </div>
+</section>
+
+<footer class="pie">
+  <div class="pie-in">
+    <span data-i18n="pie.texto">airedb · community-curated · code MIT</span>
+    <span><a href="./buscador.html" data-i18n="nav.browse">Search</a><a href="./mapa.html" data-i18n="pie.mapa">Map</a><a href="./api.html" data-i18n="nav.api">API</a><a href="./legal.html" data-i18n="pie.legal">Legal &amp; privacy</a><a href="./terms.html" data-i18n="pie.terminos">Content terms</a></span>
+  </div>
+</footer>
+<div id="aviso" class="aviso" role="status" hidden></div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -106,7 +106,7 @@ test('orden de dibujo: lo más copiado primero (queda debajo); notables: copias,
 
 test('enlace a la app: relativo y con el título bien codificado; nombres legibles de reserva', () => {
   const u = urlAbrir(P('x', 0, 0, { title: 'Reset a & b?' }));
-  assert.equal(u, './?q=Reset+a+%26+b%3F');
+  assert.equal(u, './buscador.html?q=Reset+a+%26+b%3F');
   assert.equal(legible('cross-cutting-thing'), 'Cross cutting thing');
 });
 

@@ -367,3 +367,13 @@ details.sub > :last-child { margin-bottom: 6px; }
   .proy-cab select.campo { max-width: 110px; }
   .proy-form { right: auto; left: 0; }
 }
+
+
+/* Inicio: cajas hacia cada página (coinciden con el menú) */
+.paginas { max-width: 1480px; margin: 0 auto; padding: 8px 20px 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.pag { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 20px 22px 22px; background: var(--panel); border: 1px solid var(--l1); border-radius: 12px; color: inherit; text-decoration: none; transition: border-color .15s, background .15s; }
+.pag b { font-size: 19px; font-weight: 500; letter-spacing: -.01em; }
+.pag span { font-size: 14px; line-height: 1.5; color: var(--dim); max-width: 34ch; }
+.pag i { position: absolute; right: 18px; top: 18px; font-style: normal; color: var(--acc); transition: transform .15s; }
+.pag:hover, .pag:focus-visible { border-color: var(--acc); background: var(--acc-bg); }
+.pag:hover i, .pag:focus-visible i { transform: translateX(3px); }

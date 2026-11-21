@@ -5,7 +5,14 @@ export default {
   'meta.title': 'Requirements DB · what your app must do, ready for your coding agent',
   'meta.description': 'A public, community-curated database of software requirements, tests and accelerators by app type and concern, with priorities 1-5. Search, pick, and paste them to your AI coding agent.',
 
-  'nav.browse': 'Browse', 'nav.api': 'API', 'nav.cli': 'CLI', 'nav.account': 'Account', 'nav.terms': 'Terms', 'nav.main': 'Main',
+  'nav.browse': 'Search', 'nav.api': 'API', 'nav.cli': 'CLI', 'nav.account': 'Account', 'nav.terms': 'Terms', 'nav.main': 'Main',
+  // ── home (index.html): cajas hacia cada página
+  'home.aria': 'Where to go',
+  'home.buscador.t': 'Search', 'home.buscador.p': 'Find requirements, tests and accelerators by app type, topic and priority, and copy them for your agent.',
+  'home.mapa.t': 'Map', 'home.mapa.p': 'Every requirement placed by meaning on one map: close dots are similar. Colour, zoom and open any of them.',
+  'home.api.t': 'API', 'home.api.p': 'The REST API, your API keys and the reqdb command-line client, to use the database straight from your agent or CI.',
+  'home.terms.t': 'Terms', 'home.terms.p': 'What you can do with the content: free for your own software, no bulk extraction.',
+  'claves.anon': 'Sign in to create and manage your API keys.',
   'cuenta.entrar': 'Sign in', 'cuenta.salir': 'Sign out', 'atajo.buscar': 'search',
 
   'hero.kicker': '// a community-built library of requirements for your coding agent',

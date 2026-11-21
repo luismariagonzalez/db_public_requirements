@@ -42,7 +42,7 @@ const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
 const web = createServer((req, res) => {
   if (req.url.startsWith('/api/')) return handler(req, res);
   const ruta = req.url.split('?')[0];
-  const f = join(raiz, 'web', ruta === '/' ? 'index.html' : ruta.replace(/\.\./g, ''));
+  const f = join(raiz, 'web', ruta === '/' ? 'buscador.html' : ruta.replace(/\.\./g, ''));
   if (!existsSync(f)) { res.statusCode = 404; return res.end('nf'); }
   res.setHeader('content-type', TIPOS[extname(f)] ?? 'text/plain'); res.setHeader('content-security-policy', csp);
   res.end(readFileSync(f));

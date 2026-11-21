@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>API, API keys and CLI · airedb</title>
+<meta name="description" content="Use airedb from your agent: REST API, API keys and the reqdb command-line client.">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./estilo.css">
+<link rel="stylesheet" href="./colaborar.css">
+</head>
+<body data-pagina="api">
+<header class="barra">
+  <div class="barra-in">
+    <a class="logo" href="./"><span class="cuadro"></span><span>airedb</span></a>
+    <nav data-i18n-attr="aria-label:nav.main">
+      <a href="./buscador.html" data-i18n="nav.browse">Search</a>
+      <a href="./mapa.html" data-i18n="nav.map">Map</a>
+      <a href="./api.html" class="act" aria-current="page" data-i18n="nav.api">API</a>
+      <a href="./terms.html" data-i18n="nav.terms">Terms</a>
+    </nav>
+    <div class="der">
+      <div class="idiomas" role="group" data-i18n-attr="aria-label:idioma.aria">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="es" aria-pressed="false">ES</button>
+      </div>
+      <button id="btnCuenta" type="button" class="boton" data-i18n="cuenta.entrar">Sign in</button>
+    </div>
+  </div>
+</header>
+
+<section id="api" class="api">
+  <div class="api-in">
+    <div>
+      <div class="mono acento" data-i18n="api.kicker">// api</div>
+      <h2 data-i18n="api.h2">Use it from your agent</h2>
+      <p data-i18n-html="api.p.html">Public and rate limited — 20 req/min without a key. JSON by default, or paste-ready Markdown with <code>format=md</code>,
+         ending with instructions for your agent to record what's done and what's pending in your project.</p>
+      <div class="leyenda">
+        <div class="etq-lat" data-i18n="api.leyenda">Priority scale · per category</div>
+        <div id="leyenda"></div>
+      </div>
+    </div>
+    <div class="endpoints">
+      <div class="caja-ep">
+        <div class="cab-ep mono"><span data-i18n="api.lectura">Read · public</span><span>GET</span></div>
+        <div class="ep"><span class="mono">/api/v1/categories</span><span data-i18n="api.ep.cats">audiences, domains, categories</span></div>
+        <div class="ep"><span class="mono">/api/v1/requirements</span><span data-i18n-html="api.ep.reqs.html">search, filter, <code>format=md</code></span></div>
+        <div class="ep"><span class="mono">/api/v1/tests</span><span data-i18n="api.ep.tests">tests by category and priority</span></div>
+        <div class="ep"><span class="mono">/api/v1/accelerators</span><span data-i18n="api.ep.acel">libraries and services</span></div>
+        <div class="ep"><span class="mono">/api/v1/tools</span><span data-i18n="col.api.tools">tools with public code or docs to study</span></div>
+      </div>
+      <div class="caja-ep">
+        <div class="cab-ep mono"><span data-i18n="api.clave">With a key</span><span>Authorization: Bearer rq_…</span></div>
+        <div class="ep"><span class="mono">GET /api/v1/projects</span><span data-i18n="api.ep.proyectos">your projects</span></div>
+        <div class="ep"><span class="mono">PUT /api/v1/projects/:id/items</span><span data-i18n="api.ep.marcar">mark done / planned / skipped</span></div>
+        <div class="ep"><span class="mono">POST /api/v1/suggestions</span><span data-i18n="api.ep.sugerir">suggest something</span></div>
+        <div class="nota pad" data-i18n-html="api.nota.html">Add <code>project=&lt;id&gt;</code> to a search to see what you already shipped, and <code>hide=done</code> to skip it.</div>
+      </div>
+      <pre class="comando"><code id="ejemploCurl">curl "https://&lt;this-site&gt;/api/v1/requirements?category=messaging&amp;max_priority=2&amp;include=tests,accelerators&amp;format=md"</code></pre>
+      <div class="caja-ep" id="cli">
+        <div class="cab-ep mono"><span data-i18n="api.cli.titulo">Prefer the terminal?</span><span>airedb CLI</span></div>
+        <div class="ep"><span data-i18n="api.cli.p">The airedb CLI (reqdb.mjs) is one file, no dependencies: pull requirements into your repo, let your agent mark progress, and fail CI while P1 work is pending.</span></div>
+        <pre class="comando sin-borde"><code id="ejemploCli">node reqdb.mjs pull</code></pre>
+        <div class="ep"><a href="./cli.html" data-i18n="api.cli.enlace">CLI docs for agents →</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cuenta-zona" class="cuenta-zona">
+  <div class="cuenta-in">
+    <section id="claves" class="caja" aria-labelledby="t-claves">
+      <h2 id="t-claves" data-i18n="claves.h2">API keys</h2>
+      <p class="nota" data-i18n="claves.p">Keys raise your rate limit and let your agent (or the CLI) read, update your projects and send suggestions. Keep them secret: they are shown only once.</p>
+      <p id="clavesAnon" class="nota" data-i18n="claves.anon">Sign in to create and manage your API keys.</p>
+      <div id="clavesForm" hidden>
+      <div class="fila-in">
+        <input id="claveNombre" class="campo" type="text" maxlength="60" placeholder="Name, e.g. “my Claude Code”" aria-label="Key name"
+               data-i18n-attr="placeholder:claves.nombre.placeholder;aria-label:claves.nombre.aria">
+        <button id="claveCrear" type="button" class="boton acento-b" data-i18n="claves.crear">Create key</button>
+      </div>
+      <div id="claveNueva" class="resultado" hidden></div>
+      <ul id="listaClaves" class="lista-simple"></ul>
+      <button id="borrarTodo" type="button" class="boton peligro" data-i18n="datos.borrar">Delete my data</button>
+    </div>
+    </section>
+  </div>
+</section>
+
+<footer class="pie">
+  <div class="pie-in">
+    <span data-i18n="pie.texto">airedb · community-curated · code MIT</span>
+    <span><a href="./buscador.html" data-i18n="nav.browse">Search</a><a href="./mapa.html" data-i18n="pie.mapa">Map</a><a href="./api.html" data-i18n="nav.api">API</a><a href="./legal.html" data-i18n="pie.legal">Legal &amp; privacy</a><a href="./terms.html" data-i18n="pie.terminos">Content terms</a></span>
+  </div>
+</footer>
+<div id="aviso" class="aviso" role="status" hidden></div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

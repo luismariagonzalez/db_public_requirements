@@ -7,7 +7,11 @@ import { iniciar, idioma, t as T, tn as TN, fecha as FECHA } from './i18n.js';
 import { piezasMetricas } from './metricas.js';
 import { iniciarColaborar } from './colaborar.js';
 
-const $ = (s) => document.querySelector(s);
+// Esta lógica sirve a dos páginas (buscador.html y api.html). Lo que no está en la página actual
+// devuelve un elemento suelto, así el resto del código no tiene que comprobar cada caso.
+const PAGINA = document.body.dataset.pagina ?? '';
+const BUSCADOR = PAGINA === 'buscador';
+const $ = (s) => document.querySelector(s) ?? document.createElement('div');
 // Idioma: se fija ya (EN/ES) y, al cambiarlo, se vuelve a pintar todo lo dinámico (renderTodo).
 iniciar(() => renderTodo());
 // Dónde está montada la app: en la raíz del despliegue ('') o colgando de otra web, p. ej.
@@ -415,14 +419,19 @@ function pintarSesion(user) {
   sesion = !!user;
   marcarSesion(sesion);
   $('#btnCuenta').textContent = T(user ? 'cuenta.salir' : 'cuenta.entrar');
-  for (const id of ['#aportar', '#claves', '#proyectos', '#sugerencias']) $(id).hidden = !user;
+  for (const id of ['#aportar', '#proyectos', '#sugerencias']) $(id).hidden = !user;
+  $('#clavesForm').hidden = !user; $('#clavesAnon').hidden = !!user;
   $('#proyEntrar').hidden = !!user; $('#proyecto').hidden = !user; $('#proyNuevo').hidden = !user;
   if (!user) $('#proyNuevoForm').hidden = true;
   if (!user) { estado.proyecto = null; proyectos = []; }
-  if (user) { cargarAportes(); cargarClaves(); cargarProyectos(); cargarSugerencias(); }
+  if (user) recargarCuenta();
 }
-// Proyectos y claves están siempre en el menú: sin sesión llevan a entrar.
-for (const id of ['#navProy', '#navClaves', '#proyEntrar', '#colClaves'])
+// Lo de la cuenta que muestra cada página: el buscador, aportes, proyectos y sugerencias; la API, las claves.
+function recargarCuenta() {
+  if (BUSCADOR) { cargarAportes(); cargarProyectos(); cargarSugerencias(); } else cargarClaves();
+}
+// «Project» (cabecera) lleva a entrar si no hay sesión.
+for (const id of ['#proyEntrar'])
   $(id).addEventListener('click', async (e) => { if (!sesion) { e.preventDefault(); try { await entrar(); } catch (err) { avisar(err.message); } } });
 $('#btnCuenta').addEventListener('click', async () => {
   try {
@@ -623,7 +632,7 @@ $('#borrarTodo').addEventListener('click', async () => {
   try {
     await api('DELETE', '/api/me', null, true);
     avisar(T('datos.borrados'));
-    cargarAportes(); cargarClaves(); cargarProyectos(); cargarSugerencias();
+    recargarCuenta();
   } catch (e) { avisar(msgError(e)); }
 });
 
@@ -634,15 +643,17 @@ $('#ejemploCli').textContent =
   `curl -fsSL ${location.origin}${BASE}/reqdb.mjs -o reqdb.mjs\nnode reqdb.mjs pull --category messaging --max-priority 2`;
 pintarPrio(); pintarKinds(); pintarOrden(); pintarTitulo();
 // «¿Quieres colaborar?»: catálogo de herramientas y prompt para el agente (web/colaborar.js)
-const colaborar = iniciarColaborar({ $, el, api, copiar, base: `${location.origin}${BASE}` });
+const colaborar = BUSCADOR ? iniciarColaborar({ $, el, api, copiar, base: `${location.origin}${BASE}` }) : { repintar() {} };
 
 // Al cambiar de idioma se vuelve a pintar todo lo que genera este script (lo estático lo hace i18n.js).
 function renderTodo() {
+  if (!BUSCADOR) { pintarLeyenda(); $('#btnCuenta').textContent = T(sesion ? 'cuenta.salir' : 'cuenta.entrar'); if (sesion) cargarClaves(); return; }
   pintarPrio(); pintarLeyenda(); pintarTitulo(); pintarFiltros(); pintarEstadosProyecto(); pintarLista(); colaborar.repintar();
   $('#btnCuenta').textContent = T(sesion ? 'cuenta.salir' : 'cuenta.entrar');
   if (sesion) { cargarProyectos(); cargarAportes(); cargarClaves(); cargarSugerencias(); }
 }
 (async () => {
+  if (!BUSCADOR) { pintarLeyenda(); iniciarSesion(); return; }
   try {
     estado.categorias = (await api('GET', '/api/v1/categories')).categories;
     // Enlaces desde el mapa (mapa.html): ?q=<texto> lanza esa búsqueda.
