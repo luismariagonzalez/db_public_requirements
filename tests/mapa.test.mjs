@@ -166,37 +166,28 @@ function baseMapa(textos) {
 }
 const TEXTOS = Array.from({ length: 30 }, (_, i) => `${['chat message typing', 'payment invoice card', 'password login token'][i % 3]} item ${i}`);
 
-test('mapa_calcular: sin modelo ajusta uno y escribe todos los puntos', async () => {
+test('mapa_calcular: escribe todos los puntos con t-SNE y guarda la descripción del método', async () => {
   const b = baseMapa(TEXTOS);
   const r = await calcularMapa({ rpc: b.rpc, log: mudo });
-  assert.equal(r.modo, 'refit'); assert.equal(r.escritos, 30);
+  assert.equal(r.modo, 'completo'); assert.equal(r.escritos, 30);
   assert.equal(b.estado.puntos.size, 30);
-  assert.equal(b.estado.modelo.dims, 768);
+  assert.equal(b.estado.modelo.metodo, 'tsne'); assert.equal(b.estado.modelo.dims, 768);
+  for (const [x, y] of b.estado.puntos.values()) assert.ok(Math.abs(x) <= 2 && Math.abs(y) <= 2);
 });
 
-test('mapa_calcular: con modelo solo proyecta los nuevos y NO mueve los que ya estaban', async () => {
+test('mapa_calcular es determinista, agrupa lo parecido y --dry no escribe', async () => {
   const b = baseMapa(TEXTOS);
   await calcularMapa({ rpc: b.rpc, log: mudo });
   const antes = new Map(b.estado.puntos);
-  b.filas.push({ id: 31, vec: aLiteral(vectorSimulado('payment refund invoice nuevo')) },
-               { id: 32, vec: aLiteral(vectorSimulado('chat group message nuevo')) });
-  const r = await calcularMapa({ rpc: b.rpc, log: mudo });
-  assert.equal(r.modo, 'incremental'); assert.equal(r.escritos, 2);
-  for (const [id, xy] of antes) assert.deepEqual(b.estado.puntos.get(id), xy);
-  assert.ok(b.estado.puntos.has(31) && b.estado.puntos.has(32));
-  assert.equal((await calcularMapa({ rpc: b.rpc, log: mudo })).escritos, 0);    // ya no hay nada nuevo
-});
-
-test('mapa_calcular --refit es determinista y apenas mueve lo existente; --dry no escribe', async () => {
-  const b = baseMapa(TEXTOS);
-  await calcularMapa({ rpc: b.rpc, log: mudo });
-  const antes = new Map(b.estado.puntos);
-  const dry = await calcularMapa({ rpc: b.rpc, refit: true, dry: true, log: mudo });
+  const dry = await calcularMapa({ rpc: b.rpc, dry: true, log: mudo });
   assert.equal(dry.escritos, 0); assert.deepEqual(b.estado.puntos, antes);
-  await calcularMapa({ rpc: b.rpc, refit: true, log: mudo });
-  for (const [id, xy] of antes) {
-    assert.ok(Math.hypot(b.estado.puntos.get(id)[0] - xy[0], b.estado.puntos.get(id)[1] - xy[1]) < 1e-4, 'el mismo ajuste con los mismos datos da lo mismo');
-  }
+  await calcularMapa({ rpc: b.rpc, log: mudo });
+  assert.deepEqual(b.estado.puntos, antes, 'los mismos datos dan las mismas coordenadas');
+  // los tres temas de TEXTOS (i % 3) quedan más cerca dentro del tema que entre temas
+  const d = (i, j) => Math.hypot(...antes.get(i).map((v, k) => v - antes.get(j)[k]));
+  let dentro = 0, fuera = 0, nd = 0, nf = 0;
+  for (let i = 1; i <= 30; i++) for (let j = i + 1; j <= 30; j++) { if ((i - 1) % 3 === (j - 1) % 3) { dentro += d(i, j); nd++; } else { fuera += d(i, j); nf++; } }
+  assert.ok(dentro / nd < fuera / nf, 'lo parecido queda junto');
 });
 
 test('mapa_calcular: con menos de 3 requisitos no escribe nada', async () => {

@@ -531,8 +531,8 @@ await prueba('GET /api/v1/map: vacío sin coordenadas; tras reembeber + mapa_cal
   assert.ok(antes.hechos >= 14, `reembeber recalculó ${antes.hechos}`);
   assert.equal((await reembeber({ embedLote: embedLoteSimulado, log: mudo })).hechos, 0, 'reanudable: la segunda vez no queda nada');
 
-  const calculo = await calcularMapa({ refit: true, log: mudo });
-  assert.equal(calculo.modo, 'refit'); assert.ok(calculo.escritos >= 14);
+  const calculo = await calcularMapa({ log: mudo });
+  assert.equal(calculo.modo, 'completo'); assert.ok(calculo.escritos >= 14);
 
   const r = await pedir('GET', '/api/v1/map');
   assert.equal(r.estado, 200);
@@ -545,18 +545,15 @@ await prueba('GET /api/v1/map: vacío sin coordenadas; tras reembeber + mapa_cal
   assert.ok(Number.isFinite(p.x) && Number.isFinite(p.y) && Math.abs(p.x) <= 2 && Math.abs(p.y) <= 2);
   assert.ok(!r.texto.includes('single-use link'), 'sin enunciados');
 
-  // un requisito nuevo se coloca solo a él: los demás no se mueven
+  // un requisito nuevo entra en el mapa al recalcularlo (t-SNE recoloca todo, de forma determinista)
   await rpc('crear_requisito', { p_titulo: 'One more mapped requirement', p_enunciado: 'The product must support one more mapped behaviour in chat flows.',
     p_criterios: [], p_clase: 'functional', p_categorias: [{ slug: 'messaging', priority: 2 }], p_vec: null, p_autor: null, p_aporte_id: null, p_slug: 'one-more-mapped-requirement' });
   await reembeber({ embedLote: embedLoteSimulado, log: mudo });
   const inc = await calcularMapa({ log: mudo });
-  assert.equal(inc.modo, 'incremental'); assert.equal(inc.escritos, 1);
+  assert.equal(inc.modo, 'completo'); assert.equal(inc.escritos, r.json.count + 1);
   const r2 = await pedir('GET', '/api/v1/map');
   assert.equal(r2.json.count, r.json.count + 1);
-  for (const a of r.json.points) {
-    const b = r2.json.points.find((x) => x.slug === a.slug);
-    assert.deepEqual([b.x, b.y], [a.x, a.y], `${a.slug} no debe moverse`);
-  }
+  assert.ok(r2.json.points.some((x) => x.slug === 'one-more-mapped-requirement'));
 });
 
 await prueba('GET /api/v1/map: el cupo anónimo también lo cuenta (429 al pasarse)', async () => {

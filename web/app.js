@@ -15,7 +15,7 @@ iniciar(() => renderTodo());
 // API ('/api/v1/…') se cuelgan de ahí, así que todo es relativo y funciona en los dos sitios.
 const BASE = new URL('./', location.href).pathname.replace(/\/$/, '');
 const estado = { q: '', prio: 5, cats: [], audiencias: [], dominios: [], filtroCat: '', items: [], sel: new Set(), categorias: [],
-  incluirTests: false, incluirAceleradores: false, proyecto: null, ocultarHecho: false, kinds: [], orden: null, recordar: true, tab: 'md', pestana: 'tipos',
+  incluirTests: true, incluirAceleradores: false, proyecto: null, ocultarHecho: false, kinds: [], orden: null, recordar: true, tab: 'md', pestana: 'tipos',
   paises: [], soloPais: false, jurisdicciones: [] };
 let sesion = false;
 let proyectos = [];
