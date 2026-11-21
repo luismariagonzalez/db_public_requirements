@@ -1433,3 +1433,29 @@ begin
   if jsonb_array_length(r->'items') <> 0 or (r->>'total')::int <> 3 then raise exception 'más allá del final: lista vacía y total igual'; end if;
 end $$;
 reset role;
+
+
+-- ═══ 0013: sin «qué construyes» ni país, nada regulatorio (tampoco buscando solo por texto) ═══
+set role service_role;
+do $$
+declare r jsonb; s text[];
+begin
+  -- sin ninguna categoría: lo regulatorio (con jurisdicción) no sale
+  r := public.db_public_requirements_srv_buscar(null, null, null, 5, null, 200);
+  select array_agg(x->>'slug') into s from jsonb_array_elements(r->'items') x;
+  if s && array['alc-juego-regulado','pais-es-ue','pais-solo-es'] then raise exception 'sin categorías ni país salió algo regulatorio: %', s; end if;
+  if not s @> array['alc-generico','pais-generico'] then raise exception 'sin categorías deben salir los genéricos: %', s; end if;
+  -- solo texto: igual
+  r := public.db_public_requirements_srv_buscar(null, 'logs', null, 5, null, 200);
+  select coalesce(array_agg(x->>'slug'), '{}') into s from jsonb_array_elements(r->'items') x;
+  if 'alc-juego-regulado' = any (s) then raise exception 'solo texto sin país sacó lo regulatorio'; end if;
+  -- con país, sí
+  r := public.db_public_requirements_srv_buscar(null, 'logs', null, 5, null, 200, null, array['ES','EU'], false);
+  select coalesce(array_agg(x->>'slug'), '{}') into s from jsonb_array_elements(r->'items') x;
+  if not 'alc-juego-regulado' = any (s) then raise exception 'con país debe salir lo regulatorio: %', s; end if;
+  -- pidiendo su «qué construyes», también (como antes)
+  r := public.db_public_requirements_srv_buscar(null, null, array['alc-juego'], 5, null, 200);
+  select coalesce(array_agg(x->>'slug'), '{}') into s from jsonb_array_elements(r->'items') x;
+  if not 'alc-juego-regulado' = any (s) then raise exception 'pidiendo el tipo de app debe salir: %', s; end if;
+end $$;
+reset role;
